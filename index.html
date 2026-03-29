@@ -1,0 +1,950 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>CoRadix Academy — Learn Differently</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink:        #1c1c1e;
+      --grey:       #3a3a3c;
+      --muted:      #6b7280;
+      --border:     #e5e7eb;
+      --bg:         #ffffff;
+      --bg-soft:    #f5f7fa;
+      --blue:       #0057ff;
+      --blue-light: #e8efff;
+      --blue-mid:   #3b82f6;
+
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+      --fs-display: clamp(2.6rem, 6vw, 5.2rem);
+      --fs-h2: clamp(1.8rem, 3.5vw, 2.8rem);
+      --fs-body: 1rem;
+      --fs-small: 0.875rem;
+    }
+
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg);
+      color: var(--ink);
+      overflow-x: hidden;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4vw;
+      height: 64px;
+      background: rgba(255,255,255,0.96);
+      backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 38px; width: auto; display: block; }
+    .nav-logo-text {
+      font-family: 'Inter', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+    }
+    .nav-logo-text span { color: var(--blue); }
+
+    .nav-links { display: flex; align-items: center; gap: 1.8rem; list-style: none; }
+    .nav-links a {
+      font-size: var(--fs-small);
+      font-weight: 500;
+      text-decoration: none;
+      color: var(--muted);
+      letter-spacing: 0.02em;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--ink); }
+    .nav-cta {
+      background: var(--blue) !important;
+      color: #fff !important;
+      padding: 0.45rem 1.1rem;
+      border-radius: 6px;
+      font-weight: 600 !important;
+      transition: opacity 0.2s, transform 0.2s !important;
+    }
+    .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); color: #fff !important; }
+
+    /* ── HERO ── */
+    #hero {
+      min-height: 100svh;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      align-items: center;
+      padding: 7rem 4vw 4rem;
+      gap: 5rem;
+      position: relative;
+      overflow: hidden;
+    }
+    .hero-glow {
+      position: absolute; pointer-events: none; border-radius: 50%;
+    }
+    .hero-glow:nth-child(1) {
+      width: 50vw; height: 50vw; right: -8vw; top: -8vw;
+      background: radial-gradient(circle, rgba(0,87,255,0.07) 0%, transparent 65%);
+    }
+    .hero-glow:nth-child(2) {
+      width: 30vw; height: 30vw; left: -4vw; bottom: 4vw;
+      background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 65%);
+    }
+    .hero-text { position: relative; z-index: 1; }
+    .eyebrow {
+      display: inline-flex; align-items: center; gap: 0.5rem;
+      font-size: 0.75rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--blue); margin-bottom: 1.4rem;
+      opacity: 0; animation: fadeUp 0.7s var(--ease) 0.1s forwards;
+    }
+    .eyebrow::before { content:''; width:1.5rem; height:2px; background:var(--blue); }
+
+    h1.display {
+      font-family: 'DM Serif Display', serif;
+      font-size: var(--fs-display);
+      font-weight: 400;
+      line-height: 1.08;
+      letter-spacing: -0.02em;
+      color: var(--ink);
+      margin-bottom: 1.4rem;
+      opacity: 0; animation: fadeUp 0.8s var(--ease) 0.2s forwards;
+    }
+    h1.display em { font-style: italic; color: var(--blue); }
+
+    .hero-desc {
+      font-size: 1.05rem; color: var(--muted); line-height: 1.75;
+      max-width: 46ch; margin-bottom: 2.4rem;
+      opacity: 0; animation: fadeUp 0.8s var(--ease) 0.32s forwards;
+    }
+    .hero-actions {
+      display: flex; gap: 0.75rem; flex-wrap: wrap;
+      opacity: 0; animation: fadeUp 0.8s var(--ease) 0.42s forwards;
+    }
+    .btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-family: 'Inter', sans-serif; font-weight: 600;
+      font-size: 0.9rem; padding: 0.75rem 1.6rem;
+      border-radius: 6px; text-decoration: none; transition: all 0.2s;
+    }
+    .btn-blue { background: var(--blue); color: #fff; }
+    .btn-blue:hover { background: #0047d6; transform: translateY(-1px); }
+    .btn-outline { border: 1.5px solid var(--border); color: var(--ink); background: transparent; }
+    .btn-outline:hover { border-color: var(--ink); background: var(--bg-soft); }
+
+    /* Hero cards */
+    .hero-visual {
+      position: relative; z-index: 1;
+      display: flex; flex-direction: column; gap: 1rem;
+      opacity: 0; animation: fadeIn 1s var(--ease) 0.5s forwards;
+    }
+    .m-card {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 1.3rem 1.5rem;
+      display: flex; align-items: flex-start; gap: 1rem;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .m-card:hover { box-shadow: 0 6px 24px rgba(0,87,255,0.1); transform: translateY(-2px); }
+    .m-icon {
+      width: 2.6rem; height: 2.6rem; border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; flex-shrink: 0;
+    }
+    .ic-m { background: rgba(0,87,255,0.09); }
+    .ic-u { background: rgba(59,130,246,0.09); }
+    .ic-p { background: rgba(0,87,255,0.06); }
+    .m-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
+    .m-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
+    .hero-badge {
+      position: absolute; bottom: -0.6rem; right: 0.5rem;
+      background: var(--ink); color: #fff;
+      font-size: 0.75rem; font-weight: 600;
+      padding: 0.35rem 0.9rem; border-radius: 20px;
+    }
+
+    /* ── SHARED SECTION STYLES ── */
+    .divider { width:100%; height:1px; background: var(--border); }
+    .section-inner { max-width: 1080px; margin: 0 auto; padding: 5.5rem 4vw; }
+    .s-eye {
+      font-size: 0.72rem; font-weight: 600;
+      letter-spacing: 0.12em; text-transform: uppercase;
+      color: var(--blue); display: flex; align-items: center; gap: 0.5rem;
+      margin-bottom: 0.8rem;
+    }
+    .s-eye::before { content:''; width:1.2rem; height:2px; background:var(--blue); }
+    h2.s-title {
+      font-family: 'DM Serif Display', serif;
+      font-size: var(--fs-h2); font-weight: 400;
+      line-height: 1.15; letter-spacing: -0.02em;
+      margin-bottom: 0.75rem;
+    }
+    h2.s-title em { font-style: italic; color: var(--blue); }
+    .s-sub { font-size: 1rem; color: var(--muted); line-height: 1.7; max-width: 52ch; margin-bottom: 3rem; }
+
+    /* ── METHOD ── */
+    #method { background: var(--bg-soft); }
+    .method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+    .m-big-card {
+      background: var(--bg); border: 1px solid var(--border); border-radius: 10px;
+      padding: 2rem 1.8rem;
+      transition: box-shadow 0.25s, transform 0.25s;
+    }
+    .m-big-card:hover { box-shadow: 0 8px 32px rgba(0,87,255,0.08); transform: translateY(-3px); }
+    .m-num {
+      font-family: 'DM Serif Display', serif;
+      font-size: 2.8rem; font-weight: 400; line-height: 1;
+      margin-bottom: 1rem; opacity: 0.15; color: var(--blue);
+    }
+    .m-big-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
+    .m-big-card p { font-size: var(--fs-small); color: var(--muted); line-height: 1.7; }
+    .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.2rem; }
+    .tag {
+      font-size: 0.72rem; font-weight: 600;
+      padding: 0.2rem 0.65rem; border-radius: 20px;
+      background: var(--blue-light); color: var(--blue);
+    }
+
+    /* ── COURSES (expandable) ── */
+    #courses .section-inner { padding-bottom: 4rem; }
+    .courses-block { margin-bottom: 1.5rem; }
+    .courses-toggle {
+      width: 100%; display: flex; align-items: center; justify-content: space-between;
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.3rem 1.6rem;
+      cursor: pointer; transition: border-color 0.2s, background 0.2s;
+      font-family: 'Inter', sans-serif;
+    }
+    .courses-toggle:hover { border-color: var(--blue); background: var(--blue-light); }
+    .courses-toggle.open { border-color: var(--blue); border-bottom-left-radius: 0; border-bottom-right-radius: 0; background: var(--blue-light); }
+    .ct-left { display: flex; align-items: center; gap: 1rem; }
+    .ct-icon { font-size: 1.4rem; }
+    .ct-title { font-size: 1rem; font-weight: 700; color: var(--ink); margin-bottom: 0.1rem; }
+    .ct-sub { font-size: var(--fs-small); color: var(--muted); }
+    .ct-arrow {
+      width: 2rem; height: 2rem; border-radius: 50%;
+      background: var(--blue-light); color: var(--blue);
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1rem; transition: transform 0.3s var(--ease), background 0.2s;
+      flex-shrink: 0;
+    }
+    .courses-toggle.open .ct-arrow { transform: rotate(180deg); background: var(--blue); color: #fff; }
+
+    .courses-panel {
+      max-height: 0; overflow: hidden;
+      border: 1px solid var(--blue); border-top: none;
+      border-bottom-left-radius: 10px; border-bottom-right-radius: 10px;
+      background: #fff;
+      transition: max-height 0.45s var(--ease), padding 0.3s;
+    }
+    .courses-panel.open { max-height: 2000px; }
+    .panel-inner { padding: 2rem 1.6rem; }
+
+    /* Course cards inside panel */
+    .course-cards { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.2rem; margin-bottom: 2rem; }
+    .course-card {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.5rem;
+      transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    .course-card:hover { border-color: var(--blue); box-shadow: 0 4px 16px rgba(0,87,255,0.08); }
+    .cc-badge {
+      display: inline-block; font-size: 0.7rem; font-weight: 700;
+      letter-spacing: 0.08em; text-transform: uppercase;
+      background: var(--blue-light); color: var(--blue);
+      padding: 0.2rem 0.65rem; border-radius: 4px; margin-bottom: 0.7rem;
+    }
+    .cc-badge.adv { background: var(--ink); color: #fff; }
+    .course-card h4 { font-size: 0.95rem; font-weight: 700; margin-bottom: 0.3rem; }
+    .course-card .cc-range { font-size: 0.8rem; color: var(--blue); font-weight: 600; margin-bottom: 0.6rem; }
+    .course-card p { font-size: 0.82rem; color: var(--muted); line-height: 1.6; margin-bottom: 0.8rem; }
+    .subjects-list {
+      display: flex; flex-wrap: wrap; gap: 0.35rem;
+    }
+    .subj-tag {
+      font-size: 0.7rem; font-weight: 500;
+      padding: 0.18rem 0.55rem; border-radius: 4px;
+      border: 1px solid var(--border); color: var(--grey);
+      background: var(--bg-soft);
+    }
+
+    .community-note {
+      background: var(--blue-light); border-radius: 8px;
+      padding: 1.1rem 1.4rem;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      margin-top: 0.5rem;
+    }
+    .community-note .cn-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .community-note p { font-size: var(--fs-small); color: var(--grey); line-height: 1.6; }
+    .community-note strong { color: var(--blue); }
+
+    /* Side courses grid */
+    .side-courses-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1rem; margin-bottom: 1.5rem; }
+    .sc-card {
+      border: 1px solid var(--border); border-radius: 8px;
+      padding: 1.2rem;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .sc-card:hover { border-color: var(--blue); transform: translateY(-2px); box-shadow: 0 4px 16px rgba(0,87,255,0.07); }
+    .sc-icon { font-size: 1.5rem; margin-bottom: 0.6rem; }
+    .sc-card h4 { font-size: 0.88rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--ink); }
+    .sc-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.5; }
+    .sc-card .sc-who {
+      font-size: 0.7rem; font-weight: 600; text-transform: uppercase;
+      letter-spacing: 0.06em; color: var(--blue); margin-top: 0.5rem;
+    }
+    .occasional-note {
+      text-align: center; font-size: var(--fs-small);
+      color: var(--muted); padding: 1rem;
+      border: 1px dashed var(--border); border-radius: 8px;
+    }
+    .occasional-note strong { color: var(--ink); }
+
+    /* ── WHY ── */
+    #why { background: var(--ink); }
+    #why .s-eye { color: #60a5fa; }
+    #why .s-eye::before { background: #60a5fa; }
+    #why h2.s-title { color: #fff; }
+    #why h2.s-title em { color: #60a5fa; }
+    #why .s-sub { color: rgba(255,255,255,0.5); }
+    .why-grid { display: grid; grid-template-columns: repeat(2,1fr); gap: 1.2rem; }
+    .why-item {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 10px; padding: 1.8rem;
+      transition: background 0.2s;
+    }
+    .why-item:hover { background: rgba(255,255,255,0.07); }
+    .why-icon { font-size: 1.5rem; margin-bottom: 0.8rem; }
+    .why-item h3 { font-size: 0.95rem; font-weight: 700; color: #fff; margin-bottom: 0.4rem; }
+    .why-item p { font-size: var(--fs-small); color: rgba(255,255,255,0.45); line-height: 1.7; }
+
+    /* ── ABOUT ── */
+    #about-wrapper {
+      display: grid; grid-template-columns: 1fr 1fr;
+      position: relative; z-index: 1;
+    }
+    .about-text-wrap {
+      padding: 5.5rem 3rem 5.5rem 4vw;
+      max-width: 560px;
+    }
+    .about-visual-wrap { padding: 5.5rem 4vw 5.5rem 3rem; }
+    .about-quote {
+      border-left: 3px solid var(--blue);
+      padding-left: 1.2rem; margin: 1.5rem 0;
+    }
+    .about-quote p {
+      font-family: 'DM Serif Display', serif;
+      font-style: italic; font-size: 1.1rem;
+      color: var(--ink); line-height: 1.6;
+    }
+    .about-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 12px; padding: 2.2rem;
+      box-shadow: 0 4px 24px rgba(0,0,0,0.05);
+    }
+    .about-avatar {
+      width: 4.5rem; height: 4.5rem; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      display: flex; align-items: center; justify-content: center;
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.8rem; color: #fff; margin-bottom: 1.2rem;
+    }
+    .about-card h3 { font-size: 1.1rem; font-weight: 700; margin-bottom: 0.15rem; }
+    .about-card .role { font-size: var(--fs-small); color: var(--blue); font-weight: 600; margin-bottom: 0.9rem; }
+    .about-card p { font-size: var(--fs-small); color: var(--muted); line-height: 1.7; }
+    .about-links { display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1.2rem; }
+    .about-link {
+      display: inline-flex; align-items: center; gap: 0.35rem;
+      font-size: 0.78rem; font-weight: 600;
+      padding: 0.35rem 0.85rem; border-radius: 6px;
+      text-decoration: none; transition: all 0.2s;
+    }
+    .al-portfolio { background: var(--blue); color: #fff; }
+    .al-portfolio:hover { background: #0047d6; }
+    .al-insta { background: var(--bg-soft); border: 1px solid var(--border); color: var(--ink); }
+    .al-insta:hover { border-color: var(--blue); color: var(--blue); }
+    .about-stats { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; margin-top: 1.4rem; }
+    .stat { background: var(--bg-soft); border-radius: 8px; padding: 0.9rem; text-align: center; }
+    .stat .num { font-family: 'DM Serif Display', serif; font-size: 1.6rem; color: var(--ink); line-height: 1; }
+    .stat .lbl { font-size: 0.7rem; color: var(--muted); margin-top: 0.2rem; }
+
+    /* ── TESTIMONIALS ── */
+    #proof { background: var(--bg-soft); }
+    .proof-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
+    .proof-card {
+      background: var(--bg); border: 1px solid var(--border);
+      border-radius: 10px; padding: 1.8rem;
+      transition: transform 0.25s, box-shadow 0.25s;
+    }
+    .proof-card:hover { transform: translateY(-3px); box-shadow: 0 8px 28px rgba(0,87,255,0.08); }
+    .stars { color: #f59e0b; font-size: 0.85rem; margin-bottom: 0.9rem; }
+    .proof-text { font-size: var(--fs-small); color: var(--muted); line-height: 1.7; margin-bottom: 1.4rem; font-style: italic; }
+    .proof-author { display: flex; align-items: center; gap: 0.7rem; }
+    .proof-av {
+      width: 2.2rem; height: 2.2rem; border-radius: 50%;
+      background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700; font-size: 0.8rem; color: #fff;
+    }
+    .proof-name { font-size: var(--fs-small); font-weight: 600; }
+    .proof-sub { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── CONTACT ── */
+    #contact { background: var(--bg); }
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 3rem; align-items: start; }
+    .contact-info h3 {
+      font-family: 'DM Serif Display', serif;
+      font-size: 1.5rem; margin-bottom: 0.6rem;
+    }
+    .contact-info p { font-size: var(--fs-small); color: var(--muted); line-height: 1.7; margin-bottom: 1.5rem; }
+    .contact-items { display: flex; flex-direction: column; gap: 0.9rem; }
+    .contact-item {
+      display: flex; align-items: center; gap: 0.9rem;
+      padding: 0.9rem 1.1rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg-soft);
+      text-decoration: none; transition: border-color 0.2s, background 0.2s;
+    }
+    .contact-item:hover { border-color: var(--blue); background: var(--blue-light); }
+    .ci-icon { font-size: 1.2rem; flex-shrink: 0; }
+    .ci-label { font-size: 0.75rem; font-weight: 600; color: var(--blue); letter-spacing: 0.05em; text-transform: uppercase; }
+    .ci-value { font-size: var(--fs-small); color: var(--ink); font-weight: 500; }
+
+    .contact-map-placeholder {
+      background: var(--bg-soft); border: 1px solid var(--border);
+      border-radius: 10px; padding: 2.5rem 2rem; text-align: center;
+    }
+    .contact-map-placeholder .map-icon { font-size: 2.5rem; margin-bottom: 1rem; }
+    .contact-map-placeholder h4 { font-size: 1rem; font-weight: 700; margin-bottom: 0.4rem; }
+    .contact-map-placeholder p { font-size: var(--fs-small); color: var(--muted); }
+
+    /* ── CTA ── */
+    #cta { background: var(--bg-soft); }
+    .cta-box {
+      background: var(--ink); border-radius: 14px;
+      padding: 4.5rem 3rem; text-align: center; position: relative; overflow: hidden;
+    }
+    .cta-box::before {
+      content:''; position: absolute; top:-30%; left:50%; transform:translateX(-50%);
+      width:60%; height:60%;
+      background: radial-gradient(ellipse, rgba(0,87,255,0.2) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .cta-box h2 {
+      font-family: 'DM Serif Display', serif;
+      font-size: clamp(1.8rem,3.5vw,2.8rem); font-weight: 400;
+      color: #fff; margin-bottom: 0.8rem; position: relative;
+    }
+    .cta-box h2 em { font-style: italic; color: #60a5fa; }
+    .cta-box p { color: rgba(255,255,255,0.5); font-size: 1rem; margin-bottom: 2rem; position: relative; }
+    .cta-note { margin-top: 1rem; font-size: 0.8rem; color: rgba(255,255,255,0.3); position: relative; }
+
+    /* ── FOOTER ── */
+    footer {
+      padding: 2rem 4vw;
+      display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem;
+      border-top: 1px solid var(--border);
+    }
+    .footer-logo { display: flex; align-items: center; gap: 8px; text-decoration: none; }
+    .footer-logo img { height: 28px; width: auto; }
+    .footer-logo-text { font-weight: 700; font-size: 0.95rem; color: var(--ink); }
+    .footer-logo-text span { color: var(--blue); }
+    .footer-links { display: flex; gap: 1.5rem; list-style: none; }
+    .footer-links a { font-size: 0.8rem; color: var(--muted); text-decoration: none; transition: color 0.2s; }
+    .footer-links a:hover { color: var(--ink); }
+    .footer-copy { font-size: 0.75rem; color: var(--muted); }
+
+    /* ── ANIMATIONS ── */
+    @keyframes fadeUp {
+      from { opacity:0; transform:translateY(20px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+    @keyframes fadeIn {
+      from { opacity:0; } to { opacity:1; }
+    }
+    .reveal { opacity:0; transform:translateY(24px); transition: opacity 0.7s var(--ease), transform 0.7s var(--ease); }
+    .reveal.visible { opacity:1; transform:translateY(0); }
+
+    /* ── RESPONSIVE ── */
+    @media (max-width: 900px) {
+      #hero { grid-template-columns:1fr; padding-top:6rem; gap:2.5rem; }
+      .method-grid { grid-template-columns:1fr; }
+      .why-grid { grid-template-columns:1fr; }
+      #about-wrapper { grid-template-columns:1fr; }
+      .about-text-wrap { padding: 3rem 4vw 0; max-width:100%; }
+      .about-visual-wrap { padding: 2rem 4vw 3.5rem; }
+      .proof-grid { grid-template-columns:1fr; }
+      .side-courses-grid { grid-template-columns: repeat(2,1fr); }
+      .contact-grid { grid-template-columns:1fr; }
+      .nav-links { display:none; }
+      .course-cards { grid-template-columns:1fr; }
+    }
+    @media (max-width: 600px) {
+      .hero-actions { flex-direction:column; }
+      .cta-box { padding:3rem 1.5rem; }
+      .side-courses-grid { grid-template-columns:1fr; }
+      .about-stats { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <a class="nav-logo" href="#">
+    <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
+    <span class="nav-logo-text">Co<span>Radix</span> Academy</span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="#method">Method</a></li>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#why">Why Us</a></li>
+    <li><a href="#about-wrapper">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="apply.html" class="nav-cta">Enroll Now</a></li>
+  </ul>
+</nav>
+
+<!-- HERO -->
+<section id="hero">
+  <div class="hero-glow"></div>
+  <div class="hero-glow"></div>
+  <div class="hero-text">
+    <p class="eyebrow">Small Batches. Real Results.</p>
+    <h1 class="display">Learn <em>smarter,</em><br/>not harder.</h1>
+    <p class="hero-desc">CoRadix Academy is a boutique tutoring academy that breaks every subject into exactly what to <strong>memorise</strong>, what to <strong>understand</strong>, and what to <strong>practise</strong> — so nothing slips through.</p>
+    <div class="hero-actions">
+      <a href="apply.html" class="btn btn-blue">Apply for Next Batch →</a>
+      <a href="#method" class="btn btn-outline">See the Method</a>
+    </div>
+  </div>
+  <div class="hero-visual">
+    <div class="m-card">
+      <div class="m-icon ic-m">🧠</div>
+      <div><div class="m-label">Memorise</div><div class="m-desc">Key definitions, formulas and facts locked in with smart recall — never second-guessed in an exam.</div></div>
+    </div>
+    <div class="m-card">
+      <div class="m-icon ic-u">💡</div>
+      <div><div class="m-label">Understand</div><div class="m-desc">Concepts broken to their root so students can explain — not just repeat — what they've learned.</div></div>
+    </div>
+    <div class="m-card" style="position:relative; padding-bottom:1.8rem;">
+      <div class="m-icon ic-p">✏️</div>
+      <div><div class="m-label">Practise</div><div class="m-desc">Targeted questions that turn knowledge into exam-ready skill. Quality over quantity.</div></div>
+      <div class="hero-badge">Max 9 students / batch</div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- METHOD -->
+<section id="method">
+  <div class="section-inner">
+    <p class="s-eye reveal">The CoRadix Method</p>
+    <h2 class="s-title reveal">Three pillars.<br/><em>One clear path.</em></h2>
+    <p class="s-sub reveal">Most students study everything the same way. We don't. Every topic is deliberately sorted into three distinct modes so your brain processes it the right way.</p>
+    <div class="method-grid">
+      <div class="m-big-card reveal">
+        <div class="m-num">01</div>
+        <h3>Memorise</h3>
+        <p>Dates, definitions, formulas — content that needs to live in long-term memory. We use spaced repetition, mnemonics, and visual anchors to make it stick without cramming.</p>
+        <div class="tag-row">
+          <span class="tag">Spaced Repetition</span>
+          <span class="tag">Mnemonics</span>
+          <span class="tag">Visual Anchors</span>
+        </div>
+      </div>
+      <div class="m-big-card reveal">
+        <div class="m-num">02</div>
+        <h3>Understand</h3>
+        <p>Conceptual content needs depth, not drilling. Socratic questioning, analogy-building, and first-principles explanations so students genuinely grasp the "why" behind every topic.</p>
+        <div class="tag-row">
+          <span class="tag">First Principles</span>
+          <span class="tag">Analogies</span>
+          <span class="tag">Socratic Q&amp;A</span>
+        </div>
+      </div>
+      <div class="m-big-card reveal">
+        <div class="m-num">03</div>
+        <h3>Practise</h3>
+        <p>Application is learnt by doing — not watching. Targeted, progressive problems that close the gap between understanding and performing under exam pressure.</p>
+        <div class="tag-row">
+          <span class="tag">Targeted Problems</span>
+          <span class="tag">Exam Simulation</span>
+          <span class="tag">Feedback Loops</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- COURSES -->
+<section id="courses">
+  <div class="section-inner">
+    <p class="s-eye reveal">What We Offer</p>
+    <h2 class="s-title reveal">Courses for every<br/><em>stage of learning.</em></h2>
+    <p class="s-sub reveal">Whether you're a school student building strong foundations or a college student expanding into new skills — there's a place for you at CoRadix.</p>
+
+    <!-- School Students -->
+    <div class="courses-block reveal">
+      <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
+        <div class="ct-left">
+          <span class="ct-icon">🏫</span>
+          <div>
+            <div class="ct-title">School Students — Academic Tuition</div>
+            <div class="ct-sub">Classes 1–12 · Syllabus-aligned · Subject rooms · Small batches</div>
+          </div>
+        </div>
+        <span class="ct-arrow">▼</span>
+      </button>
+      <div class="courses-panel">
+        <div class="panel-inner">
+          <div class="course-cards">
+            <!-- Core Foundation -->
+            <div class="course-card">
+              <span class="cc-badge">Core Foundation</span>
+              <h4>Classes 1 – 7</h4>
+              <div class="cc-range">Primary & Middle School</div>
+              <p>Building strong conceptual roots early. We focus on literacy, numeracy, and scientific thinking — making sure students never develop gaps that compound later.</p>
+              <div class="subjects-list">
+                <span class="subj-tag">English</span>
+                <span class="subj-tag">Mathematics</span>
+                <span class="subj-tag">Science</span>
+                <span class="subj-tag">Social Studies</span>
+                <span class="subj-tag">Hindi / Regional Language</span>
+                <span class="subj-tag">Environmental Studies</span>
+                <span class="subj-tag">General Knowledge</span>
+              </div>
+            </div>
+            <!-- Core Advanced -->
+            <div class="course-card">
+              <span class="cc-badge adv">Core Advanced</span>
+              <h4>Classes 8 – 12</h4>
+              <div class="cc-range">Secondary & Senior Secondary</div>
+              <p>High-stakes years need high-quality prep. Strategic syllabus completion, exam-pattern mastery, and subject-specific rooms for peer discussion and doubt-clearing.</p>
+              <div class="subjects-list">
+                <span class="subj-tag">Physics</span>
+                <span class="subj-tag">Chemistry</span>
+                <span class="subj-tag">Biology</span>
+                <span class="subj-tag">Mathematics</span>
+                <span class="subj-tag">English</span>
+                <span class="subj-tag">Computer Science</span>
+                <span class="subj-tag">Economics</span>
+                <span class="subj-tag">Accountancy</span>
+                <span class="subj-tag">Business Studies</span>
+                <span class="subj-tag">History</span>
+                <span class="subj-tag">Geography</span>
+                <span class="subj-tag">Political Science</span>
+              </div>
+            </div>
+          </div>
+          <!-- Community note -->
+          <div class="community-note">
+            <span class="cn-icon">💬</span>
+            <p><strong>Subject Rooms Included.</strong> Every enrolled student gets access to dedicated subject community rooms — spaces to ask questions, share notes, and stay on track between sessions. Strategic syllabus completion ensures no chapter is left behind and every topic is covered in order of importance.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Side Courses -->
+    <div class="courses-block reveal">
+      <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
+        <div class="ct-left">
+          <span class="ct-icon">🚀</span>
+          <div>
+            <div class="ct-title">Side Courses — Skills for the Real World</div>
+            <div class="ct-sub">School & College students · Self-paced & live options · Industry-relevant</div>
+          </div>
+        </div>
+        <span class="ct-arrow">▼</span>
+      </button>
+      <div class="courses-panel">
+        <div class="panel-inner">
+          <div class="side-courses-grid">
+            <div class="sc-card">
+              <div class="sc-icon">📣</div>
+              <h4>Digital Marketing</h4>
+              <p>SEO, social media strategy, content creation, and analytics. Learn to build a real online presence or brand from scratch.</p>
+              <div class="sc-who">School & College</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🏥</div>
+              <h4>Medical Coding</h4>
+              <p>ICD-10, CPT fundamentals, and healthcare documentation. A high-demand career skill for biology-stream students.</p>
+              <div class="sc-who">College / Senior School</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🤖</div>
+              <h4>Coding Using AI</h4>
+              <p>Learn to write, debug, and ship real code with AI as your co-pilot. No prior experience needed — curiosity is enough.</p>
+              <div class="sc-who">School & College</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🌐</div>
+              <h4>Web Development</h4>
+              <p>HTML, CSS, and JavaScript fundamentals. Build your first real website — no templates, just code you understand.</p>
+              <div class="sc-who">School & College</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">✨</div>
+              <h4>Website Creation Using AI</h4>
+              <p>Design and deploy beautiful websites using modern AI tools — fast, practical, and portfolio-ready by the end.</p>
+              <div class="sc-who">School & College</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">📱</div>
+              <h4>App Development</h4>
+              <p>From idea to working app. Covers UI/UX basics, no-code tools, and AI-assisted development workflows.</p>
+              <div class="sc-who">College / Senior School</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🧬</div>
+              <h4>Bioinformatics Basics</h4>
+              <p>Where biology meets computing. Sequence analysis, databases, and data tools for the modern biology student.</p>
+              <div class="sc-who">College</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🔬</div>
+              <h4>Molecular Biology</h4>
+              <p>DNA, RNA, protein synthesis, gene expression and regulation — taught with conceptual depth and visual clarity.</p>
+              <div class="sc-who">College / Class 11–12</div>
+            </div>
+            <div class="sc-card">
+              <div class="sc-icon">🦠</div>
+              <h4>Microbiology</h4>
+              <p>Bacteria, viruses, fungi, and immune responses. Solid foundations for medical, biotech, and pharmacy aspirants.</p>
+              <div class="sc-who">College / Class 11–12</div>
+            </div>
+          </div>
+          <div class="occasional-note">
+            <strong>+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand. Watch this space — or follow <a href="https://instagram.com/missenlic.sam" target="_blank" style="color:var(--blue); text-decoration:none; font-weight:600;">@missenlic.sam</a> to never miss an announcement.
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WHY -->
+<section id="why">
+  <div class="section-inner">
+    <p class="s-eye reveal">Why CoRadix</p>
+    <h2 class="s-title reveal">Built different.<br/><em>On purpose.</em></h2>
+    <p class="s-sub reveal">We're not a mass coaching centre. We're a small, intentional academy where every student gets full attention — not a seat in a crowd.</p>
+    <div class="why-grid">
+      <div class="why-item reveal">
+        <div class="why-icon">👥</div>
+        <h3>Max 9 Students Per Batch</h3>
+        <p>Capped at nine — because that's what real attention demands. Every question gets answered. Every student gets seen.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="why-icon">🎯</div>
+        <h3>Method-Driven, Not Syllabus-Driven</h3>
+        <p>We cover the syllabus — but the way we do it builds independent thinkers, not exam machines. Results follow real learning.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="why-icon">📊</div>
+        <h3>Progress Students Can See</h3>
+        <p>Students and parents get regular clarity on exactly what's been memorised, understood, and what needs more practice.</p>
+      </div>
+      <div class="why-item reveal">
+        <div class="why-icon">🌱</div>
+        <h3>Confidence as the Real Outcome</h3>
+        <p>Students leave CoRadix knowing <em>how</em> to study. That skill follows them into every exam, every year.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ABOUT -->
+<div id="about-wrapper">
+  <div class="about-text-wrap">
+    <p class="s-eye reveal">Behind CoRadix</p>
+    <h2 class="s-title reveal">A tutor who<br/><em>thinks differently.</em></h2>
+    <p style="font-size:1rem; color:var(--muted); line-height:1.75; margin-bottom:1rem;" class="reveal">CoRadix was founded by Sam — a biotech and psychology student who realised most students struggle not because they lack intelligence, but because no one ever showed them <em>how</em> to learn.</p>
+    <div class="about-quote reveal">
+      <p>"I built the method I wish someone had handed me in school. Every student deserves to know what to memorise, what to understand, and what to practise — and to feel the difference."</p>
+    </div>
+    <p style="font-size:1rem; color:var(--muted); line-height:1.75;" class="reveal">The academy stays small by design. Every batch is capped, every student is tracked, and no one falls through the cracks.</p>
+  </div>
+  <div class="about-visual-wrap reveal">
+    <div class="about-card">
+      <div class="about-avatar">S</div>
+      <h3>Sam (Shamreen)</h3>
+      <p class="role">Founder · CoRadix Academy</p>
+      <p>Biotech researcher and psychology student. Believes the gap between struggling and thriving in school is almost always a <em>method</em> problem — not an intelligence problem. Also runs Brainzpire, an innovation startup with projects in diagnostics, agri-tech, and food safety.</p>
+      <div class="about-links">
+        <a href="YOUR_PORTFOLIO_URL" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
+        <a href="https://instagram.com/missenlic.sam" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
+      </div>
+      <div class="about-stats">
+        <div class="stat"><div class="num">9</div><div class="lbl">Max students / batch</div></div>
+        <div class="stat"><div class="num">3</div><div class="lbl">Learning pillars</div></div>
+        <div class="stat" style="grid-column:1/-1;">
+          <div class="num" style="font-size:1.3rem;">M · U · P</div>
+          <div class="lbl">Memorise · Understand · Practise</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="divider"></div>
+
+<!-- TESTIMONIALS -->
+<section id="proof">
+  <div class="section-inner">
+    <p class="s-eye reveal">What Parents & Students Say</p>
+    <h2 class="s-title reveal">Real words.<br/><em>Real results.</em></h2>
+    <div class="proof-grid">
+      <div class="proof-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="proof-text">"My daughter was struggling with Chemistry for two years. After one month at CoRadix, she could finally explain why reactions happen — not just memorise equations. Her confidence completely changed."</p>
+        <div class="proof-author">
+          <div class="proof-av">P</div>
+          <div><div class="proof-name">Priya R.</div><div class="proof-sub">Parent, Class 11 student</div></div>
+        </div>
+      </div>
+      <div class="proof-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="proof-text">"I never knew there was a difference between what I needed to memorise vs understand. Once I got that, studying became so much less stressful. My marks went up — but the relief was bigger."</p>
+        <div class="proof-author">
+          <div class="proof-av">A</div>
+          <div><div class="proof-name">Aryan M.</div><div class="proof-sub">Student, Class 10</div></div>
+        </div>
+      </div>
+      <div class="proof-card reveal">
+        <div class="stars">★★★★★</div>
+        <p class="proof-text">"The small batch size was what convinced me. He's not lost in a crowd — he's asked questions, pushed to think, and held accountable but kindly. That balance is rare."</p>
+        <div class="proof-author">
+          <div class="proof-av">F</div>
+          <div><div class="proof-name">Fatima K.</div><div class="proof-sub">Parent, Class 9 student</div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CONTACT -->
+<section id="contact">
+  <div class="section-inner">
+    <p class="s-eye reveal">Get in Touch</p>
+    <h2 class="s-title reveal">We'd love to<br/><em>hear from you.</em></h2>
+    <div class="contact-grid">
+      <div class="contact-info reveal">
+        <p>Have questions about a batch, a course, or just want to know if CoRadix is the right fit? Reach out — we respond to every message personally.</p>
+        <div class="contact-items">
+          <a href="mailto:academy@coradix.academy" class="contact-item">
+            <span class="ci-icon">📧</span>
+            <div><div class="ci-label">Academy Email</div><div class="ci-value">academy@coradix.academy</div></div>
+          </a>
+          <a href="mailto:sam@coradix.academy" class="contact-item">
+            <span class="ci-icon">👤</span>
+            <div><div class="ci-label">Founder — Sam</div><div class="ci-value">sam@coradix.academy</div></div>
+          </a>
+          <a href="https://instagram.com/missenlic.sam" target="_blank" class="contact-item">
+            <span class="ci-icon">📷</span>
+            <div><div class="ci-label">Instagram</div><div class="ci-value">@missenlic.sam</div></div>
+          </a>
+          <a href="YOUR_PORTFOLIO_URL" target="_blank" class="contact-item">
+            <span class="ci-icon">🌐</span>
+            <div><div class="ci-label">Founder Portfolio</div><div class="ci-value">missenlic.sam — Portfolio</div></div>
+          </a>
+        </div>
+      </div>
+      <div class="contact-map-placeholder reveal">
+        <div class="map-icon">📍</div>
+        <h4>Online-First Academy</h4>
+        <p>CoRadix operates fully online, so students across India can access the same quality of teaching. All sessions are live and interactive — no recordings, no passive watching.</p>
+        <br/>
+        <p style="color:var(--blue); font-weight:600; font-size:var(--fs-small);">Based in Madurai, Tamil Nadu</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- CTA -->
+<section id="cta">
+  <div class="section-inner">
+    <div class="cta-box reveal">
+      <h2>Ready to learn the<br/><em>right way?</em></h2>
+      <p>Seats in every batch are limited to nine. Once full, the next opening is the next batch. Don't wait.</p>
+      <a href="apply.html" class="btn btn-blue" style="font-size:1rem; padding:0.85rem 2rem;">Apply for the Next Batch →</a>
+      <p class="cta-note">Batches fill quickly. Enquire early to secure a spot.</p>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<footer>
+  <a class="footer-logo" href="#">
+    <img src="Logo.jpeg" alt="CoRadix" onerror="this.style.display='none'">
+    <span class="footer-logo-text">Co<span>Radix</span> Academy</span>
+  </a>
+  <ul class="footer-links">
+    <li><a href="#method">Method</a></li>
+    <li><a href="#courses">Courses</a></li>
+    <li><a href="#why">Why Us</a></li>
+    <li><a href="#about-wrapper">About</a></li>
+    <li><a href="#contact">Contact</a></li>
+    <li><a href="apply.html">Enroll</a></li>
+  </ul>
+  <p class="footer-copy">© 2025 CoRadix Academy. All rights reserved.</p>
+</footer>
+
+<script>
+  // Scroll reveal
+  const reveals = document.querySelectorAll('.reveal');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), i * 70);
+        observer.unobserve(entry.target);
+      }
+    });
+  }, { threshold: 0.08 });
+  reveals.forEach(el => observer.observe(el));
+
+  // Course panel toggle
+  function toggleCourse(btn) {
+    const panel = btn.nextElementSibling;
+    const isOpen = btn.classList.contains('open');
+    // close all
+    document.querySelectorAll('.courses-toggle.open').forEach(b => {
+      b.classList.remove('open');
+      b.nextElementSibling.classList.remove('open');
+      b.setAttribute('aria-expanded','false');
+    });
+    if (!isOpen) {
+      btn.classList.add('open');
+      panel.classList.add('open');
+      btn.setAttribute('aria-expanded','true');
+    }
+  }
+</script>
+</body>
+</html>

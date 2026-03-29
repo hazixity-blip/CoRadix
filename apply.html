@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Apply — CoRadix Academy</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1c1e; --grey: #3a3a3c; --muted: #6b7280;
+      --border: #e5e7eb; --bg: #ffffff; --bg-soft: #f5f7fa;
+      --blue: #0057ff; --blue-light: #e8efff; --blue-mid: #3b82f6;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing:border-box; margin:0; padding:0; }
+    html { scroll-behavior:smooth; }
+    body {
+      font-family:'Inter', sans-serif;
+      background: var(--bg); color: var(--ink);
+      min-height: 100vh;
+    }
+
+    /* NAV */
+    nav {
+      position:fixed; top:0; left:0; right:0; z-index:200;
+      display:flex; align-items:center; justify-content:space-between;
+      padding: 0 4vw; height:64px;
+      background:rgba(255,255,255,0.96); backdrop-filter:blur(16px);
+      border-bottom:1px solid var(--border);
+    }
+    .nav-logo { display:flex; align-items:center; gap:10px; text-decoration:none; }
+    .nav-logo img { height:36px; width:auto; }
+    .nav-logo-text { font-weight:700; font-size:1.05rem; letter-spacing:-0.02em; color:var(--ink); }
+    .nav-logo-text span { color:var(--blue); }
+    .nav-back {
+      font-size:0.85rem; font-weight:600; color:var(--muted);
+      text-decoration:none; display:flex; align-items:center; gap:0.4rem;
+      transition:color 0.2s;
+    }
+    .nav-back:hover { color:var(--ink); }
+
+    /* LAYOUT */
+    .page {
+      display:grid; grid-template-columns: 1fr 1fr;
+      min-height:100vh; padding-top:64px;
+    }
+
+    /* LEFT PANEL */
+    .left-panel {
+      background: var(--ink); padding: 4rem 4vw 4rem 4vw;
+      display:flex; flex-direction:column; justify-content:center;
+      position:sticky; top:64px; height:calc(100vh - 64px);
+      overflow-y:auto;
+    }
+    .left-eyebrow {
+      font-size:0.72rem; font-weight:600; letter-spacing:0.12em;
+      text-transform:uppercase; color:#60a5fa;
+      display:flex; align-items:center; gap:0.5rem; margin-bottom:1.5rem;
+    }
+    .left-eyebrow::before { content:''; width:1.2rem; height:2px; background:#60a5fa; }
+    .left-panel h1 {
+      font-family:'DM Serif Display', serif;
+      font-size:clamp(2rem,3.5vw,3rem); font-weight:400;
+      color:#fff; line-height:1.1; margin-bottom:1.2rem;
+    }
+    .left-panel h1 em { font-style:italic; color:#60a5fa; }
+    .left-panel p { font-size:0.95rem; color:rgba(255,255,255,0.5); line-height:1.75; margin-bottom:2rem; }
+
+    .perks { display:flex; flex-direction:column; gap:0.85rem; }
+    .perk {
+      display:flex; align-items:flex-start; gap:0.85rem;
+      padding:1rem 1.1rem;
+      background:rgba(255,255,255,0.05);
+      border:1px solid rgba(255,255,255,0.07);
+      border-radius:8px;
+    }
+    .perk-icon { font-size:1.1rem; flex-shrink:0; margin-top:0.05rem; }
+    .perk-title { font-size:0.85rem; font-weight:700; color:#fff; margin-bottom:0.15rem; }
+    .perk-desc { font-size:0.78rem; color:rgba(255,255,255,0.4); line-height:1.5; }
+
+    /* RIGHT PANEL */
+    .right-panel {
+      padding: 4rem 4vw;
+      display:flex; flex-direction:column; justify-content:flex-start;
+      background: var(--bg-soft);
+    }
+
+    .form-header { margin-bottom:2rem; }
+    .form-header h2 {
+      font-family:'DM Serif Display', serif;
+      font-size:1.8rem; font-weight:400; margin-bottom:0.4rem;
+    }
+    .form-header p { font-size:var(--fs-small,0.875rem); color:var(--muted); }
+
+    /* GOOGLE FORM EMBED AREA */
+    .gform-container {
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      overflow: hidden;
+      min-height: 600px;
+      display: flex; align-items: center; justify-content: center;
+      position: relative;
+    }
+    /* ── PASTE YOUR GOOGLE FORM EMBED URL BELOW ──
+       Replace the src of the iframe below with your Google Form embed link.
+       To get it: Google Form → Send → Embed → copy the src URL from the <iframe> tag.
+    */
+    .gform-container iframe {
+      width: 100%; border: none;
+      min-height: 700px;
+      display: block;
+    }
+
+    /* Placeholder shown until Google Form is added */
+    .gform-placeholder {
+      text-align:center; padding:3rem 2rem;
+    }
+    .gform-placeholder .ph-icon { font-size:3rem; margin-bottom:1rem; }
+    .gform-placeholder h3 { font-size:1.1rem; font-weight:700; margin-bottom:0.4rem; }
+    .gform-placeholder p { font-size:0.85rem; color:var(--muted); line-height:1.6; margin-bottom:1.5rem; max-width:36ch; margin-left:auto; margin-right:auto; }
+    .gform-placeholder code {
+      display:block; background:var(--bg-soft);
+      border:1px solid var(--border); border-radius:6px;
+      padding:0.8rem 1rem; font-size:0.78rem; color:var(--blue);
+      text-align:left; line-height:1.7; white-space:pre-wrap;
+      margin-bottom:1rem;
+    }
+    .ph-note {
+      font-size:0.75rem; color:var(--muted);
+      background:var(--bg-soft); border:1px dashed var(--border);
+      border-radius:6px; padding:0.7rem 1rem; margin-top:1rem;
+      text-align:left;
+    }
+
+    .contact-alt {
+      margin-top:1.5rem; padding:1.2rem 1.4rem;
+      background:var(--bg); border:1px solid var(--border);
+      border-radius:8px; display:flex; align-items:center; gap:0.85rem;
+    }
+    .contact-alt .ca-icon { font-size:1.2rem; }
+    .contact-alt p { font-size:0.82rem; color:var(--muted); line-height:1.5; }
+    .contact-alt a { color:var(--blue); font-weight:600; text-decoration:none; }
+    .contact-alt a:hover { text-decoration:underline; }
+
+    /* RESPONSIVE */
+    @media (max-width:900px) {
+      .page { grid-template-columns:1fr; }
+      .left-panel { position:relative; top:auto; height:auto; padding:3rem 4vw; }
+      .right-panel { padding:3rem 4vw; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="Logo.jpeg" alt="CoRadix" onerror="this.style.display='none'">
+    <span class="nav-logo-text">Co<span>Radix</span> Academy</span>
+  </a>
+  <a href="index.html" class="nav-back">← Back to Home</a>
+</nav>
+
+<div class="page">
+
+  <!-- LEFT: Info panel -->
+  <div class="left-panel">
+    <p class="left-eyebrow">Enrollment</p>
+    <h1>Secure your<br/><em>spot today.</em></h1>
+    <p>Batches at CoRadix are capped at 9 students. Fill in the form and we'll get back to you within 24 hours to confirm your place and discuss the best batch fit for you.</p>
+    <div class="perks">
+      <div class="perk">
+        <span class="perk-icon">👥</span>
+        <div>
+          <div class="perk-title">Max 9 Students Per Batch</div>
+          <div class="perk-desc">Real attention, real progress. Not a seat in a crowd.</div>
+        </div>
+      </div>
+      <div class="perk">
+        <span class="perk-icon">🧠</span>
+        <div>
+          <div class="perk-title">The M·U·P Method</div>
+          <div class="perk-desc">Memorise · Understand · Practise — a structured approach to every subject.</div>
+        </div>
+      </div>
+      <div class="perk">
+        <span class="perk-icon">💬</span>
+        <div>
+          <div class="perk-title">Subject Community Rooms</div>
+          <div class="perk-desc">Ask questions, share notes, stay on track between sessions.</div>
+        </div>
+      </div>
+      <div class="perk">
+        <span class="perk-icon">📍</span>
+        <div>
+          <div class="perk-title">Fully Online · India-Wide</div>
+          <div class="perk-desc">Live sessions from anywhere. No recordings — just real interaction.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Google Form embed -->
+  <div class="right-panel">
+    <div class="form-header">
+      <h2>Enrollment Form</h2>
+      <p>Takes about 2 minutes. We'll follow up personally.</p>
+    </div>
+
+    <div class="gform-container">
+      <!--
+        ════════════════════════════════════════════════════════
+        HOW TO ADD YOUR GOOGLE FORM:
+        1. Open your Google Form
+        2. Click "Send" (top right)
+        3. Click the < > (Embed) tab
+        4. Copy the URL inside src="..."
+        5. Replace YOUR_GOOGLE_FORM_EMBED_URL below with that URL
+        6. Delete the <div class="gform-placeholder"> block
+        ════════════════════════════════════════════════════════
+
+        <iframe
+          src="YOUR_GOOGLE_FORM_EMBED_URL"
+          width="100%"
+          height="700"
+          frameborder="0"
+          marginheight="0"
+          marginwidth="0">
+          Loading form...
+        </iframe>
+      -->
+
+      <!-- PLACEHOLDER — remove this block once you paste your iframe above -->
+      <div class="gform-placeholder">
+        <div class="ph-icon">📋</div>
+        <h3>Google Form Goes Here</h3>
+        <p>To activate this page, paste your Google Form embed code here. Here's exactly what to do:</p>
+        <code>1. Open your Google Form
+2. Click "Send" → Embed tab (&lt;&gt;)
+3. Copy the src="..." URL
+4. Open apply.html
+5. Replace YOUR_GOOGLE_FORM_EMBED_URL
+   with your copied URL
+6. Delete this placeholder block</code>
+        <div class="ph-note">
+          💡 The iframe is already written in the HTML comments above — you just need to uncomment it and paste your URL in.
+        </div>
+      </div>
+      <!-- END PLACEHOLDER -->
+
+    </div>
+
+    <div class="contact-alt">
+      <span class="ca-icon">💬</span>
+      <p>Prefer to reach out directly? Email us at <a href="mailto:academy@coradix.academy">academy@coradix.academy</a> or DM on Instagram <a href="https://instagram.com/missenlic.sam" target="_blank">@missenlic.sam</a> — we respond personally.</p>
+    </div>
+  </div>
+
+</div>
+
+</body>
+</html>
