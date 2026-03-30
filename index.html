@@ -1205,51 +1205,6 @@
     document.getElementById('mainNav').style.top = '0';
   }
 
-  /* ── Inquiry modal ── */
-  function openInquiry() {
-    document.getElementById('inqOverlay').classList.add('active');
-    document.body.style.overflow = 'hidden';
-  }
-  function closeInquiry() {
-    document.getElementById('inqOverlay').classList.remove('active');
-    document.body.style.overflow = '';
-  }
-  function overlayClose(e) {
-    if (e.target === document.getElementById('inqOverlay')) closeInquiry();
-  }
-  document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') closeInquiry();
-  });
-
-  function submitInquiry() {
-    const name  = document.getElementById('inq_name').value.trim();
-    const cls   = document.getElementById('inq_class').value;
-    const board = document.getElementById('inq_board').value.trim();
-    const email = document.getElementById('inq_email').value.trim();
-
-    if (!name || !cls || !board || !email) {
-      alert('Please fill in your name, class, board, and email before submitting.');
-      return;
-    }
-
-    const dt  = document.getElementById('inq_datetime').value;
-    const msg = document.getElementById('inq_message').value.trim() || 'No additional message provided.';
-
-    const dateVal = dt ? dt.replace('T', ' ') : '2026-03-04 09:30';
-
-    const base = 'https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/viewform?usp=pp_url';
-    const url = base
-      + '&entry.1432165035=' + encodeURIComponent(name)
-      + '&entry.1835101181=' + encodeURIComponent(cls)
-      + '&entry.648754482='  + encodeURIComponent(board)
-      + '&entry.1166288653=' + encodeURIComponent(email)
-      + '&entry.1129081725=' + encodeURIComponent(dateVal)
-      + '&entry.2062290176=' + encodeURIComponent(msg);
-
-    window.open(url, '_blank');
-    closeInquiry();
-  }
-
   /* ── Scroll reveal ── */
   const reveals = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
