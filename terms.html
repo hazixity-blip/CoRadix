@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Terms & Conditions — CoRadix Academy</title>
+  <link rel="icon" type="image/png" href="favicon.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1c1e; --grey: #3a3a3c; --muted: #6b7280;
+      --border: #e5e7eb; --bg: #ffffff; --bg-soft: #f5f7fa;
+      --blue: #0057ff; --blue-light: #e8efff;
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); line-height: 1.7; }
+
+    nav {
+      position: sticky; top: 0; z-index: 100;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4vw; height: 64px;
+      background: rgba(255,255,255,0.96); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 34px; width: auto; }
+    .nav-logo-text { font-weight: 700; font-size: 1rem; color: var(--ink); }
+    .nav-logo-text span { color: var(--blue); }
+    .nav-back { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s; }
+    .nav-back:hover { color: var(--ink); }
+
+    .hero-strip { background: var(--ink); padding: 3.5rem 4vw 3rem; text-align: center; }
+    .hero-strip .eyebrow {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #60a5fa; margin-bottom: 0.8rem;
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+    }
+    .hero-strip .eyebrow::before, .hero-strip .eyebrow::after { content: ''; width: 1.2rem; height: 2px; background: #60a5fa; }
+    .hero-strip h1 { font-family: 'DM Serif Display', serif; font-size: clamp(1.8rem, 3.5vw, 2.8rem); font-weight: 400; color: #fff; margin-bottom: 0.5rem; }
+    .hero-strip h1 em { font-style: italic; color: #60a5fa; }
+    .hero-strip p { font-size: 0.9rem; color: rgba(255,255,255,0.45); }
+
+    .page-wrap { max-width: 780px; margin: 0 auto; padding: 3.5rem 4vw 6rem; }
+
+    .intro-box {
+      background: var(--blue-light); border: 1px solid rgba(0,87,255,0.15);
+      border-radius: 10px; padding: 1.4rem 1.6rem; margin-bottom: 2.5rem;
+      display: flex; gap: 0.9rem; align-items: flex-start;
+    }
+    .intro-box .ib-icon { font-size: 1.3rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .intro-box p { font-size: 0.88rem; color: var(--grey); line-height: 1.7; }
+    .intro-box strong { color: var(--blue); }
+
+    .tc-section { margin-bottom: 2.8rem; }
+    .tc-section h2 {
+      font-family: 'DM Serif Display', serif; font-size: 1.25rem; font-weight: 400;
+      color: var(--ink); margin-bottom: 1rem; padding-bottom: 0.6rem;
+      border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 0.7rem;
+    }
+    .tc-section h2 .s-num {
+      display: inline-flex; align-items: center; justify-content: center;
+      width: 1.8rem; height: 1.8rem; border-radius: 50%;
+      background: var(--blue); color: #fff;
+      font-family: 'Inter', sans-serif; font-size: 0.72rem; font-weight: 700; flex-shrink: 0;
+    }
+    .tc-section p { font-size: 0.9rem; color: var(--grey); line-height: 1.8; margin-bottom: 0.75rem; }
+    .tc-section p:last-child { margin-bottom: 0; }
+
+    .tc-list { list-style: none; display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 0.75rem; }
+    .tc-list li {
+      font-size: 0.9rem; color: var(--grey); line-height: 1.7;
+      display: flex; align-items: flex-start; gap: 0.7rem;
+      padding: 0.7rem 0.9rem;
+      background: var(--bg-soft); border-radius: 6px; border: 1px solid var(--border);
+    }
+    .tc-list li::before { content: '—'; color: var(--blue); font-weight: 700; flex-shrink: 0; margin-top: 0.05rem; }
+
+    .highlight-box {
+      background: var(--bg-soft); border: 1px solid var(--border);
+      border-left: 3px solid var(--blue); border-radius: 0 8px 8px 0;
+      padding: 1rem 1.2rem; margin: 1rem 0;
+      font-size: 0.88rem; color: var(--grey); line-height: 1.7;
+    }
+    .highlight-box strong { color: var(--ink); }
+
+    .warning-box {
+      background: #fff8f0; border: 1px solid #fcd34d; border-radius: 8px;
+      padding: 1rem 1.2rem; margin: 1rem 0; font-size: 0.88rem; color: #92400e; line-height: 1.7;
+      display: flex; gap: 0.7rem; align-items: flex-start;
+    }
+    .warning-box .w-icon { flex-shrink: 0; font-size: 1rem; margin-top: 0.1rem; }
+
+    .agreement-strip {
+      background: var(--ink); border-radius: 12px;
+      padding: 2.5rem 2rem; margin-top: 3rem; text-align: center;
+    }
+    .agreement-strip h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; color: #fff; margin-bottom: 0.5rem; }
+    .agreement-strip h3 em { font-style: italic; color: #60a5fa; }
+    .agreement-strip p { font-size: 0.85rem; color: rgba(255,255,255,0.45); margin-bottom: 1.5rem; line-height: 1.6; }
+    .agreement-strip .enroll-btn {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: var(--blue); color: #fff; font-weight: 600; font-size: 0.9rem;
+      padding: 0.75rem 1.8rem; border-radius: 6px; text-decoration: none;
+      transition: background 0.2s, transform 0.2s;
+    }
+    .agreement-strip .enroll-btn:hover { background: #0047d6; transform: translateY(-1px); }
+    .agreement-strip .tc-note { font-size: 0.75rem; color: rgba(255,255,255,0.25); margin-top: 1rem; }
+
+    footer {
+      padding: 2rem 4vw; display: flex; align-items: center; justify-content: space-between;
+      flex-wrap: wrap; gap: 1rem; border-top: 1px solid var(--border);
+      font-size: 0.78rem; color: var(--muted);
+    }
+    footer a { color: var(--blue); text-decoration: none; }
+
+    @media (max-width: 600px) {
+      .hero-strip { padding: 2.5rem 4vw 2rem; }
+      .page-wrap { padding: 2rem 4vw 4rem; }
+      .agreement-strip { padding: 2rem 1.2rem; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="Logo.jpeg" alt="CoRadix" onerror="this.style.display='none'">
+    <span class="nav-logo-text">Co<span>Radix</span> Academy</span>
+  </a>
+  <a href="apply.html" class="nav-back">← Back to Enrollment</a>
+</nav>
+
+<div class="hero-strip">
+  <p class="eyebrow">Legal & Policy</p>
+  <h1>Terms & <em>Conditions</em></h1>
+  <p>Please read carefully before enrolling. Last updated: April 2025.</p>
+</div>
+
+<div class="page-wrap">
+
+  <div class="intro-box">
+    <span class="ib-icon">📋</span>
+    <p>These Terms & Conditions govern the enrollment of students into CoRadix Academy's programs. By submitting the enrollment form and checking the agreement box, the <strong>parent or legal guardian</strong> confirms they have read, understood, and agreed to all terms below on behalf of themselves and the enrolled student.</p>
+  </div>
+
+  <!-- 1. BATCH RULES & ATTENDANCE -->
+  <div class="tc-section">
+    <h2><span class="s-num">1</span> Batch Rules & Attendance Policy</h2>
+    <ul class="tc-list">
+      <li>Each batch is capped at a maximum of <strong>9 students</strong>. Enrollment is confirmed on a first-come, first-served basis upon receipt of payment.</li>
+      <li>Students are expected to attend all scheduled sessions on time. Punctuality is part of the learning commitment.</li>
+      <li>If a student is unable to attend a session, prior notice must be given. Habitual absenteeism without notice may result in the student's place being offered to a waitlisted student.</li>
+      <li><strong>No session will be rescheduled, compromised, or cancelled</strong> on account of an individual student's personal schedule — including exam periods. The batch runs as scheduled for all.</li>
+      <li>During exam seasons, CoRadix may conduct open <strong>Zoom revision sessions</strong> — live, interactive doubt-clearing classes open to all enrolled students. Students can ask questions and interact with one another under the direct supervision of the founder. These are offered as additional support, not as replacements for regular sessions.</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>1-on-1 Sessions:</strong> Standard enrollment is for group batches (up to 9 students). Parents who require dedicated <strong>1-on-1 sessions</strong> for their child may request this separately. 1-on-1 sessions are available at an additional fee, subject to slot availability. Please enquire at the time of enrollment.
+    </div>
+  </div>
+
+  <!-- 2. FEES -->
+  <div class="tc-section">
+    <h2><span class="s-num">2</span> Fee Payment & Refund Policy</h2>
+    <ul class="tc-list">
+      <li>All fees are due and must be paid in full at the <strong>beginning of each month</strong>, before the month's sessions commence.</li>
+      <li>Failure to pay by the due date may result in the student's place being temporarily suspended until payment is cleared.</li>
+      <li>Fees are <strong>non-refundable</strong> once the month has begun, regardless of attendance or personal circumstances.</li>
+      <li>If a student wishes to discontinue, notice must be given before the next monthly payment cycle. No refund will be issued for the current month.</li>
+      <li>CoRadix Academy reserves the right to revise fees at the start of a new academic term, with at least 2 weeks' prior notice to enrolled families.</li>
+    </ul>
+    <div class="warning-box">
+      <span class="w-icon">⚠️</span>
+      <span>Fees not paid by the start of the month may result in the student's seat being reassigned to a waitlisted applicant without further notice.</span>
+    </div>
+  </div>
+
+  <!-- 3. POST-CLASS TASKS -->
+  <div class="tc-section">
+    <h2><span class="s-num">3</span> Post-Class Task Policy</h2>
+    <p>CoRadix assigns <strong>one task per session</strong> to consolidate the material covered. This is a core part of the learning methodology and is not optional.</p>
+    <ul class="tc-list">
+      <li>Every task must be submitted within <strong>30 minutes of the session ending</strong> — no exceptions.</li>
+      <li>Tasks are concise and directly tied to what was covered in that session. They are not lengthy homework assignments.</li>
+      <li>Consistent failure to submit tasks on time will be flagged and discussed with the parent/guardian.</li>
+      <li>Late or missing submissions are marked incomplete — they do not carry over to the next session.</li>
+    </ul>
+    <div class="highlight-box">
+      <strong>Why 30 minutes?</strong> Submitting immediately after class consolidates memory at its peak. This is a deliberate part of the CoRadix method — not an arbitrary rule.
+    </div>
+  </div>
+
+  <!-- 4. CODE OF CONDUCT -->
+  <div class="tc-section">
+    <h2><span class="s-num">4</span> Code of Conduct for Students</h2>
+    <p>CoRadix is a small, focused learning environment. All students are expected to uphold the following:</p>
+    <ul class="tc-list">
+      <li>Treat fellow students, the tutor, and the shared learning space with respect at all times.</li>
+      <li>Arrive to sessions prepared — materials ready, distractions minimised.</li>
+      <li>Active participation is encouraged. Passive attendance (camera off, no interaction) is discouraged and may be flagged.</li>
+      <li>Any form of disruptive behaviour, bullying, or disrespect — in sessions or in community subject rooms — will result in a warning, and on repetition, removal from the batch without refund.</li>
+      <li>Subject community rooms are for academic discussion only. Misuse of these spaces will result in access being revoked.</li>
+    </ul>
+  </div>
+
+  <!-- 5. PHOTO & CONTENT CONSENT -->
+  <div class="tc-section">
+    <h2><span class="s-num">5</span> Photo & Content Usage Consent</h2>
+    <ul class="tc-list">
+      <li>Sessions may occasionally be recorded by the tutor for internal quality review only. Recordings will not be shared publicly.</li>
+      <li>Student work, anonymised feedback, or progress highlights may be shared on CoRadix's social media or website for promotional purposes <strong>only with prior written consent</strong> from the parent/guardian.</li>
+      <li>Students and parents must not record, screenshot, or distribute session content without explicit written permission from CoRadix Academy.</li>
+      <li>Any content — notes, worksheets, or materials — shared by CoRadix is for the enrolled student's personal use only and may not be redistributed.</li>
+    </ul>
+  </div>
+
+  <!-- 6. PRIVACY -->
+  <div class="tc-section">
+    <h2><span class="s-num">6</span> Privacy & Data Policy</h2>
+    <ul class="tc-list">
+      <li>Personal information collected during enrollment is used solely for managing the student's enrollment and communication with the parent/guardian.</li>
+      <li>CoRadix Academy does not sell, share, or distribute personal data to any third party.</li>
+      <li>All data is stored securely and handled responsibly.</li>
+      <li>Parents may request deletion of their data at any time by contacting the academy directly.</li>
+    </ul>
+  </div>
+
+  <!-- 7. GENERAL -->
+  <div class="tc-section">
+    <h2><span class="s-num">7</span> General</h2>
+    <ul class="tc-list">
+      <li>CoRadix Academy reserves the right to update these terms at any time. Changes will be communicated to enrolled families with reasonable notice.</li>
+      <li>CoRadix Academy reserves the right to decline or terminate enrollment if these terms are repeatedly violated.</li>
+      <li>For any questions regarding these terms, contact us at <a href="mailto:academy@coradix.academy" style="color:var(--blue); font-weight:600;">academy@coradix.academy</a>.</li>
+    </ul>
+  </div>
+
+  <!-- AGREEMENT -->
+  <div class="agreement-strip">
+    <h3>Ready to <em>agree & enroll?</em></h3>
+    <p>Head back to the enrollment form. At the bottom you'll find a checkbox confirming you have read and agreed to these Terms & Conditions. Your enrollment is not complete until that box is checked.</p>
+    <a href="apply.html" class="enroll-btn">Go to Enrollment Form →</a>
+    <p class="tc-note">By checking the box on the form, the parent or legal guardian confirms full agreement to all terms above.</p>
+  </div>
+
+</div>
+
+<footer>
+  <span>© 2025 CoRadix Academy. All rights reserved.</span>
+  <span>Questions? <a href="mailto:academy@coradix.academy">academy@coradix.academy</a></span>
+</footer>
+
+</body>
+</html>
