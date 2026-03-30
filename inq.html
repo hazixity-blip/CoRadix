@@ -24,12 +24,12 @@
         p.subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5; }
         .form-group { margin-bottom: 1.25rem; }
         label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--grey); }
-        input, textarea {
+        input, select {
             width: 100%; padding: 0.85rem 1rem; border-radius: 10px;
             border: 1px solid var(--border); font-family: inherit; font-size: 1rem;
             box-sizing: border-box; transition: all 0.2s;
         }
-        input:focus, textarea:focus { outline: none; border-color: var(--blue); background: white; }
+        input:focus { outline: none; border-color: var(--blue); background: white; }
         .btn-submit {
             width: 100%; background: var(--blue); color: white; border: none;
             padding: 1rem; border-radius: 10px; font-size: 1rem; font-weight: 600;
@@ -44,13 +44,13 @@
     <div class="form-card">
         <div id="form-content">
             <h1>Inquiry Form</h1>
-            <p class="subtitle">Try 1 week free trial. Fill this form to schedule your session.</p>
+            <p class="subtitle">Try 1 week free trial. Select a preferred time for your discovery session.</p>
 
-            <form id="inquiryForm" action="https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/formResponse" method="POST" target="hidden_iframe" onsubmit="showSuccess()">
+            <form action="https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/formResponse" method="POST" target="hidden_iframe" onsubmit="showSuccess()">
                 
                 <div class="form-group">
                     <label>Student Name</label>
-                    <input type="text" name="entry.1432165035" placeholder="Enter student's name" required>
+                    <input type="text" name="entry.1432165035" placeholder="Name" required>
                 </div>
 
                 <div class="form-group">
@@ -60,26 +60,31 @@
 
                 <div class="form-group">
                     <label>Board of Education</label>
-                    <input type="text" name="entry.648754482" placeholder="e.g. CBSE, ICSE, IG" required>
+                    <input type="text" name="entry.648754482" placeholder="e.g. CBSE / ICSE" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Parent Mobile Number</label>
-                    <input type="tel" name="entry.62993887" placeholder="WhatsApp number" required>
+                    <label>WhatsApp Number</label>
+                    <input type="tel" name="entry.62993887" placeholder="Phone number" required>
                 </div>
 
                 <div class="form-group">
-                    <label>Message (Optional)</label>
-                    <textarea name="entry.2062290176" rows="3" placeholder="Anything else we should know?"></textarea>
+                    <label>Preferred Session Date & Time</label>
+                    <input type="datetime-local" name="entry.1129081725" required>
                 </div>
 
-                <button type="submit" class="btn-submit">Submit Inquiry →</button>
+                <div class="form-group">
+                    <label>Any specific questions?</label>
+                    <input type="text" name="entry.2062290176" placeholder="Optional message">
+                </div>
+
+                <button type="submit" class="btn-submit">Book Session Now →</button>
             </form>
         </div>
 
         <div id="success-msg">
-            <h1>Thank You!</h1>
-            <p class="subtitle">Your inquiry has been received. We will contact you shortly to schedule your free trial.</p>
+            <h1>Success!</h1>
+            <p class="subtitle">Inquiry sent. We will confirm your session time via WhatsApp shortly.</p>
             <a href="index.html" class="btn-submit" style="display: block; text-decoration: none;">Return Home</a>
         </div>
 
