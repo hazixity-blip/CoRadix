@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Inquiry Form — CoRadix Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --ink: #1c1c1e;
+            --grey: #3a3a3c;
+            --muted: #6b7280;
+            --border: #e5e7eb;
+            --bg: #ffffff;
+            --bg-soft: #f5f7fa;
+            --blue: #0057ff;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--ink);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .form-card {
+            background: var(--bg-soft);
+            width: 100%;
+            max-width: 480px;
+            padding: 2.5rem;
+            border-radius: 24px;
+            border: 1px solid var(--border);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
+        }
+
+        h1 {
+            font-family: 'DM Serif Display', serif;
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            color: var(--ink);
+        }
+
+        p.subtitle {
+            color: var(--muted);
+            font-size: 0.95rem;
+            margin-bottom: 2rem;
+            line-height: 1.5;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        label {
+            display: block;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: var(--grey);
+        }
+
+        input {
+            width: 100%;
+            padding: 0.85rem 1rem;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            font-family: inherit;
+            font-size: 1rem;
+            box-sizing: border-box;
+            transition: all 0.2s;
+        }
+
+        input:focus {
+            outline: none;
+            border-color: var(--blue);
+            background: white;
+            box-shadow: 0 0 0 4px rgba(0, 87, 255, 0.1);
+        }
+
+        .btn-submit {
+            width: 100%;
+            background: var(--blue);
+            color: white;
+            border: none;
+            padding: 1rem;
+            border-radius: 10px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-top: 1rem;
+            transition: opacity 0.2s;
+        }
+
+        .btn-submit:hover {
+            opacity: 0.9;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 1.5rem;
+            font-size: 0.85rem;
+            color: var(--muted);
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="form-card">
+        <h1>Inquiry Form</h1>
+        <p class="subtitle">Try 1 week free trial. Fill this form and we will reach out to schedule your session.</p>
+
+        <form action="https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/formResponse" method="POST">
+            
+            <div class="form-group">
+                <label>Student Name</label>
+                <input type="text" name="entry.1432165035" placeholder="Name of the child" required>
+            </div>
+
+            <div class="form-group">
+                <label>Student Age</label>
+                <input type="number" name="entry.1835101181" placeholder="e.g. 8" required>
+            </div>
+
+            <div class="form-group">
+                <label>Parent Name</label>
+                <input type="text" name="entry.648754482" placeholder="Your name" required>
+            </div>
+
+            <div class="form-group">
+                <label>WhatsApp Number</label>
+                <input type="tel" name="entry.62993887" placeholder="Phone number" required>
+            </div>
+
+            <input type="hidden" name="entry.1129081725" value="2026-03-31 09:09">
+            <input type="hidden" name="entry.2062290176" value="nopee">
+
+            <button type="submit" class="btn-submit">Apply for a Session Now →</button>
+        </form>
+
+        <a href="index.html" class="back-link">← Back to home</a>
+    </div>
+
+</body>
+</html>
