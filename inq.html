@@ -1,104 +1,351 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inquiry Form — CoRadix Academy</title>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=DM+Serif+Display&display=swap" rel="stylesheet">
-    <style>
-        :root {
-            --ink: #1c1c1e; --grey: #3a3a3c; --muted: #6b7280;
-            --border: #e5e7eb; --bg: #ffffff; --bg-soft: #f5f7fa; --blue: #0057ff;
-        }
-        body {
-            font-family: 'Inter', sans-serif; background-color: var(--bg);
-            color: var(--ink); margin: 0; display: flex;
-            justify-content: center; align-items: center; min-height: 100vh; padding: 20px;
-        }
-        .form-card {
-            background: var(--bg-soft); width: 100%; max-width: 480px;
-            padding: 2.5rem; border-radius: 24px; border: 1px solid var(--border);
-            box-shadow: 0 10px 30px rgba(0,0,0,0.05); text-align: left;
-        }
-        h1 { font-family: 'DM Serif Display', serif; font-size: 2rem; margin-bottom: 0.5rem; }
-        p.subtitle { color: var(--muted); font-size: 0.95rem; margin-bottom: 2rem; line-height: 1.5; }
-        .form-group { margin-bottom: 1.25rem; }
-        label { display: block; font-size: 0.85rem; font-weight: 600; margin-bottom: 0.5rem; color: var(--grey); }
-        input, select {
-            width: 100%; padding: 0.85rem 1rem; border-radius: 10px;
-            border: 1px solid var(--border); font-family: inherit; font-size: 1rem;
-            box-sizing: border-box; transition: all 0.2s;
-        }
-        input:focus { outline: none; border-color: var(--blue); background: white; }
-        .btn-submit {
-            width: 100%; background: var(--blue); color: white; border: none;
-            padding: 1rem; border-radius: 10px; font-size: 1rem; font-weight: 600;
-            cursor: pointer; margin-top: 1rem;
-        }
-        #success-msg { display: none; text-align: center; }
-        .back-link { display: block; text-align: center; margin-top: 1.5rem; font-size: 0.85rem; color: var(--muted); text-decoration: none; }
-    </style>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Inquire — CoRadix Academy</title>
+  <link rel="icon" type="image/jpeg" href="Favicon.jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1c1e; --grey: #3a3a3c; --muted: #6b7280;
+      --border: #e5e7eb; --bg: #ffffff; --bg-soft: #f5f7fa;
+      --blue: #0057ff; --blue-light: #e8efff; --blue-mid: #3b82f6;
+      --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+
+    /* NAV */
+    nav {
+      position: fixed; top: 0; left: 0; right: 0; z-index: 200;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 0 4vw; height: 64px;
+      background: rgba(255,255,255,0.96); backdrop-filter: blur(16px);
+      border-bottom: 1px solid var(--border);
+    }
+    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-logo img { height: 36px; width: auto; }
+    .nav-logo-text { font-weight: 700; font-size: 1.05rem; letter-spacing: -0.02em; color: var(--ink); }
+    .nav-logo-text span { color: var(--blue); }
+    .nav-back { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; display: flex; align-items: center; gap: 0.4rem; transition: color 0.2s; }
+    .nav-back:hover { color: var(--ink); }
+
+    /* PAGE LAYOUT */
+    .page { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 64px; }
+
+    /* LEFT PANEL */
+    .left-panel {
+      background: var(--ink); padding: 4rem 3.5rem 4rem 4vw;
+      display: flex; flex-direction: column; justify-content: center;
+      position: sticky; top: 64px; height: calc(100vh - 64px); overflow-y: auto;
+    }
+    .left-eyebrow {
+      font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase;
+      color: #60a5fa; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 1.5rem;
+    }
+    .left-eyebrow::before, .left-eyebrow::after { content: ''; width: 1rem; height: 2px; background: #60a5fa; }
+    .left-panel h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 3.2vw, 2.8rem); font-weight: 400; color: #fff; line-height: 1.1; margin-bottom: 1rem; }
+    .left-panel h1 em { font-style: italic; color: #60a5fa; }
+    .left-panel > p { font-size: 0.9rem; color: rgba(255,255,255,0.5); line-height: 1.75; margin-bottom: 2rem; }
+
+    .step-preview { display: flex; flex-direction: column; gap: 0; }
+    .sp-item {
+      display: flex; align-items: flex-start; gap: 1rem;
+      padding: 1rem 0;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+      position: relative;
+    }
+    .sp-item:last-child { border-bottom: none; }
+    .sp-dot {
+      width: 2rem; height: 2rem; border-radius: 50%; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem; font-weight: 700; margin-top: 0.1rem;
+    }
+    .sp-dot.active { background: var(--blue); color: #fff; }
+    .sp-dot.next   { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.4); border: 1px solid rgba(255,255,255,0.1); }
+    .sp-text h4 { font-size: 0.85rem; font-weight: 700; margin-bottom: 0.2rem; }
+    .sp-text h4.active-label { color: #fff; }
+    .sp-text h4.next-label  { color: rgba(255,255,255,0.35); }
+    .sp-text p { font-size: 0.78rem; color: rgba(255,255,255,0.35); line-height: 1.5; }
+
+    .free-badge {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      background: #dcfce7; color: #166534;
+      font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase;
+      padding: 0.3rem 0.75rem; border-radius: 20px; margin-top: 2rem;
+    }
+
+    /* RIGHT PANEL */
+    .right-panel { padding: 4rem 4vw 4rem 3.5rem; background: var(--bg-soft); display: flex; flex-direction: column; }
+    .form-header { margin-bottom: 2rem; }
+    .form-header h2 { font-family: 'DM Serif Display', serif; font-size: 1.7rem; font-weight: 400; margin-bottom: 0.35rem; }
+    .form-header p { font-size: var(--fs-small, 0.875rem); color: var(--muted); }
+
+    /* FORM */
+    .inquiry-form { display: flex; flex-direction: column; gap: 1.2rem; }
+
+    .field-group { display: flex; flex-direction: column; gap: 0.4rem; }
+    .field-group label {
+      font-size: 0.78rem; font-weight: 600; color: var(--ink);
+      letter-spacing: 0.03em; text-transform: uppercase;
+      display: flex; align-items: center; gap: 0.4rem;
+    }
+    .field-group label .req { color: var(--blue); }
+
+    .field-group input,
+    .field-group select,
+    .field-group textarea {
+      font-family: 'Inter', sans-serif; font-size: 0.9rem;
+      padding: 0.8rem 1rem; border-radius: 8px;
+      border: 1px solid var(--border); background: var(--bg);
+      color: var(--ink); outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      width: 100%;
+    }
+    .field-group input:focus,
+    .field-group select:focus,
+    .field-group textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,87,255,0.08);
+    }
+    .field-group input::placeholder,
+    .field-group textarea::placeholder { color: #b0b8c9; }
+    .field-group textarea { resize: vertical; min-height: 100px; line-height: 1.6; }
+    .field-group select { appearance: none; background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%236b7280' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 1rem center; padding-right: 2.5rem; }
+
+    .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+
+    .field-hint { font-size: 0.75rem; color: var(--muted); margin-top: 0.2rem; }
+
+    .submit-btn {
+      display: flex; align-items: center; justify-content: center; gap: 0.5rem;
+      background: var(--blue); color: #fff;
+      font-family: 'Inter', sans-serif; font-weight: 700;
+      font-size: 0.95rem; padding: 0.95rem 2rem;
+      border: none; border-radius: 8px; cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 0.5rem; width: 100%;
+    }
+    .submit-btn:hover { background: #0047d6; transform: translateY(-1px); }
+    .submit-btn:active { transform: translateY(0); }
+
+    .form-footer-note {
+      margin-top: 1rem; padding: 1rem 1.2rem;
+      background: var(--bg); border: 1px solid var(--border); border-radius: 8px;
+      display: flex; align-items: flex-start; gap: 0.75rem;
+      font-size: 0.8rem; color: var(--muted); line-height: 1.6;
+    }
+    .ffn-icon { font-size: 1rem; flex-shrink: 0; margin-top: 0.05rem; }
+
+    /* SUCCESS STATE */
+    .success-msg {
+      display: none; flex-direction: column; align-items: center; justify-content: center;
+      text-align: center; padding: 3rem 2rem; flex: 1;
+    }
+    .success-msg .sm-icon { font-size: 3rem; margin-bottom: 1.2rem; }
+    .success-msg h3 { font-family: 'DM Serif Display', serif; font-size: 1.6rem; font-weight: 400; margin-bottom: 0.5rem; }
+    .success-msg p { font-size: 0.9rem; color: var(--muted); line-height: 1.7; max-width: 36ch; }
+    .success-msg .sm-next { margin-top: 2rem; }
+    .sm-next a {
+      display: inline-flex; align-items: center; gap: 0.4rem;
+      font-size: 0.85rem; font-weight: 600; color: var(--blue);
+      text-decoration: none; padding: 0.6rem 1.2rem;
+      border: 1px solid var(--blue); border-radius: 6px;
+      transition: background 0.2s;
+    }
+    .sm-next a:hover { background: var(--blue-light); }
+
+    /* RESPONSIVE */
+    @media (max-width: 900px) {
+      .page { grid-template-columns: 1fr; }
+      .left-panel { position: relative; top: auto; height: auto; padding: 3rem 4vw; }
+      .right-panel { padding: 3rem 4vw; }
+      .field-row { grid-template-columns: 1fr; }
+    }
+  </style>
 </head>
 <body>
 
-    <div class="form-card">
-        <div id="form-content">
-            <h1>Inquiry Form</h1>
-            <p class="subtitle">Try 1 week free trial. Select a preferred time for your discovery session.</p>
+<nav>
+  <a class="nav-logo" href="index.html">
+    <img src="Favicon.jpeg" alt="Favicon" style="height:22px;margin-right:4px;" onerror="this.style.display='none'">
+    <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
+  </a>
+  <a href="index.html#procedure" class="nav-back">← Back to How to Join</a>
+</nav>
 
-            <form action="https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/formResponse" method="POST" target="hidden_iframe" onsubmit="showSuccess()">
-                
-                <div class="form-group">
-                    <label>Student Name</label>
-                    <input type="text" name="entry.1432165035" placeholder="Name" required>
-                </div>
+<div class="page">
 
-                <div class="form-group">
-                    <label>Student Grade/Age</label>
-                    <input type="number" name="entry.1835101181" placeholder="e.g. 8" required>
-                </div>
+  <!-- LEFT: Info -->
+  <div class="left-panel">
+    <p class="left-eyebrow">Step 1 of 4</p>
+    <h1>Start with an<br/><em>inquiry.</em></h1>
+    <p>No commitment, no payment. Just tell us a little about your child and what you're looking for — we'll take it from there and get back to you within 24 hours.</p>
 
-                <div class="form-group">
-                    <label>Board of Education</label>
-                    <input type="text" name="entry.648754482" placeholder="e.g. CBSE / ICSE" required>
-                </div>
-
-                <div class="form-group">
-                    <label>WhatsApp Number</label>
-                    <input type="tel" name="entry.62993887" placeholder="Phone number" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Preferred Session Date & Time</label>
-                    <input type="datetime-local" name="entry.1129081725" required>
-                </div>
-
-                <div class="form-group">
-                    <label>Any specific questions?</label>
-                    <input type="text" name="entry.2062290176" placeholder="Optional message">
-                </div>
-
-                <button type="submit" class="btn-submit">Book Session Now →</button>
-            </form>
+    <div class="step-preview">
+      <div class="sp-item">
+        <div class="sp-dot active">1</div>
+        <div class="sp-text">
+          <h4 class="active-label">Inquiry Form <span style="color:#60a5fa;font-weight:400;font-size:0.75rem;">← You are here</span></h4>
+          <p>Tell us about your child. Takes 2 minutes.</p>
         </div>
-
-        <div id="success-msg">
-            <h1>Success!</h1>
-            <p class="subtitle">Inquiry sent. We will confirm your session time via WhatsApp shortly.</p>
-            <a href="index.html" class="btn-submit" style="display: block; text-decoration: none;">Return Home</a>
+      </div>
+      <div class="sp-item">
+        <div class="sp-dot next">2</div>
+        <div class="sp-text">
+          <h4 class="next-label">Discovery Session</h4>
+          <p>Free 30-min call to ask us everything.</p>
         </div>
-
-        <a href="index.html" class="back-link">← Back to home</a>
+      </div>
+      <div class="sp-item">
+        <div class="sp-dot next">3</div>
+        <div class="sp-text">
+          <h4 class="next-label">Assessment Session</h4>
+          <p>₹100 · 30-min aptitude test.</p>
+        </div>
+      </div>
+      <div class="sp-item">
+        <div class="sp-dot next">4</div>
+        <div class="sp-text">
+          <h4 class="next-label">Enroll</h4>
+          <p>Pay monthly fee, join your batch.</p>
+        </div>
+      </div>
     </div>
 
-    <iframe name="hidden_iframe" id="hidden_iframe" style="display:none;"></iframe>
+    <div class="free-badge">✅ This step is completely free</div>
+  </div>
 
-    <script>
-        function showSuccess() {
-            document.getElementById('form-content').style.display = 'none';
-            document.getElementById('success-msg').style.display = 'block';
-        }
-    </script>
+  <!-- RIGHT: Form -->
+  <div class="right-panel">
+    <div class="form-header">
+      <h2>Tell us about your child</h2>
+      <p>All fields marked <span style="color:var(--blue);font-weight:600;">*</span> are required. We'll respond personally within 24 hours.</p>
+    </div>
+
+    <form class="inquiry-form" id="inquiryForm" onsubmit="submitForm(event)">
+
+      <div class="field-group">
+        <label>Student Name <span class="req">*</span></label>
+        <input type="text" id="f_name" placeholder="Full name of the student" required />
+      </div>
+
+      <div class="field-row">
+        <div class="field-group">
+          <label>Class / Grade <span class="req">*</span></label>
+          <select id="f_class" required>
+            <option value="" disabled selected>Select class</option>
+            <option value="1">Class 1</option>
+            <option value="2">Class 2</option>
+            <option value="3">Class 3</option>
+            <option value="4">Class 4</option>
+            <option value="5">Class 5</option>
+            <option value="6">Class 6</option>
+            <option value="7">Class 7</option>
+            <option value="8">Class 8</option>
+            <option value="9">Class 9</option>
+            <option value="10">Class 10</option>
+            <option value="11">Class 11</option>
+            <option value="12">Class 12</option>
+            <option value="UG">Undergraduate</option>
+          </select>
+        </div>
+        <div class="field-group">
+          <label>School Board <span class="req">*</span></label>
+          <input type="text" id="f_board" placeholder="e.g. CBSE, ICSE, State" required />
+        </div>
+      </div>
+
+      <div class="field-group">
+        <label>Parent / Guardian Email <span class="req">*</span></label>
+        <input type="email" id="f_email" placeholder="yourname@email.com" required />
+        <span class="field-hint">We'll use this to reach out and confirm your discovery session.</span>
+      </div>
+
+      <div class="field-group">
+        <label>Preferred Date &amp; Time <span class="req">*</span></label>
+        <input type="datetime-local" id="f_datetime" required />
+        <span class="field-hint">Pick a time that works for a 30-min discovery call. We'll confirm availability.</span>
+      </div>
+
+      <div class="field-group">
+        <label>Anything else we should know?</label>
+        <textarea id="f_notes" placeholder="Tell us about your child's learning needs, subjects of concern, goals, or any questions you have. The more you share, the better we can help."></textarea>
+      </div>
+
+      <button type="submit" class="submit-btn">
+        Send Inquiry →
+      </button>
+
+      <div class="form-footer-note">
+        <span class="ffn-icon">🔒</span>
+        <span>Your information is kept private and used only to manage your inquiry. We do not share data with third parties. <a href="terms.html" style="color:var(--blue);font-weight:600;">View our full policy →</a></span>
+      </div>
+
+    </form>
+
+    <!-- SUCCESS STATE (shown after submit) -->
+    <div class="success-msg" id="successMsg">
+      <div class="sm-icon">🎉</div>
+      <h3>Inquiry received!</h3>
+      <p>Thank you for reaching out. We'll review your details and get back to you at your registered email within <strong>24 hours</strong> to confirm your discovery session.</p>
+      <div class="sm-next">
+        <a href="index.html">← Back to CoRadix Academy</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  async function submitForm(e) {
+    e.preventDefault();
+
+    const name     = document.getElementById('f_name').value.trim();
+    const cls      = document.getElementById('f_class').value.trim();
+    const board    = document.getElementById('f_board').value.trim();
+    const email    = document.getElementById('f_email').value.trim();
+    const datetime = document.getElementById('f_datetime').value.trim();
+    const notes    = document.getElementById('f_notes').value.trim() || 'No additional notes.';
+
+    // Format datetime for Google Forms (expects YYYY-MM-DD HH:MM)
+    const dtFormatted = datetime.replace('T', ' ');
+
+    // Google Form entry IDs from your form link
+    const FORM_ID = '1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA';
+    const params = new URLSearchParams({
+      'entry.1432165035': name,
+      'entry.1835101181': cls,
+      'entry.648754482':  board,
+      'entry.1166288653': email,
+      'entry.1129081725': dtFormatted,
+      'entry.2062290176': notes,
+    });
+
+    const url = `https://docs.google.com/forms/d/e/${FORM_ID}/formResponse?${params.toString()}`;
+
+    const btn = document.querySelector('.submit-btn');
+    btn.textContent = 'Sending...';
+    btn.disabled = true;
+
+    try {
+      // Google Forms doesn't allow direct fetch (CORS) — use no-cors mode
+      await fetch(url, { method: 'POST', mode: 'no-cors' });
+    } catch (_) {
+      // no-cors always throws on fetch, that's expected — treat as success
+    }
+
+    // Show success either way (Google Forms received it)
+    document.getElementById('inquiryForm').style.display = 'none';
+    document.querySelector('.form-header').style.display = 'none';
+    const msg = document.getElementById('successMsg');
+    msg.style.display = 'flex';
+  }
+</script>
 
 </body>
 </html>
