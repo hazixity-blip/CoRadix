@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CoRadix Academy — Learn Differently</title>
   <link rel="icon" type="image/jpeg" href="Favicon.jpeg" />
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)" />
+  <link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin />
+  <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap)" rel="stylesheet" />
   <style>
     :root {
       --ink:        #1c1c1e;
@@ -19,6 +19,8 @@
       --blue:       #0057ff;
       --blue-light: #e8efff;
       --blue-mid:   #3b82f6;
+      --summer:     #ff6b2b;
+      --summer-light: #fff1eb;
       --ease: cubic-bezier(0.16, 1, 0.3, 1);
       --fs-display: clamp(2.6rem, 6vw, 5.2rem);
       --fs-h2: clamp(1.8rem, 3.5vw, 2.8rem);
@@ -30,6 +32,52 @@
     html { scroll-behavior: smooth; }
     body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
 
+    /* ── ANNOUNCEMENT BANNER ── */
+    .announcement-banner {
+      background: linear-gradient(90deg, #ff6b2b 0%, #ff8c42 40%, #0057ff 100%);
+      color: #fff;
+      text-align: center;
+      padding: 0.6rem 4vw;
+      font-size: 0.82rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+      position: relative;
+      z-index: 300;
+    }
+    .announcement-banner span { opacity: 0.8; }
+    .banner-sep { opacity: 0.4; }
+    .banner-btn {
+      background: rgba(255,255,255,0.22);
+      border: 1.5px solid rgba(255,255,255,0.5);
+      color: #fff;
+      padding: 0.25rem 0.85rem;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background 0.2s;
+      white-space: nowrap;
+    }
+    .banner-btn:hover { background: rgba(255,255,255,0.35); }
+    .banner-close {
+      position: absolute;
+      right: 1rem;
+      top: 50%;
+      transform: translateY(-50%);
+      background: none;
+      border: none;
+      color: rgba(255,255,255,0.7);
+      font-size: 1rem;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0.2rem;
+    }
+    .banner-close:hover { color: #fff; }
+
     /* ── NAV ── */
     nav {
       position: fixed; top: 0; left: 0; right: 0; z-index: 200;
@@ -37,6 +85,7 @@
       padding: 0 4vw; height: 64px;
       background: rgba(255,255,255,0.96); backdrop-filter: blur(16px);
       border-bottom: 1px solid var(--border);
+      transition: top 0.3s;
     }
     .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
     .nav-logo img { height: 38px; width: auto; display: block; }
@@ -56,6 +105,8 @@
     .hero-text { position: relative; z-index: 1; }
     .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 1.4rem; opacity: 0; animation: fadeUp 0.7s var(--ease) 0.1s forwards; }
     .eyebrow::before { content:''; width:1.5rem; height:2px; background:var(--blue); }
+    .eyebrow.summer-eye { color: var(--summer); }
+    .eyebrow.summer-eye::before { background: var(--summer); }
     h1.display { font-family: 'DM Serif Display', serif; font-size: var(--fs-display); font-weight: 400; line-height: 1.08; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 1.4rem; opacity: 0; animation: fadeUp 0.8s var(--ease) 0.2s forwards; }
     h1.display em { font-style: italic; color: var(--blue); }
     .hero-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.75; max-width: 46ch; margin-bottom: 2.4rem; opacity: 0; animation: fadeUp 0.8s var(--ease) 0.32s forwards; }
@@ -63,6 +114,8 @@
     .btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.6rem; border-radius: 6px; text-decoration: none; transition: all 0.2s; }
     .btn-blue { background: var(--blue); color: #fff; }
     .btn-blue:hover { background: #0047d6; transform: translateY(-1px); }
+    .btn-summer { background: var(--summer); color: #fff; }
+    .btn-summer:hover { background: #e85a1f; transform: translateY(-1px); }
     .btn-outline { border: 1.5px solid var(--border); color: var(--ink); background: transparent; }
     .btn-outline:hover { border-color: var(--ink); background: var(--bg-soft); }
     .hero-visual { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1rem; opacity: 0; animation: fadeIn 1s var(--ease) 0.5s forwards; }
@@ -73,6 +126,25 @@
     .m-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
     .m-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
     .hero-badge { position: absolute; bottom: -0.6rem; right: 0.5rem; background: var(--ink); color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 20px; }
+
+    /* ── SUMMER HERO STRIP ── */
+    .summer-strip {
+      background: linear-gradient(135deg, #fff8f4 0%, #fff1eb 50%, #e8efff 100%);
+      border: 1px solid #ffd4b8;
+      border-radius: 12px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+      margin-top: 0.5rem;
+    }
+    .summer-strip-left { display: flex; align-items: center; gap: 0.8rem; }
+    .summer-strip-icon { font-size: 1.6rem; }
+    .summer-strip-left h4 { font-size: 0.9rem; font-weight: 700; color: var(--summer); margin-bottom: 0.1rem; }
+    .summer-strip-left p { font-size: 0.78rem; color: var(--muted); }
+    .summer-strip .btn-summer { font-size: 0.78rem; padding: 0.5rem 1.1rem; white-space: nowrap; }
 
     /* ── SHARED ── */
     .divider { width:100%; height:1px; background: var(--border); }
@@ -130,20 +202,117 @@
     .step-divider-label { display:flex; align-items:center; gap:1rem; margin:0.5rem 0 1.2rem 4.8rem; font-size:0.75rem; font-weight:600; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; }
     .step-divider-label::before, .step-divider-label::after { content:''; flex:1; height:1px; background:var(--border); }
 
+    /* ── INQUIRY FORM MODAL ── */
+    .inq-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.55);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+    .inq-overlay.active { display: flex; }
+    .inq-modal {
+      background: var(--bg);
+      border-radius: 14px;
+      width: 100%;
+      max-width: 560px;
+      max-height: 92vh;
+      overflow-y: auto;
+      box-shadow: 0 24px 80px rgba(0,0,0,0.2);
+      animation: fadeUp 0.4s var(--ease) forwards;
+    }
+    .inq-header {
+      padding: 1.8rem 2rem 1.2rem;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 1rem;
+    }
+    .inq-header h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.2rem; }
+    .inq-header p { font-size: 0.82rem; color: var(--muted); }
+    .inq-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; padding: 0.1rem; flex-shrink: 0; }
+    .inq-close:hover { color: var(--ink); }
+    .inq-body { padding: 1.6rem 2rem 2rem; }
+    .inq-free-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: #dcfce7;
+      color: #166534;
+      font-size: 0.75rem;
+      font-weight: 700;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 1.2rem;
+    }
+    .inq-field { margin-bottom: 1.1rem; }
+    .inq-field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--grey); margin-bottom: 0.35rem; letter-spacing: 0.03em; }
+    .inq-field label span { color: var(--blue); }
+    .inq-field input,
+    .inq-field select,
+    .inq-field textarea {
+      width: 100%;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.88rem;
+      color: var(--ink);
+      background: var(--bg);
+      border: 1.5px solid var(--border);
+      border-radius: 7px;
+      padding: 0.65rem 0.9rem;
+      outline: none;
+      transition: border-color 0.2s, box-shadow 0.2s;
+      appearance: none;
+    }
+    .inq-field input:focus,
+    .inq-field select:focus,
+    .inq-field textarea:focus {
+      border-color: var(--blue);
+      box-shadow: 0 0 0 3px rgba(0,87,255,0.1);
+    }
+    .inq-field textarea { resize: vertical; min-height: 80px; }
+    .inq-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
+    .inq-submit {
+      width: 100%;
+      background: var(--blue);
+      color: #fff;
+      border: none;
+      border-radius: 7px;
+      padding: 0.85rem 1.5rem;
+      font-family: 'Inter', sans-serif;
+      font-size: 0.95rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.2s;
+      margin-top: 0.5rem;
+    }
+    .inq-submit:hover { background: #0047d6; transform: translateY(-1px); }
+    .inq-note { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 0.75rem; }
+    .inq-note a { color: var(--blue); font-weight: 600; }
+
     /* ── COURSES ── */
     #courses .section-inner { padding-bottom: 4rem; }
     .courses-block { margin-bottom: 1.5rem; }
     .courses-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:1.3rem 1.6rem; cursor:pointer; transition:border-color 0.2s, background 0.2s; font-family:'Inter',sans-serif; }
     .courses-toggle:hover { border-color:var(--blue); background:var(--blue-light); }
     .courses-toggle.open { border-color:var(--blue); border-bottom-left-radius:0; border-bottom-right-radius:0; background:var(--blue-light); }
+    .courses-toggle.summer-toggle:hover { border-color:var(--summer); background:var(--summer-light); }
+    .courses-toggle.summer-toggle.open { border-color:var(--summer); background:var(--summer-light); }
     .ct-left { display:flex; align-items:center; gap:1rem; }
     .ct-icon { font-size:1.4rem; }
     .ct-title { font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:0.1rem; }
     .ct-sub { font-size:var(--fs-small); color:var(--muted); }
     .ct-arrow { width:2rem; height:2rem; border-radius:50%; background:var(--blue-light); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:1rem; transition:transform 0.3s var(--ease), background 0.2s; flex-shrink:0; }
     .courses-toggle.open .ct-arrow { transform:rotate(180deg); background:var(--blue); color:#fff; }
+    .summer-toggle .ct-arrow { background: var(--summer-light); color: var(--summer); }
+    .summer-toggle.open .ct-arrow { background: var(--summer); color: #fff; }
     .courses-panel { max-height:0; overflow:hidden; border:1px solid var(--blue); border-top:none; border-bottom-left-radius:10px; border-bottom-right-radius:10px; background:#fff; transition:max-height 0.45s var(--ease); }
-    .courses-panel.open { max-height:2000px; }
+    .courses-panel.open { max-height:3000px; }
+    .summer-panel { border-color: var(--summer); }
     .panel-inner { padding:2rem 1.6rem; }
     .course-cards { display:grid; grid-template-columns:repeat(2,1fr); gap:1.2rem; margin-bottom:2rem; }
     .course-card { border:1px solid var(--border); border-radius:8px; padding:1.5rem; transition:border-color 0.2s, box-shadow 0.2s; }
@@ -168,6 +337,91 @@
     .sc-card .sc-who { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--blue); margin-top:0.5rem; }
     .occasional-note { text-align:center; font-size:var(--fs-small); color:var(--muted); padding:1rem; border:1px dashed var(--border); border-radius:8px; }
     .occasional-note strong { color:var(--ink); }
+
+    /* ── SUMMER COURSES SECTION ── */
+    #summer { background: linear-gradient(135deg, #fff8f4 0%, #fff1eb 60%, #e8efff 100%); }
+    #summer .s-eye { color: var(--summer); }
+    #summer .s-eye::before { background: var(--summer); }
+    #summer h2.s-title em { color: var(--summer); }
+    .summer-label {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: var(--summer);
+      color: #fff;
+      font-size: 0.7rem;
+      font-weight: 700;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      padding: 0.25rem 0.75rem;
+      border-radius: 20px;
+      margin-bottom: 1.5rem;
+    }
+    .summer-project-note {
+      background: #fff;
+      border: 1.5px solid #ffd4b8;
+      border-radius: 10px;
+      padding: 1.2rem 1.5rem;
+      display: flex;
+      align-items: flex-start;
+      gap: 0.8rem;
+      margin-bottom: 2rem;
+    }
+    .summer-project-note .spn-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
+    .summer-project-note p { font-size: 0.84rem; color: var(--grey); line-height: 1.65; }
+    .summer-project-note strong { color: var(--summer); }
+    .summer-courses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; margin-bottom: 2rem; }
+    .summer-course-card {
+      background: #fff;
+      border: 1.5px solid #ffd4b8;
+      border-radius: 10px;
+      padding: 1.4rem 1.3rem;
+      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
+    }
+    .summer-course-card:hover {
+      border-color: var(--summer);
+      box-shadow: 0 6px 24px rgba(255,107,43,0.12);
+      transform: translateY(-2px);
+    }
+    .sc-summer-icon { font-size: 1.6rem; margin-bottom: 0.65rem; }
+    .sc-summer-badge {
+      display: inline-block;
+      font-size: 0.65rem;
+      font-weight: 700;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+      padding: 0.15rem 0.55rem;
+      border-radius: 4px;
+      background: var(--summer-light);
+      color: var(--summer);
+      margin-bottom: 0.45rem;
+    }
+    .sc-summer-badge.tech { background: #e8efff; color: var(--blue); }
+    .sc-summer-badge.creative { background: #f0fdf4; color: #166534; }
+    .summer-course-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--ink); }
+    .summer-course-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin-bottom: 0.5rem; }
+    .summer-course-card .sc-duration {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    .summer-enroll-box {
+      background: var(--ink);
+      border-radius: 12px;
+      padding: 2rem 2.5rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .seb-left h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: #fff; margin-bottom: 0.3rem; }
+    .seb-left h3 em { font-style: italic; color: #fb923c; }
+    .seb-left p { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
+    .seb-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
 
     /* ── MATERIALS PROTECTION ── */
     #materials { background: var(--bg-soft); }
@@ -259,6 +513,7 @@
     .cta-box h2 em { font-style:italic; color:#60a5fa; }
     .cta-box p { color:rgba(255,255,255,0.5); font-size:1rem; margin-bottom:2rem; position:relative; }
     .cta-note { margin-top:1rem; font-size:0.8rem; color:rgba(255,255,255,0.3); position:relative; }
+    .cta-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
 
     /* ── FOOTER ── */
     footer { padding:2rem 4vw; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-top:1px solid var(--border); }
@@ -291,19 +546,34 @@
       .materials-grid { grid-template-columns:1fr; }
       .step-split { grid-template-columns:1fr; }
       .outcome-row { grid-template-columns:1fr; }
+      .summer-courses-grid { grid-template-columns:repeat(2,1fr); }
+      .inq-row { grid-template-columns:1fr; }
     }
     @media (max-width: 600px) {
       .hero-actions { flex-direction:column; }
       .cta-box { padding:3rem 1.5rem; }
       .side-courses-grid { grid-template-columns:1fr; }
       .about-stats { grid-template-columns:1fr; }
+      .summer-courses-grid { grid-template-columns:1fr; }
+      .summer-enroll-box { flex-direction:column; text-align:center; }
+      .announcement-banner { font-size:0.75rem; gap:0.75rem; }
     }
   </style>
 </head>
 <body>
 
+<!-- ANNOUNCEMENT BANNER -->
+<div class="announcement-banner" id="annBanner">
+  <span>☀️ <strong>Summer Courses 2025 are OPEN</strong> — Real skills for school students on vacation</span>
+  <span class="banner-sep">|</span>
+  <span>🎓 <strong>1 Week Free Trial</strong> available for all batches</span>
+  <a href="#summer" class="banner-btn" onclick="closeBanner()">See Summer Courses →</a>
+  <a href="#" class="banner-btn" onclick="openInquiry(); return false;">Start Free Trial →</a>
+  <button class="banner-close" onclick="closeBanner()" aria-label="Close banner">✕</button>
+</div>
+
 <!-- NAV -->
-<nav>
+<nav id="mainNav">
   <a class="nav-logo" href="#">
     <img src="Favicon.jpeg" alt="Favicon" style="height:24px; margin-right:4px;" onerror="this.style.display='none'">
     <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
@@ -312,12 +582,74 @@
     <li><a href="#method">Method</a></li>
     <li><a href="#procedure">How to Join</a></li>
     <li><a href="#courses">Courses</a></li>
+    <li><a href="#summer">Summer</a></li>
     <li><a href="#why">Why Us</a></li>
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="apply.html" class="nav-cta">Enroll Now</a></li>
+    <li><a href="#" onclick="openInquiry(); return false;" class="nav-cta">Inquiry Form</a></li>
   </ul>
 </nav>
+
+<!-- INQUIRY FORM MODAL -->
+<div class="inq-overlay" id="inqOverlay" onclick="overlayClose(event)">
+  <div class="inq-modal">
+    <div class="inq-header">
+      <div>
+        <h3>Start Your Journey</h3>
+        <p>Fill in your details — we'll reach out within 24 hours.</p>
+      </div>
+      <button class="inq-close" onclick="closeInquiry()" aria-label="Close">✕</button>
+    </div>
+    <div class="inq-body">
+      <span class="inq-free-badge">✅ Free — No commitment</span>
+      <form id="inqForm" onsubmit="submitInquiry(event)">
+        <div class="inq-field">
+          <label>Your Name <span>*</span></label>
+          <input type="text" id="inq_name" placeholder="e.g. Priya Sharma" required />
+        </div>
+        <div class="inq-row">
+          <div class="inq-field">
+            <label>Child's Class / Grade <span>*</span></label>
+            <select id="inq_class" required>
+              <option value="" disabled selected>Select class</option>
+              <option value="1">Class 1</option>
+              <option value="2">Class 2</option>
+              <option value="3">Class 3</option>
+              <option value="4">Class 4</option>
+              <option value="5">Class 5</option>
+              <option value="6">Class 6</option>
+              <option value="7">Class 7</option>
+              <option value="8">Class 8</option>
+              <option value="9">Class 9</option>
+              <option value="10">Class 10</option>
+              <option value="11">Class 11</option>
+              <option value="12">Class 12</option>
+              <option value="college">College</option>
+            </select>
+          </div>
+          <div class="inq-field">
+            <label>Board / Curriculum <span>*</span></label>
+            <input type="text" id="inq_board" placeholder="e.g. CBSE, ICSE, State" required />
+          </div>
+        </div>
+        <div class="inq-field">
+          <label>Email Address <span>*</span></label>
+          <input type="email" id="inq_email" placeholder="your@email.com" required />
+        </div>
+        <div class="inq-field">
+          <label>Preferred Session Date &amp; Time</label>
+          <input type="datetime-local" id="inq_datetime" />
+        </div>
+        <div class="inq-field">
+          <label>Tell us more — subjects, goals, anything</label>
+          <textarea id="inq_message" placeholder="e.g. My daughter struggles with Chemistry and Maths. Looking for regular tuition for Class 11…"></textarea>
+        </div>
+        <button type="submit" class="inq-submit">Submit Inquiry &amp; Book Free Session →</button>
+      </form>
+      <p class="inq-note">By submitting, you agree to our <a href="terms.html">Terms &amp; Conditions</a>. We respond to every inquiry personally.</p>
+    </div>
+  </div>
+</div>
 
 <!-- HERO -->
 <section id="hero">
@@ -325,11 +657,24 @@
   <div class="hero-glow"></div>
   <div class="hero-text">
     <p class="eyebrow">Small Batches. Real Results.</p>
+    <p class="eyebrow summer-eye" style="animation-delay:0.15s;">☀️ Summer Courses Now Open · <a href="#summer" style="color:var(--summer);text-decoration:underline;text-underline-offset:3px;">See what's new →</a></p>
     <h1 class="display">Learn <em>smarter,</em><br/>not harder.</h1>
     <p class="hero-desc">CoRadix Academy is a boutique tutoring academy that breaks every subject into exactly what to <strong>memorise</strong>, what to <strong>understand</strong>, and what to <strong>practise</strong> — so nothing slips through.</p>
     <div class="hero-actions">
-      <a href="apply.html" class="btn btn-blue">Apply for Next Batch →</a>
-      <a href="#method" class="btn btn-outline">See the Method</a>
+      <a href="#" onclick="openInquiry(); return false;" class="btn btn-blue">Book Your Free Session NOW →</a>
+      <a href="#summer" class="btn btn-summer">☀️ Summer Courses</a>
+      <a href="#procedure" class="btn btn-outline">How to Join</a>
+    </div>
+    <!-- Summer strip -->
+    <div class="summer-strip" style="opacity:0;animation:fadeUp 0.8s var(--ease) 0.55s forwards;">
+      <div class="summer-strip-left">
+        <div class="summer-strip-icon">☀️</div>
+        <div>
+          <h4>Summer 2025 — Skills for the Real World</h4>
+          <p>Short, intensive courses for school students on vacation. Coding, creativity, and more.</p>
+        </div>
+      </div>
+      <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Enroll in Summer Course →</a>
     </div>
   </div>
   <div class="hero-visual">
@@ -401,9 +746,7 @@
             <span class="sd-pill">📋 Short form</span>
             <span class="sd-pill">⏱ 2 minutes</span>
             <span class="sd-pill">✉ Response within 24 hrs</span>
-          </div>
-          <div style="margin-top:1rem;">
-            <a href="inquire.html" style="display:inline-flex;align-items:center;gap:0.4rem;background:var(--blue);color:#fff;font-size:0.82rem;font-weight:700;padding:0.55rem 1.2rem;border-radius:6px;text-decoration:none;transition:background 0.2s;" onmouseover="this.style.background='#0047d6'" onmouseout="this.style.background='var(--blue)'">Fill the Inquiry Form →</a>
+            <span class="sd-pill blue" style="cursor:pointer;" onclick="openInquiry()">🖊 Open Inquiry Form →</span>
           </div>
         </div>
       </div>
@@ -476,6 +819,7 @@
             <span class="sd-pill">📅 One full week</span>
             <span class="sd-pill">✅ Full session access</span>
             <span class="sd-pill">🚫 No payment required</span>
+            <span class="sd-pill blue" style="cursor:pointer;" onclick="openInquiry()">🎯 Claim Free Trial →</span>
           </div>
         </div>
       </div>
@@ -510,6 +854,7 @@
     <h2 class="s-title reveal">Courses for every<br/><em>stage of learning.</em></h2>
     <p class="s-sub reveal">Whether you're a school student building strong foundations or a college student expanding into new skills — there's a place for you at CoRadix.</p>
 
+    <!-- School Tuition block -->
     <div class="courses-block reveal">
       <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
         <div class="ct-left"><span class="ct-icon">🏫</span><div><div class="ct-title">School Students — Academic Tuition</div><div class="ct-sub">Classes 1–12 · Syllabus-aligned · Subject rooms · Small batches</div></div></div>
@@ -543,6 +888,7 @@
       </div>
     </div>
 
+    <!-- Side Courses block -->
     <div class="courses-block reveal">
       <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
         <div class="ct-left"><span class="ct-icon">🚀</span><div><div class="ct-title">Side Courses — Skills for the Real World</div><div class="ct-sub">School &amp; College students · Self-paced &amp; live options · Industry-relevant</div></div></div>
@@ -551,35 +897,164 @@
       <div class="courses-panel">
         <div class="panel-inner">
           <div class="side-courses-grid">
+            <!-- TECH / AI -->
+            <div class="sc-card"><div class="sc-icon">🌐</div><h4>Web Development</h4><p>HTML, CSS, and JavaScript fundamentals. Build your first real website — no templates, just code you write and understand.</p><div class="sc-who">School &amp; College</div></div>
+            <div class="sc-card"><div class="sc-icon">🤖</div><h4>Coding Using AI</h4><p>Write, debug, and ship real code with AI as your co-pilot. No prior experience needed — curiosity is enough to start.</p><div class="sc-who">School &amp; College</div></div>
+            <div class="sc-card"><div class="sc-icon">✨</div><h4>Website Creation Using AI</h4><p>Design and deploy beautiful, functional websites using modern AI tools — fast, practical, and portfolio-ready from day one.</p><div class="sc-who">School &amp; College</div></div>
+            <div class="sc-card"><div class="sc-icon">📱</div><h4>App Development Using AI</h4><p>From idea to working app using AI-assisted workflows. Covers UI/UX basics, no-code tools, and AI co-pilots for building fast.</p><div class="sc-who">College / Senior School</div></div>
+            <!-- MARKETING / WRITING -->
             <div class="sc-card"><div class="sc-icon">📣</div><h4>Digital Marketing</h4><p>SEO, social media strategy, content creation, and analytics. Learn to build a real online presence from scratch.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">🏥</div><h4>Medical Coding</h4><p>ICD-10, CPT fundamentals, and healthcare documentation. A high-demand career skill for biology-stream students.</p><div class="sc-who">College / Senior School</div></div>
-            <div class="sc-card"><div class="sc-icon">🤖</div><h4>Coding Using AI</h4><p>Write, debug, and ship real code with AI as your co-pilot. No prior experience needed — curiosity is enough.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">🌐</div><h4>Web Development</h4><p>HTML, CSS, and JavaScript fundamentals. Build your first real website — no templates, just code you understand.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">✨</div><h4>Website Creation Using AI</h4><p>Design and deploy beautiful websites using modern AI tools — fast, practical, and portfolio-ready.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">📱</div><h4>App Development</h4><p>From idea to working app. Covers UI/UX basics, no-code tools, and AI-assisted development workflows.</p><div class="sc-who">College / Senior School</div></div>
-            <div class="sc-card"><div class="sc-icon">🧬</div><h4>Bioinformatics Basics</h4><p>Where biology meets computing. Sequence analysis, databases, and data tools for the modern biology student.</p><div class="sc-who">College</div></div>
-            <div class="sc-card"><div class="sc-icon">🔬</div><h4>Molecular Biology</h4><p>DNA, RNA, protein synthesis, gene expression and regulation — taught with conceptual depth and visual clarity.</p><div class="sc-who">College / Class 11–12</div></div>
+            <div class="sc-card"><div class="sc-icon">📸</div><h4>Instagram Marketing</h4><p>Grow a real audience — content strategy, Reels, storytelling, hashtag science, and analytics. Build a brand people follow.</p><div class="sc-who">School &amp; College</div></div>
+            <div class="sc-card"><div class="sc-icon">✍️</div><h4>Content Writing</h4><p>Write blogs, captions, articles, and scripts that people actually read. Covers tone, structure, SEO basics, and AI-assisted editing.</p><div class="sc-who">School &amp; College</div></div>
+            <!-- SCIENCE / BIO -->
+            <div class="sc-card"><div class="sc-icon">🔬</div><h4>Molecular Biology</h4><p>DNA, RNA, protein synthesis, and gene regulation — taught with conceptual depth and visual clarity for biology stream students.</p><div class="sc-who">College / Class 11–12</div></div>
             <div class="sc-card"><div class="sc-icon">🦠</div><h4>Microbiology</h4><p>Bacteria, viruses, fungi, and immune responses. Solid foundations for medical, biotech, and pharmacy aspirants.</p><div class="sc-who">College / Class 11–12</div></div>
+            <div class="sc-card"><div class="sc-icon">🧬</div><h4>Bioinformatics Basics</h4><p>Where biology meets computing. Sequence analysis, databases, and data tools for the modern biology student.</p><div class="sc-who">College</div></div>
+            <!-- MEDICAL / OTHER -->
+            <div class="sc-card"><div class="sc-icon">🏥</div><h4>Medical Coding</h4><p>ICD-10, CPT fundamentals, and healthcare documentation. A high-demand career skill for biology-stream students.</p><div class="sc-who">College / Senior School</div></div>
           </div>
-          <div class="occasional-note" style="text-align:left; display:flex; flex-direction:column; gap:0.75rem;">
-            <div style="display:flex; align-items:center; gap:0.75rem; flex-wrap:wrap;">
-              <span style="font-size:1.1rem;">📅</span>
-              <strong style="color:var(--ink); font-size:0.9rem;">Summer Courses — School Students</strong>
-              <span style="font-size:0.7rem; font-weight:700; background:var(--blue-light); color:var(--blue); padding:0.18rem 0.6rem; border-radius:20px; text-transform:uppercase; letter-spacing:0.06em;">Seasonal</span>
-            </div>
-            <p style="font-size:0.82rem; color:var(--muted); line-height:1.7; margin:0;">Dedicated summer batches designed specifically for school students — a focused, fun window to get ahead, fill gaps, or explore something new before the next academic year begins. These are project-based courses: students work towards a real, tangible outcome by the end of the programme, not just notes and tests.</p>
-            <div style="display:flex; align-items:flex-start; gap:0.6rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; padding:0.75rem 1rem; font-size:0.8rem; color:var(--grey); line-height:1.6;">
-              <span style="font-size:1rem; flex-shrink:0;">🔖</span>
-              <span><strong>Project-based:</strong> Every summer course culminates in a student project — a working model, a research summary, a built website, or a portfolio piece, depending on the course. Students leave with something to show for it.</span>
-            </div>
-            <p style="font-size:0.8rem; color:var(--muted); margin:0;">
-              <strong style="color:var(--ink);">+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand.
-              Follow <a href="https://instagram.com/missenlic.sam" target="_blank" style="color:var(--blue);text-decoration:none;font-weight:600;">@missenlic.sam</a> to never miss an announcement.
-            </p>
+          <div class="occasional-note">
+            <strong>+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand. Follow <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" style="color:var(--blue);text-decoration:none;font-weight:600;">@missenlic.sam</a> to never miss an announcement.
           </div>
         </div>
       </div>
     </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- ── SUMMER COURSES ── -->
+<section id="summer">
+  <div class="section-inner">
+    <p class="s-eye reveal" style="color:var(--summer);">
+      <span style="width:1.2rem;height:2px;background:var(--summer);display:inline-block;"></span>
+      Summer 2025
+    </p>
+    <h2 class="s-title reveal">Make your summer<br/><em style="color:var(--summer);">actually count.</em></h2>
+    <p class="s-sub reveal">Short, focused, and genuinely fun courses designed for school students on vacation. No textbooks. No exams. Just real skills you'll actually use.</p>
+
+    <div class="summer-project-note reveal">
+      <span class="spn-icon">🔭</span>
+      <p><strong style="color:var(--summer);">Part of a special project.</strong> These summer courses are running as part of CoRadix's student engagement initiative — designed to keep curious minds active over the break and give students a head start on skills the school syllabus doesn't cover. Each course is short, practical, and built around doing. Completion certificates will be issued for all participants.</p>
+    </div>
+
+    <div class="summer-courses-grid">
+
+      <!-- TECH TRACK -->
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🌐</div>
+        <span class="sc-summer-badge tech">Tech</span>
+        <h4>Build Your First Website</h4>
+        <p>Learn HTML, CSS, and a touch of JavaScript to build a real, working website from scratch. No drag-and-drop — real code you wrote yourself.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🤖</div>
+        <span class="sc-summer-badge tech">Tech · AI</span>
+        <h4>Coding with AI</h4>
+        <p>Use AI tools to write, understand, and debug actual code. Build mini projects — a quiz app, a calculator, a to-do list — with AI as your co-pilot.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">✨</div>
+        <span class="sc-summer-badge tech">Tech · AI</span>
+        <h4>Build a Website with AI</h4>
+        <p>Design and publish a full website using AI tools — no coding background needed. Portfolio-ready output by the end of the course.</p>
+        <div class="sc-duration">⏱ 1 week · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">📱</div>
+        <span class="sc-summer-badge tech">Tech · AI</span>
+        <h4>Build an App with AI</h4>
+        <p>Go from idea to working app using AI-assisted no-code tools. Learn UI/UX basics and ship something you're proud to show.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+
+      <!-- CREATIVE TRACK -->
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">📸</div>
+        <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
+        <h4>Instagram Marketing Bootcamp</h4>
+        <p>Build a real Instagram strategy — content planning, Reels, captions, hashtag science, and how the algorithm actually works. Grow something from zero.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live + async</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">✍️</div>
+        <span class="sc-summer-badge creative">Creative</span>
+        <h4>Content Writing for the Internet</h4>
+        <p>Blogs, captions, scripts, and threads — write content people actually want to read. Covers structure, tone, SEO basics, and AI-assisted editing.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live + async</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">📖</div>
+        <span class="sc-summer-badge creative">Creative</span>
+        <h4>Novel Writing Workshop</h4>
+        <p>Turn your story ideas into real chapters. World-building, character arcs, plot structure, dialogue, and how to actually finish what you start.</p>
+        <div class="sc-duration">⏱ 3 weeks · Workshop style</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🎬</div>
+        <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
+        <h4>Video Scriptwriting</h4>
+        <p>Write scripts for YouTube, Reels, and short films. Hook writing, pacing, visual storytelling — practical skills for the video-first internet.</p>
+        <div class="sc-duration">⏱ 1 week · Live sessions</div>
+      </div>
+
+      <!-- SCIENCE / MIND TRACK -->
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🧠</div>
+        <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
+        <h4>How Your Brain Works</h4>
+        <p>Neuroscience and psychology made fascinating — memory, habits, emotions, and how to hack your own focus. Genuinely useful for every student.</p>
+        <div class="sc-duration">⏱ 1 week · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🧬</div>
+        <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
+        <h4>Introduction to Biotechnology</h4>
+        <p>Genes, GMOs, vaccines, CRISPR, and the future of medicine — explained visually. Perfect for curious biology-stream students getting a head start.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">💡</div>
+        <span class="sc-summer-badge tech">Skills</span>
+        <h4>How to Study Smarter</h4>
+        <p>The CoRadix method in a focused course — spaced repetition, active recall, the Feynman technique, and a personal study system you can actually stick to.</p>
+        <div class="sc-duration">⏱ 1 week · Live sessions</div>
+      </div>
+
+      <div class="summer-course-card reveal">
+        <div class="sc-summer-icon">🗣️</div>
+        <span class="sc-summer-badge creative">Creative</span>
+        <h4>Public Speaking &amp; Debate Basics</h4>
+        <p>Confidence on camera, in class, and in life. Structure arguments, control nerves, and speak so people listen — skills school rarely teaches directly.</p>
+        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+
+    </div>
+
+    <!-- Summer Enroll Box -->
+    <div class="summer-enroll-box reveal">
+      <div class="seb-left">
+        <h3>Ready to make this summer <em>different?</em></h3>
+        <p>Spots are limited. Pick your course and enroll today — it's free to apply.</p>
+      </div>
+      <div class="seb-actions">
+        <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer">☀️ Enroll in Summer Course →</a>
+        <a href="#" onclick="openInquiry(); return false;" class="btn btn-outline" style="border-color:rgba(255,255,255,0.2);color:#fff;">Ask a Question</a>
+      </div>
+    </div>
+
   </div>
 </section>
 
@@ -674,8 +1149,8 @@
       <p class="role">Founder · CoRadix Academy</p>
       <p>Biotech researcher and psychology student. Believes the gap between struggling and thriving in school is almost always a <em>method</em> problem — not an intelligence problem. Also runs Brainzpire, an innovation startup with projects in diagnostics, agri-tech, and food safety.</p>
       <div class="about-links">
-        <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
-        <a href="https://instagram.com/missenlic.sam" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
+        <a href="[hazixity-blip.github.io](https://hazixity-blip.github.io/Personal-portfolio/)" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
+        <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
       </div>
       <div class="about-stats">
         <div class="stat"><div class="num">9</div><div class="lbl">Max students / batch</div></div>
@@ -724,19 +1199,19 @@
       <div class="contact-info reveal">
         <p>Have questions about a batch, a course, or just want to know if CoRadix is the right fit? Reach out — we respond to every message personally.</p>
         <div class="contact-items">
-          <a href="mailto:academy@coradix.academy" class="contact-item">
+          <a href="mailto:corad.helpdesk@gmail.com" class="contact-item">
             <span class="ci-icon">📧</span>
-            <div><div class="ci-label">Academy Email</div><div class="ci-value">academy@coradix.academy</div></div>
+            <div><div class="ci-label">Academy Email</div><div class="ci-value">corad.helpdesk@gmail.com</div></div>
           </a>
-          <a href="mailto:sam@coradix.academy" class="contact-item">
+          <a href="mailto:samrn.noor@gmail.com" class="contact-item">
             <span class="ci-icon">👤</span>
-            <div><div class="ci-label">Founder — Sam</div><div class="ci-value">sam@coradix.academy</div></div>
+            <div><div class="ci-label">Founder — Sam</div><div class="ci-value">samrn.noor@gmail.com</div></div>
           </a>
-          <a href="https://instagram.com/missenlic.sam" target="_blank" class="contact-item">
+          <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" class="contact-item">
             <span class="ci-icon">📷</span>
             <div><div class="ci-label">Instagram</div><div class="ci-value">@missenlic.sam</div></div>
           </a>
-          <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="contact-item">
+          <a href="[hazixity-blip.github.io](https://hazixity-blip.github.io/Personal-portfolio/)" target="_blank" class="contact-item">
             <span class="ci-icon">🌐</span>
             <div><div class="ci-label">Founder Portfolio</div><div class="ci-value">missenlic.sam — Portfolio</div></div>
           </a>
@@ -761,7 +1236,10 @@
     <div class="cta-box reveal">
       <h2>Ready to learn the<br/><em>right way?</em></h2>
       <p>Seats in every batch are limited to nine. Once full, the next opening is the next batch. Don't wait.</p>
-      <a href="apply.html" class="btn btn-blue" style="font-size:1rem;padding:0.85rem 2rem;">Apply for the Next Batch →</a>
+      <div class="cta-actions">
+        <a href="apply.html" class="btn btn-blue" style="font-size:1rem;padding:0.85rem 2rem;">Apply for the Next Batch →</a>
+        <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">☀️ Summer Course Enrollment →</a>
+      </div>
       <p class="cta-note">Batches fill quickly. Enquire early to secure a spot.</p>
     </div>
   </div>
@@ -777,18 +1255,77 @@
     <li><a href="#method">Method</a></li>
     <li><a href="#procedure">How to Join</a></li>
     <li><a href="#courses">Courses</a></li>
+    <li><a href="#summer">Summer</a></li>
     <li><a href="#why">Why Us</a></li>
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="terms.html">Terms</a></li>
-    <li><a href="inquire.html">Inquire</a></li>
     <li><a href="apply.html">Enroll</a></li>
   </ul>
   <p class="footer-copy">© 2025 CoRadix Academy. All rights reserved.</p>
 </footer>
 
 <script>
-  // Scroll reveal
+  /* ── Banner offset for nav ── */
+  function updateNavTop() {
+    const banner = document.getElementById('annBanner');
+    const nav = document.getElementById('mainNav');
+    if (banner && !banner.hidden) {
+      nav.style.top = banner.offsetHeight + 'px';
+    } else {
+      nav.style.top = '0';
+    }
+  }
+  updateNavTop();
+  window.addEventListener('resize', updateNavTop);
+
+  function closeBanner() {
+    const b = document.getElementById('annBanner');
+    b.style.display = 'none';
+    document.getElementById('mainNav').style.top = '0';
+  }
+
+  /* ── Inquiry modal ── */
+  function openInquiry() {
+    document.getElementById('inqOverlay').classList.add('active');
+    document.body.style.overflow = 'hidden';
+  }
+  function closeInquiry() {
+    document.getElementById('inqOverlay').classList.remove('active');
+    document.body.style.overflow = '';
+  }
+  function overlayClose(e) {
+    if (e.target === document.getElementById('inqOverlay')) closeInquiry();
+  }
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') closeInquiry();
+  });
+
+  function submitInquiry(e) {
+    e.preventDefault();
+    const name     = encodeURIComponent(document.getElementById('inq_name').value.trim());
+    const cls      = encodeURIComponent(document.getElementById('inq_class').value);
+    const board    = encodeURIComponent(document.getElementById('inq_board').value.trim());
+    const email    = encodeURIComponent(document.getElementById('inq_email').value.trim());
+    const dt       = document.getElementById('inq_datetime').value;
+    const msg      = encodeURIComponent(document.getElementById('inq_message').value.trim() || 'let us know!!!');
+
+    // Format datetime for Google Forms (YYYY-MM-DD HH:MM)
+    let dateVal = dt ? encodeURIComponent(dt.replace('T', ' ')) : encodeURIComponent('2026-03-04 09:30');
+
+    const url = `[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/viewform?usp=pp_url)`
+      + `&entry.1432165035=${name}`
+      + `&entry.1835101181=${cls}`
+      + `&entry.648754482=${board}`
+      + `&entry.1166288653=${email}`
+      + `&entry.1129081725=${dateVal}`
+      + `&entry.2062290176=${msg}`;
+
+    window.open(url, '_blank');
+    closeInquiry();
+  }
+
+  /* ── Scroll reveal ── */
   const reveals = document.querySelectorAll('.reveal');
   const observer = new IntersectionObserver((entries) => {
     entries.forEach((entry, i) => {
@@ -800,7 +1337,7 @@
   }, { threshold: 0.08 });
   reveals.forEach(el => observer.observe(el));
 
-  // Course panel toggle
+  /* ── Course panel toggle ── */
   function toggleCourse(btn) {
     const panel = btn.nextElementSibling;
     const isOpen = btn.classList.contains('open');
