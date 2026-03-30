@@ -5,9 +5,9 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>CoRadix Academy — Learn Differently</title>
   <link rel="icon" type="image/jpeg" href="Favicon.jpeg" />
-  <link rel="preconnect" href="[fonts.googleapis.com](https://fonts.googleapis.com)" />
-  <link rel="preconnect" href="[fonts.gstatic.com](https://fonts.gstatic.com)" crossorigin />
-  <link href="[fonts.googleapis.com](https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap)" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
   <style>
     :root {
       --ink:        #1c1c1e;
@@ -564,7 +564,7 @@
 
 <!-- ANNOUNCEMENT BANNER -->
 <div class="announcement-banner" id="annBanner">
-  <span>☀️ <strong>Summer Courses 2025 are OPEN</strong> — Real skills for school students on vacation</span>
+  <span>☀️ <strong>Summer Courses 2026 are OPEN</strong> — Real skills for school students on vacation</span>
   <span class="banner-sep">|</span>
   <span>🎓 <strong>1 Week Free Trial</strong> available for all batches</span>
   <a href="#summer" class="banner-btn" onclick="closeBanner()">See Summer Courses →</a>
@@ -602,15 +602,15 @@
     </div>
     <div class="inq-body">
       <span class="inq-free-badge">✅ Free — No commitment</span>
-      <form id="inqForm" onsubmit="submitInquiry(event)">
+      <div id="inqFormWrap">
         <div class="inq-field">
           <label>Your Name <span>*</span></label>
-          <input type="text" id="inq_name" placeholder="e.g. Priya Sharma" required />
+          <input type="text" id="inq_name" placeholder="e.g. Priya Sharma" />
         </div>
         <div class="inq-row">
           <div class="inq-field">
             <label>Child's Class / Grade <span>*</span></label>
-            <select id="inq_class" required>
+            <select id="inq_class">
               <option value="" disabled selected>Select class</option>
               <option value="1">Class 1</option>
               <option value="2">Class 2</option>
@@ -629,12 +629,12 @@
           </div>
           <div class="inq-field">
             <label>Board / Curriculum <span>*</span></label>
-            <input type="text" id="inq_board" placeholder="e.g. CBSE, ICSE, State" required />
+            <input type="text" id="inq_board" placeholder="e.g. CBSE, ICSE, State" />
           </div>
         </div>
         <div class="inq-field">
           <label>Email Address <span>*</span></label>
-          <input type="email" id="inq_email" placeholder="your@email.com" required />
+          <input type="email" id="inq_email" placeholder="your@email.com" />
         </div>
         <div class="inq-field">
           <label>Preferred Session Date &amp; Time</label>
@@ -644,8 +644,8 @@
           <label>Tell us more — subjects, goals, anything</label>
           <textarea id="inq_message" placeholder="e.g. My daughter struggles with Chemistry and Maths. Looking for regular tuition for Class 11…"></textarea>
         </div>
-        <button type="submit" class="inq-submit">Submit Inquiry &amp; Book Free Session →</button>
-      </form>
+        <button type="button" class="inq-submit" onclick="submitInquiry()">Submit Inquiry &amp; Book Free Session →</button>
+      </div>
       <p class="inq-note">By submitting, you agree to our <a href="terms.html">Terms &amp; Conditions</a>. We respond to every inquiry personally.</p>
     </div>
   </div>
@@ -670,11 +670,11 @@
       <div class="summer-strip-left">
         <div class="summer-strip-icon">☀️</div>
         <div>
-          <h4>Summer 2025 — Skills for the Real World</h4>
+          <h4>Summer 2026 — Skills for the Real World</h4>
           <p>Short, intensive courses for school students on vacation. Coding, creativity, and more.</p>
         </div>
       </div>
-      <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Enroll in Summer Course →</a>
+      <a href="summer.html" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Enroll in Summer Course →</a>
     </div>
   </div>
   <div class="hero-visual">
@@ -897,24 +897,20 @@
       <div class="courses-panel">
         <div class="panel-inner">
           <div class="side-courses-grid">
-            <!-- TECH / AI -->
             <div class="sc-card"><div class="sc-icon">🌐</div><h4>Web Development</h4><p>HTML, CSS, and JavaScript fundamentals. Build your first real website — no templates, just code you write and understand.</p><div class="sc-who">School &amp; College</div></div>
             <div class="sc-card"><div class="sc-icon">🤖</div><h4>Coding Using AI</h4><p>Write, debug, and ship real code with AI as your co-pilot. No prior experience needed — curiosity is enough to start.</p><div class="sc-who">School &amp; College</div></div>
             <div class="sc-card"><div class="sc-icon">✨</div><h4>Website Creation Using AI</h4><p>Design and deploy beautiful, functional websites using modern AI tools — fast, practical, and portfolio-ready from day one.</p><div class="sc-who">School &amp; College</div></div>
             <div class="sc-card"><div class="sc-icon">📱</div><h4>App Development Using AI</h4><p>From idea to working app using AI-assisted workflows. Covers UI/UX basics, no-code tools, and AI co-pilots for building fast.</p><div class="sc-who">College / Senior School</div></div>
-            <!-- MARKETING / WRITING -->
             <div class="sc-card"><div class="sc-icon">📣</div><h4>Digital Marketing</h4><p>SEO, social media strategy, content creation, and analytics. Learn to build a real online presence from scratch.</p><div class="sc-who">School &amp; College</div></div>
             <div class="sc-card"><div class="sc-icon">📸</div><h4>Instagram Marketing</h4><p>Grow a real audience — content strategy, Reels, storytelling, hashtag science, and analytics. Build a brand people follow.</p><div class="sc-who">School &amp; College</div></div>
             <div class="sc-card"><div class="sc-icon">✍️</div><h4>Content Writing</h4><p>Write blogs, captions, articles, and scripts that people actually read. Covers tone, structure, SEO basics, and AI-assisted editing.</p><div class="sc-who">School &amp; College</div></div>
-            <!-- SCIENCE / BIO -->
             <div class="sc-card"><div class="sc-icon">🔬</div><h4>Molecular Biology</h4><p>DNA, RNA, protein synthesis, and gene regulation — taught with conceptual depth and visual clarity for biology stream students.</p><div class="sc-who">College / Class 11–12</div></div>
             <div class="sc-card"><div class="sc-icon">🦠</div><h4>Microbiology</h4><p>Bacteria, viruses, fungi, and immune responses. Solid foundations for medical, biotech, and pharmacy aspirants.</p><div class="sc-who">College / Class 11–12</div></div>
             <div class="sc-card"><div class="sc-icon">🧬</div><h4>Bioinformatics Basics</h4><p>Where biology meets computing. Sequence analysis, databases, and data tools for the modern biology student.</p><div class="sc-who">College</div></div>
-            <!-- MEDICAL / OTHER -->
             <div class="sc-card"><div class="sc-icon">🏥</div><h4>Medical Coding</h4><p>ICD-10, CPT fundamentals, and healthcare documentation. A high-demand career skill for biology-stream students.</p><div class="sc-who">College / Senior School</div></div>
           </div>
           <div class="occasional-note">
-            <strong>+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand. Follow <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" style="color:var(--blue);text-decoration:none;font-weight:600;">@missenlic.sam</a> to never miss an announcement.
+            <strong>+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand. Follow <a href="https://instagram.com/missenlic.sam" target="_blank" style="color:var(--blue);text-decoration:none;font-weight:600;">@missenlic.sam</a> to never miss an announcement.
           </div>
         </div>
       </div>
@@ -925,12 +921,12 @@
 
 <div class="divider"></div>
 
-<!-- ── SUMMER COURSES ── -->
+<!-- SUMMER COURSES -->
 <section id="summer">
   <div class="section-inner">
     <p class="s-eye reveal" style="color:var(--summer);">
       <span style="width:1.2rem;height:2px;background:var(--summer);display:inline-block;"></span>
-      Summer 2025
+      Summer 2026
     </p>
     <h2 class="s-title reveal">Make your summer<br/><em style="color:var(--summer);">actually count.</em></h2>
     <p class="s-sub reveal">Short, focused, and genuinely fun courses designed for school students on vacation. No textbooks. No exams. Just real skills you'll actually use.</p>
@@ -941,8 +937,6 @@
     </div>
 
     <div class="summer-courses-grid">
-
-      <!-- TECH TRACK -->
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🌐</div>
         <span class="sc-summer-badge tech">Tech</span>
@@ -950,7 +944,6 @@
         <p>Learn HTML, CSS, and a touch of JavaScript to build a real, working website from scratch. No drag-and-drop — real code you wrote yourself.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🤖</div>
         <span class="sc-summer-badge tech">Tech · AI</span>
@@ -958,7 +951,6 @@
         <p>Use AI tools to write, understand, and debug actual code. Build mini projects — a quiz app, a calculator, a to-do list — with AI as your co-pilot.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">✨</div>
         <span class="sc-summer-badge tech">Tech · AI</span>
@@ -966,7 +958,6 @@
         <p>Design and publish a full website using AI tools — no coding background needed. Portfolio-ready output by the end of the course.</p>
         <div class="sc-duration">⏱ 1 week · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">📱</div>
         <span class="sc-summer-badge tech">Tech · AI</span>
@@ -974,16 +965,13 @@
         <p>Go from idea to working app using AI-assisted no-code tools. Learn UI/UX basics and ship something you're proud to show.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
       </div>
-
-      <!-- CREATIVE TRACK -->
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">📸</div>
         <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
         <h4>Instagram Marketing Bootcamp</h4>
-        <p>Build a real Instagram strategy — content planning, Reels, captions, hashtag science, and how the algorithm actually works. Grow something from zero.</p>
+        <p>Build a real Instagram strategy — content planning, Reels, captions, hashtag science, and how the algorithm actually works.</p>
         <div class="sc-duration">⏱ 2 weeks · Live + async</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">✍️</div>
         <span class="sc-summer-badge creative">Creative</span>
@@ -991,7 +979,6 @@
         <p>Blogs, captions, scripts, and threads — write content people actually want to read. Covers structure, tone, SEO basics, and AI-assisted editing.</p>
         <div class="sc-duration">⏱ 2 weeks · Live + async</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">📖</div>
         <span class="sc-summer-badge creative">Creative</span>
@@ -999,7 +986,6 @@
         <p>Turn your story ideas into real chapters. World-building, character arcs, plot structure, dialogue, and how to actually finish what you start.</p>
         <div class="sc-duration">⏱ 3 weeks · Workshop style</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🎬</div>
         <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
@@ -1007,8 +993,6 @@
         <p>Write scripts for YouTube, Reels, and short films. Hook writing, pacing, visual storytelling — practical skills for the video-first internet.</p>
         <div class="sc-duration">⏱ 1 week · Live sessions</div>
       </div>
-
-      <!-- SCIENCE / MIND TRACK -->
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🧠</div>
         <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
@@ -1016,7 +1000,6 @@
         <p>Neuroscience and psychology made fascinating — memory, habits, emotions, and how to hack your own focus. Genuinely useful for every student.</p>
         <div class="sc-duration">⏱ 1 week · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🧬</div>
         <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
@@ -1024,7 +1007,6 @@
         <p>Genes, GMOs, vaccines, CRISPR, and the future of medicine — explained visually. Perfect for curious biology-stream students getting a head start.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">💡</div>
         <span class="sc-summer-badge tech">Skills</span>
@@ -1032,15 +1014,13 @@
         <p>The CoRadix method in a focused course — spaced repetition, active recall, the Feynman technique, and a personal study system you can actually stick to.</p>
         <div class="sc-duration">⏱ 1 week · Live sessions</div>
       </div>
-
       <div class="summer-course-card reveal">
         <div class="sc-summer-icon">🗣️</div>
         <span class="sc-summer-badge creative">Creative</span>
         <h4>Public Speaking &amp; Debate Basics</h4>
-        <p>Confidence on camera, in class, and in life. Structure arguments, control nerves, and speak so people listen — skills school rarely teaches directly.</p>
+        <p>Confidence on camera, in class, and in life. Structure arguments, control nerves, and speak so people listen.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
       </div>
-
     </div>
 
     <!-- Summer Enroll Box -->
@@ -1050,7 +1030,7 @@
         <p>Spots are limited. Pick your course and enroll today — it's free to apply.</p>
       </div>
       <div class="seb-actions">
-        <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer">☀️ Enroll in Summer Course →</a>
+        <a href="summer.html" class="btn btn-summer">☀️ Enroll in Summer Course →</a>
         <a href="#" onclick="openInquiry(); return false;" class="btn btn-outline" style="border-color:rgba(255,255,255,0.2);color:#fff;">Ask a Question</a>
       </div>
     </div>
@@ -1100,7 +1080,7 @@
           <div><h3>How Material Access Works</h3><p>Secure, simple, and personal</p></div>
         </div>
         <div class="mac-steps">
-          <div class="mac-step"><div class="mac-step-num">1</div>Once enrolled, every student is assigned a unique <strong>Student ID</strong> (e.g. CRX-2025-001).</div>
+          <div class="mac-step"><div class="mac-step-num">1</div>Once enrolled, every student is assigned a unique <strong>Student ID</strong> (e.g. CRX-2026-001).</div>
           <div class="mac-step"><div class="mac-step-num">2</div>A private Google Drive folder is created for your child and shared <strong>only with your registered email address</strong>.</div>
           <div class="mac-step"><div class="mac-step-num">3</div>Access is <strong>view-only by default</strong> — files cannot be downloaded or copied directly from the Drive.</div>
           <div class="mac-step"><div class="mac-step-num">4</div>When a student leaves the academy, <strong>access is revoked immediately</strong> with one click.</div>
@@ -1149,8 +1129,8 @@
       <p class="role">Founder · CoRadix Academy</p>
       <p>Biotech researcher and psychology student. Believes the gap between struggling and thriving in school is almost always a <em>method</em> problem — not an intelligence problem. Also runs Brainzpire, an innovation startup with projects in diagnostics, agri-tech, and food safety.</p>
       <div class="about-links">
-        <a href="[hazixity-blip.github.io](https://hazixity-blip.github.io/Personal-portfolio/)" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
-        <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
+        <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
+        <a href="https://instagram.com/missenlic.sam" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
       </div>
       <div class="about-stats">
         <div class="stat"><div class="num">9</div><div class="lbl">Max students / batch</div></div>
@@ -1207,11 +1187,11 @@
             <span class="ci-icon">👤</span>
             <div><div class="ci-label">Founder — Sam</div><div class="ci-value">samrn.noor@gmail.com</div></div>
           </a>
-          <a href="[instagram.com](https://instagram.com/missenlic.sam)" target="_blank" class="contact-item">
+          <a href="https://instagram.com/missenlic.sam" target="_blank" class="contact-item">
             <span class="ci-icon">📷</span>
             <div><div class="ci-label">Instagram</div><div class="ci-value">@missenlic.sam</div></div>
           </a>
-          <a href="[hazixity-blip.github.io](https://hazixity-blip.github.io/Personal-portfolio/)" target="_blank" class="contact-item">
+          <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="contact-item">
             <span class="ci-icon">🌐</span>
             <div><div class="ci-label">Founder Portfolio</div><div class="ci-value">missenlic.sam — Portfolio</div></div>
           </a>
@@ -1238,7 +1218,7 @@
       <p>Seats in every batch are limited to nine. Once full, the next opening is the next batch. Don't wait.</p>
       <div class="cta-actions">
         <a href="apply.html" class="btn btn-blue" style="font-size:1rem;padding:0.85rem 2rem;">Apply for the Next Batch →</a>
-        <a href="[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSd1mhdfujl9xJFaDclNgn3luBEADLke58v9sscmrBncTNJv7Q/viewform?usp=pp_url)" target="_blank" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">☀️ Summer Course Enrollment →</a>
+        <a href="summer.html" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">☀️ Summer Course Enrollment →</a>
       </div>
       <p class="cta-note">Batches fill quickly. Enquire early to secure a spot.</p>
     </div>
@@ -1261,8 +1241,9 @@
     <li><a href="#contact">Contact</a></li>
     <li><a href="terms.html">Terms</a></li>
     <li><a href="apply.html">Enroll</a></li>
+    <li><a href="summer.html">Summer Form</a></li>
   </ul>
-  <p class="footer-copy">© 2025 CoRadix Academy. All rights reserved.</p>
+  <p class="footer-copy">© 2026 CoRadix Academy. All rights reserved.</p>
 </footer>
 
 <script>
@@ -1270,7 +1251,7 @@
   function updateNavTop() {
     const banner = document.getElementById('annBanner');
     const nav = document.getElementById('mainNav');
-    if (banner && !banner.hidden) {
+    if (banner && banner.style.display !== 'none') {
       nav.style.top = banner.offsetHeight + 'px';
     } else {
       nav.style.top = '0';
@@ -1301,25 +1282,30 @@
     if (e.key === 'Escape') closeInquiry();
   });
 
-  function submitInquiry(e) {
-    e.preventDefault();
-    const name     = encodeURIComponent(document.getElementById('inq_name').value.trim());
-    const cls      = encodeURIComponent(document.getElementById('inq_class').value);
-    const board    = encodeURIComponent(document.getElementById('inq_board').value.trim());
-    const email    = encodeURIComponent(document.getElementById('inq_email').value.trim());
-    const dt       = document.getElementById('inq_datetime').value;
-    const msg      = encodeURIComponent(document.getElementById('inq_message').value.trim() || 'let us know!!!');
+  function submitInquiry() {
+    const name  = document.getElementById('inq_name').value.trim();
+    const cls   = document.getElementById('inq_class').value;
+    const board = document.getElementById('inq_board').value.trim();
+    const email = document.getElementById('inq_email').value.trim();
 
-    // Format datetime for Google Forms (YYYY-MM-DD HH:MM)
-    let dateVal = dt ? encodeURIComponent(dt.replace('T', ' ')) : encodeURIComponent('2026-03-04 09:30');
+    if (!name || !cls || !board || !email) {
+      alert('Please fill in your name, class, board, and email before submitting.');
+      return;
+    }
 
-    const url = `[docs.google.com](https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/viewform?usp=pp_url)`
-      + `&entry.1432165035=${name}`
-      + `&entry.1835101181=${cls}`
-      + `&entry.648754482=${board}`
-      + `&entry.1166288653=${email}`
-      + `&entry.1129081725=${dateVal}`
-      + `&entry.2062290176=${msg}`;
+    const dt  = document.getElementById('inq_datetime').value;
+    const msg = document.getElementById('inq_message').value.trim() || 'No additional message provided.';
+
+    const dateVal = dt ? dt.replace('T', ' ') : '2026-03-04 09:30';
+
+    const base = 'https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/viewform?usp=pp_url';
+    const url = base
+      + '&entry.1432165035=' + encodeURIComponent(name)
+      + '&entry.1835101181=' + encodeURIComponent(cls)
+      + '&entry.648754482='  + encodeURIComponent(board)
+      + '&entry.1166288653=' + encodeURIComponent(email)
+      + '&entry.1129081725=' + encodeURIComponent(dateVal)
+      + '&entry.2062290176=' + encodeURIComponent(msg);
 
     window.open(url, '_blank');
     closeInquiry();
