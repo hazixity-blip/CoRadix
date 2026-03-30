@@ -1,28 +1,60 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Inquiry | CoRadix</title>
-    <link rel="stylesheet" href="style.css"> <style>
-        body { margin: 0; font-family: 'Inter', sans-serif; background: #fff; overflow-x: hidden; }
-        .split-container { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; }
-        .left-content { padding: 4rem; display: flex; flex-direction: column; justify-content: center; background: #f9f9f9; }
-        .right-form { position: relative; border-left: 1px solid #eee; }
-        iframe { width: 100%; height: 100%; border: none; }
-        .back-btn { margin-bottom: 2rem; text-decoration: none; color: #0057ff; font-weight: 600; }
-        @media (max-width: 850px) { .split-container { grid-template-columns: 1fr; } .left-content { padding: 2rem; } }
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Inquiry — CoRadix Academy</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+    <style>
+        /* Exact CSS variables and logic from apply.html */
+        :root { --ink: #1c1c1e; --muted: #6b7280; --border: #e5e7eb; --bg: #ffffff; --bg-soft: #f5f7fa; --blue: #0057ff; }
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); min-height: 100vh; }
+        
+        /* Fixed Nav as per apply.html style */
+        nav { position: fixed; top: 0; left: 0; right: 0; z-index: 200; display: flex; align-items: center; justify-content: space-between; padding: 0 4vw; height: 64px; background: rgba(255,255,255,0.96); backdrop-filter: blur(16px); border-bottom: 1px solid var(--border); }
+        .nav-logo { font-weight: 700; text-decoration: none; color: var(--ink); }
+        .nav-logo span { color: var(--blue); }
+        .nav-back { font-size: 0.85rem; font-weight: 600; color: var(--muted); text-decoration: none; }
+
+        /* Two-column layout */
+        .page { display: grid; grid-template-columns: 1fr 1fr; min-height: 100vh; padding-top: 64px; }
+        
+        .left-panel { background: var(--ink); color: white; padding: 4rem 4vw; display: flex; flex-direction: column; justify-content: center; position: sticky; top: 64px; height: calc(100vh - 64px); }
+        .left-panel h1 { font-family: 'DM Serif Display', serif; font-size: clamp(2rem, 3.5vw, 3rem); line-height: 1.1; margin-bottom: 1rem; }
+        .left-panel h1 em { font-style: italic; color: #60a5fa; }
+        .left-panel p { color: rgba(255,255,255,0.5); line-height: 1.6; }
+
+        .right-panel { background: var(--bg-soft); padding: 4rem 4vw; display: flex; flex-direction: column; }
+        .gform-container { background: white; border: 1px solid var(--border); border-radius: 12px; overflow: hidden; }
+        iframe { width: 100%; height: 800px; border: none; }
+
+        @media (max-width: 900px) { .page { grid-template-columns: 1fr; } .left-panel { position: static; height: auto; } }
     </style>
 </head>
 <body>
-    <div class="split-container">
-        <div class="left-content">
-            <a href="index.html" class="back-btn">← Back to Home</a>
-            <h1 style="font-size: 2.5rem; margin-bottom: 1rem;">General Inquiry</h1>
-            <p style="color: #666; max-width: 400px;">Have questions about our programs or partnership opportunities? Fill out this form and our team will get back to you shortly.</p>
+    <nav>
+        <a class="nav-logo" href="index.html">CoRadix<span>Academy</span></a>
+        <a href="index.html" class="nav-back">← Back to Home</a>
+    </nav>
+
+    <div class="page">
+        <div class="left-panel">
+            <p style="text-transform: uppercase; font-size: 0.7rem; letter-spacing: 0.1em; color: #60a5fa; margin-bottom: 1rem;">Contact Us</p>
+            <h1>Have a<br/><em>Question?</em></h1>
+            <p>Fill out the inquiry form. Whether it's about our 9-student batch limit or the M·U·P method, we're here to help.</p>
         </div>
-        <div class="right-form">
-            <iframe src="https://docs.google.com/forms/d/e/1FAIpQLScy2LzYg0T0k2D_example/viewform?embedded=true">Loading…</iframe>
+
+        <div class="right-panel">
+            <div class="form-header" style="margin-bottom: 2rem;">
+                <h2 style="font-family: 'DM Serif Display'; font-size: 1.8rem;">Inquiry Form</h2>
+                <p style="color: var(--muted); font-size: 0.9rem;">We typically respond within 24 hours.</p>
+            </div>
+            <div class="gform-container">
+                <iframe src="https://docs.google.com/forms/d/e/1FAIpQLSe4ooP-EC51PPbP7x8yuQIrvCOAOIuybF8ihBJvVnTtPEwKWA/viewform?usp=pp_url&entry.1432165035=xxx&entry.1835101181=10&entry.648754482=xxxx&entry.62993887=0000000&entry.1166288653=sam@gmail.com&entry.1129081725=0001-03-07+00:00&entry.2062290176=hi&embedded=true">Loading…</iframe>
+            </div>
         </div>
     </div>
 </body>
