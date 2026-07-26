@@ -64,66 +64,22 @@
     <p class="sub">45 minutes with the founder. Real techniques. A live Q&amp;A. And a special enrollment offer if you stay to the end.</p>
 
     <div class="card">
-      <form id="webinarForm" onsubmit="return handleSubmit(event)">
-        <div id="formFields">
-          <div class="topics">
-            <div class="topic"><span class="check">✓</span> What to memorise vs. understand vs. practise — and why mixing them up wastes hours</div>
-            <div class="topic"><span class="check">✓</span> Active recall &amp; spaced repetition, explained simply</div>
-            <div class="topic"><span class="check">✓</span> The most common study mistake students don't realise they're making</div>
-            <div class="topic"><span class="check">✓</span> Live Q&amp;A — bring your own study struggles</div>
-          </div>
-          <div class="offer-box">
-            <strong>Live-attendee offer:</strong> enroll within 30 minutes of the webinar ending for 30% off your first month, or within 48 hours for 15% off. Offer is exclusive to those who attend live.
-          </div>
-          <div>
-            <label for="studentName">Student's Name</label>
-            <input type="text" id="studentName" required placeholder="Full name">
-          </div>
-          <div>
-            <label for="parentEmail">Email (for the webinar link)</label>
-            <input type="email" id="parentEmail" required placeholder="you@example.com">
-          </div>
-          <div>
-            <label for="whatsapp">WhatsApp Number</label>
-            <input type="tel" id="whatsapp" required placeholder="10-digit number">
-          </div>
-          <div>
-            <label for="studentClass">Student's Class</label>
-            <select id="studentClass" required>
-              <option value="">Select class</option>
-              <option>Class 1–7</option>
-              <option>Class 8–10</option>
-              <option>Class 11–12</option>
-              <option>College</option>
-            </select>
-          </div>
-          <button type="submit">Reserve My Free Seat →</button>
-          <p class="fine">No spam, no cost. We'll send the Zoom link and a reminder 1 hour before the session.</p>
-        </div>
-      </form>
-      <div id="successMsg">
-        <div class="check-big">🎉</div>
-        <h3>You're in!</h3>
-        <p>Check your email for the Zoom link and calendar invite. See you there.</p>
+      <div class="topics">
+        <div class="topic"><span class="check">✓</span> What to memorise vs. understand vs. practise — and why mixing them up wastes hours</div>
+        <div class="topic"><span class="check">✓</span> Active recall &amp; spaced repetition, explained simply</div>
+        <div class="topic"><span class="check">✓</span> The most common study mistake students don't realise they're making</div>
+        <div class="topic"><span class="check">✓</span> Live Q&amp;A — bring your own study struggles</div>
       </div>
+      <div class="offer-box">
+        <strong>Live-attendee offer:</strong> enroll within 30 minutes of the webinar ending for 30% off your first month, or within 48 hours for 15% off. Offer is exclusive to those who attend live.
+      </div>
+      <a href="https://docs.google.com/forms/d/e/1FAIpQLScRfvCopxqun07EoQyvisQUb2P1BDGUSDywCf05xU0ENJz2fg/viewform?usp=publish-editor" target="_blank" rel="noopener" style="text-decoration:none;">
+        <button type="button">Reserve My Free Seat →</button>
+      </a>
+      <p class="fine">Opens our registration form in a new tab. No spam, no cost. We'll send the Zoom link and a reminder 1 hour before the session.</p>
     </div>
 
     <a href="index.html" class="back">← Back to CoRadix Academy</a>
   </div>
-
-  <script>
-    // NOTE for Sam: this currently just shows a success message in the browser.
-    // To actually collect registrations, replace handleSubmit with one of:
-    //   1. A Google Form embed / redirect (fastest to set up)
-    //   2. Formspree or similar form-backend service (keeps this custom UI)
-    //   3. A simple backend endpoint if you build one later
-    function handleSubmit(e) {
-      e.preventDefault();
-      document.getElementById('formFields').style.display = 'none';
-      document.getElementById('successMsg').style.display = 'block';
-      // TODO: send data (studentName, parentEmail, whatsapp, studentClass) to your form backend here
-      return false;
-    }
-  </script>
 </body>
 </html>
