@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Free Webinar — The Science of Studying Smarter | CoRadix Academy</title>
+  <link rel="icon" type="image/jpeg" href="Favicon.jpeg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --ink: #1c1c1e; --grey: #3a3a3c; --muted: #6b7280; --border: #e5e7eb;
+      --bg: #ffffff; --bg-soft: #f5f7fa; --blue: #0057ff; --blue-light: #e8efff;
+      --summer: #ff6b2b; --ease: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Inter', sans-serif; background: var(--ink); color: var(--ink); line-height: 1.6; min-height: 100vh; }
+    .wrap { max-width: 480px; margin: 0 auto; padding: 3rem 1.5rem 4rem; }
+    .logo-row { display: flex; align-items: center; gap: 10px; justify-content: center; margin-bottom: 2rem; }
+    .logo-row img { height: 32px; }
+    .logo-row span { color: #fff; font-weight: 700; font-size: 1.05rem; }
+    .badge { display: block; width: fit-content; margin: 0 auto 1.2rem; background: rgba(251,146,60,0.15); color: #fb923c; font-size: 0.72rem; font-weight: 700; letter-spacing: 0.06em; text-transform: uppercase; padding: 0.3rem 0.9rem; border-radius: 20px; }
+    h1 { font-family: 'DM Serif Display', serif; font-weight: 400; font-size: 2rem; color: #fff; text-align: center; line-height: 1.2; margin-bottom: 0.8rem; }
+    h1 em { font-style: italic; color: #fb923c; }
+    .sub { text-align: center; color: rgba(255,255,255,0.55); font-size: 0.92rem; margin-bottom: 2rem; }
+    .card { background: #fff; border-radius: 14px; padding: 2rem; box-shadow: 0 20px 60px rgba(0,0,0,0.3); }
+    .topics { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1.6rem; }
+    .topic { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.87rem; color: var(--grey); line-height: 1.5; }
+    .topic .check { color: #16a34a; flex-shrink: 0; }
+    .offer-box { background: var(--blue-light); border-radius: 10px; padding: 1rem 1.1rem; margin-bottom: 1.6rem; font-size: 0.82rem; color: var(--grey); line-height: 1.6; }
+    .offer-box strong { color: var(--blue); }
+    form { display: flex; flex-direction: column; gap: 1rem; }
+    label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--grey); margin-bottom: 0.35rem; letter-spacing: 0.02em; }
+    input, select {
+      width: 100%; font-family: 'Inter', sans-serif; font-size: 0.9rem; color: var(--ink);
+      background: var(--bg); border: 1.5px solid var(--border); border-radius: 7px;
+      padding: 0.7rem 0.9rem; outline: none; transition: border-color 0.2s, box-shadow 0.2s;
+    }
+    input:focus, select:focus { border-color: var(--blue); box-shadow: 0 0 0 3px rgba(0,87,255,0.1); }
+    button {
+      width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 8px;
+      padding: 0.9rem 1.5rem; font-family: 'Inter', sans-serif; font-size: 0.98rem; font-weight: 700;
+      cursor: pointer; transition: background 0.2s, transform 0.2s; margin-top: 0.4rem;
+    }
+    button:hover { background: #0047d6; transform: translateY(-1px); }
+    .fine { font-size: 0.74rem; color: var(--muted); text-align: center; margin-top: 1rem; line-height: 1.6; }
+    .back { display: block; text-align: center; color: rgba(255,255,255,0.4); font-size: 0.8rem; margin-top: 1.6rem; text-decoration: none; }
+    .back:hover { color: rgba(255,255,255,0.7); }
+    #successMsg { display:none; text-align:center; padding: 1.5rem 0; }
+    #successMsg .check-big { font-size: 2.5rem; margin-bottom: 0.8rem; }
+    #successMsg h3 { font-family:'DM Serif Display', serif; font-weight:400; font-size:1.4rem; margin-bottom:0.5rem; }
+    #successMsg p { color: var(--muted); font-size: 0.88rem; }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo-row">
+      <img src="Favicon.jpeg" alt="" onerror="this.style.display='none'">
+      <span>CoRadix Academy</span>
+    </div>
+    <span class="badge">🎓 Free Live Webinar</span>
+    <h1>The Science of <em>Studying Smarter</em></h1>
+    <p class="sub">45 minutes with the founder. Real techniques. A live Q&amp;A. And a special enrollment offer if you stay to the end.</p>
+
+    <div class="card">
+      <form id="webinarForm" onsubmit="return handleSubmit(event)">
+        <div id="formFields">
+          <div class="topics">
+            <div class="topic"><span class="check">✓</span> What to memorise vs. understand vs. practise — and why mixing them up wastes hours</div>
+            <div class="topic"><span class="check">✓</span> Active recall &amp; spaced repetition, explained simply</div>
+            <div class="topic"><span class="check">✓</span> The most common study mistake students don't realise they're making</div>
+            <div class="topic"><span class="check">✓</span> Live Q&amp;A — bring your own study struggles</div>
+          </div>
+          <div class="offer-box">
+            <strong>Live-attendee offer:</strong> enroll within 30 minutes of the webinar ending for 30% off your first month, or within 48 hours for 15% off. Offer is exclusive to those who attend live.
+          </div>
+          <div>
+            <label for="studentName">Student's Name</label>
+            <input type="text" id="studentName" required placeholder="Full name">
+          </div>
+          <div>
+            <label for="parentEmail">Email (for the webinar link)</label>
+            <input type="email" id="parentEmail" required placeholder="you@example.com">
+          </div>
+          <div>
+            <label for="whatsapp">WhatsApp Number</label>
+            <input type="tel" id="whatsapp" required placeholder="10-digit number">
+          </div>
+          <div>
+            <label for="studentClass">Student's Class</label>
+            <select id="studentClass" required>
+              <option value="">Select class</option>
+              <option>Class 1–7</option>
+              <option>Class 8–10</option>
+              <option>Class 11–12</option>
+              <option>College</option>
+            </select>
+          </div>
+          <button type="submit">Reserve My Free Seat →</button>
+          <p class="fine">No spam, no cost. We'll send the Zoom link and a reminder 1 hour before the session.</p>
+        </div>
+      </form>
+      <div id="successMsg">
+        <div class="check-big">🎉</div>
+        <h3>You're in!</h3>
+        <p>Check your email for the Zoom link and calendar invite. See you there.</p>
+      </div>
+    </div>
+
+    <a href="index.html" class="back">← Back to CoRadix Academy</a>
+  </div>
+
+  <script>
+    // NOTE for Sam: this currently just shows a success message in the browser.
+    // To actually collect registrations, replace handleSubmit with one of:
+    //   1. A Google Form embed / redirect (fastest to set up)
+    //   2. Formspree or similar form-backend service (keeps this custom UI)
+    //   3. A simple backend endpoint if you build one later
+    function handleSubmit(e) {
+      e.preventDefault();
+      document.getElementById('formFields').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+      // TODO: send data (studentName, parentEmail, whatsapp, studentClass) to your form backend here
+      return false;
+    }
+  </script>
+</body>
+</html>
