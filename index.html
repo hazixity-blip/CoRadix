@@ -338,7 +338,7 @@
     .occasional-note { text-align:center; font-size:var(--fs-small); color:var(--muted); padding:1rem; border:1px dashed var(--border); border-radius:8px; }
     .occasional-note strong { color:var(--ink); }
 
-    /* ── SUMMER COURSES SECTION ── */
+    /* ── SKILL COURSES SECTION ── */
     #summer { background: linear-gradient(135deg, #fff8f4 0%, #fff1eb 60%, #e8efff 100%); }
     #summer .s-eye { color: var(--summer); }
     #summer .s-eye::before { background: var(--summer); }
@@ -422,6 +422,63 @@
     .seb-left h3 em { font-style: italic; color: #fb923c; }
     .seb-left p { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
     .seb-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
+
+    /* ── WEBINAR / DISCOUNT SECTION ── */
+    #webinar { background: var(--ink); position: relative; overflow: hidden; }
+    #webinar::before { content:''; position:absolute; top:-20%; right:-5%; width:45%; height:80%; background: radial-gradient(ellipse, rgba(255,107,43,0.18) 0%, transparent 70%); pointer-events:none; }
+    #webinar::after { content:''; position:absolute; bottom:-20%; left:-5%; width:35%; height:70%; background: radial-gradient(ellipse, rgba(0,87,255,0.15) 0%, transparent 70%); pointer-events:none; }
+    #webinar .s-eye { color: #fb923c; position: relative; }
+    #webinar .s-eye::before { background: #fb923c; }
+    #webinar h2.s-title { color: #fff; position: relative; }
+    #webinar h2.s-title em { color: #fb923c; }
+    #webinar .s-sub { color: rgba(255,255,255,0.55); position: relative; }
+    .webinar-card {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.12);
+      border-radius: 14px;
+      padding: 2.5rem;
+      position: relative;
+      display: grid;
+      grid-template-columns: 1.3fr 1fr;
+      gap: 2.5rem;
+      align-items: center;
+    }
+    .webinar-left .wb-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.4rem;
+      background: rgba(251,146,60,0.15);
+      color: #fb923c;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      padding: 0.3rem 0.8rem;
+      border-radius: 20px;
+      margin-bottom: 1rem;
+    }
+    .webinar-left h3 { font-family: 'DM Serif Display', serif; font-size: 1.7rem; font-weight: 400; color: #fff; margin-bottom: 0.7rem; line-height: 1.25; }
+    .webinar-left h3 em { font-style: italic; color: #fb923c; }
+    .webinar-left p { font-size: 0.9rem; color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 1rem; }
+    .webinar-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
+    .wb-meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: rgba(255,255,255,0.7); }
+    .webinar-topics { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
+    .wb-topic { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5; }
+    .wb-topic .wb-check { color: #4ade80; flex-shrink: 0; }
+    .webinar-right {
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 10px;
+      padding: 1.6rem;
+    }
+    .wb-offer-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.9rem; }
+    .wb-tier { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
+    .wb-tier:last-of-type { border-bottom: none; }
+    .wb-tier-label { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
+    .wb-tier-value { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #fb923c; }
+    .wb-tier-value.dim { color: rgba(255,255,255,0.4); font-size: 1.1rem; }
+    .wb-cta { width: 100%; margin-top: 1.2rem; text-align: center; justify-content: center; }
+    .wb-fineprint { font-size: 0.7rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 0.8rem; line-height: 1.5; }
 
     /* ── MATERIALS PROTECTION ── */
     #materials { background: var(--bg-soft); }
@@ -548,6 +605,7 @@
       .outcome-row { grid-template-columns:1fr; }
       .summer-courses-grid { grid-template-columns:repeat(2,1fr); }
       .inq-row { grid-template-columns:1fr; }
+      .webinar-card { grid-template-columns:1fr; }
     }
     @media (max-width: 600px) {
       .hero-actions { flex-direction:column; }
@@ -564,10 +622,10 @@
 
 <!-- ANNOUNCEMENT BANNER -->
 <div class="announcement-banner" id="annBanner">
-  <span>☀️ <strong>Summer Courses 2026 are OPEN</strong> — Real skills for school students on vacation</span>
+  <span>🎓 <strong>Free Webinar: The Science of Studying Smarter</strong> — plus a limited-time enrollment discount</span>
   <span class="banner-sep">|</span>
-  <span>🎓 <strong>1 Week Free Trial</strong> available for all batches</span>
-  <a href="#summer" class="banner-btn" onclick="closeBanner()">See Summer Courses →</a>
+  <span>1 Week Free Trial available for all batches</span>
+  <a href="#webinar" class="banner-btn" onclick="closeBanner()">Reserve Your Seat →</a>
   <a href="inq.html" class="btn">Start Your Free Trial</a>
 </div>
 
@@ -581,7 +639,8 @@
     <li><a href="#method">Method</a></li>
     <li><a href="#procedure">How to Join</a></li>
     <li><a href="#courses">Courses</a></li>
-    <li><a href="#summer">Summer</a></li>
+    <li><a href="#summer">Skill Courses</a></li>
+    <li><a href="#webinar">Webinar</a></li>
     <li><a href="#why">Why Us</a></li>
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
@@ -595,24 +654,24 @@
   <div class="hero-glow"></div>
   <div class="hero-text">
     <p class="eyebrow">Small Batches. Real Results.</p>
-    <p class="eyebrow summer-eye" style="animation-delay:0.15s;">☀️ Summer Courses Now Open · <a href="#summer" style="color:var(--summer);text-decoration:underline;text-underline-offset:3px;">See what's new →</a></p>
+    <p class="eyebrow summer-eye" style="animation-delay:0.15s;">🎓 Free Webinar This Week · <a href="#webinar" style="color:var(--summer);text-decoration:underline;text-underline-offset:3px;">Save your seat →</a></p>
     <h1 class="display">Learn <em>smarter,</em><br/>not harder.</h1>
     <p class="hero-desc">CoRadix Academy is a boutique tutoring academy that breaks every subject into exactly what to <strong>memorise</strong>, what to <strong>understand</strong>, and what to <strong>practise</strong> — so nothing slips through.</p>
     <div class="hero-actions">
       <a href="inq.html" class="btn">Book Your Free Session NOW</a> 
-      <a href="#summer" class="btn btn-summer">☀️ Summer Courses</a>
+      <a href="#webinar" class="btn btn-summer">🎓 Join Free Webinar</a>
       <a href="#procedure" class="btn btn-outline">How to Join</a>
     </div>
-    <!-- Summer strip -->
+    <!-- Webinar strip -->
     <div class="summer-strip" style="opacity:0;animation:fadeUp 0.8s var(--ease) 0.55s forwards;">
       <div class="summer-strip-left">
-        <div class="summer-strip-icon">☀️</div>
+        <div class="summer-strip-icon">🎓</div>
         <div>
-          <h4>Summer 2026 — Skills for the Real World</h4>
-          <p>Short, intensive courses for school students on vacation. Coding, creativity, and more.</p>
+          <h4>Free Live Webinar — The Science of Studying Smarter</h4>
+          <p>Learn real techniques in 45 minutes. Stick around and get a special enrollment discount.</p>
         </div>
       </div>
-      <a href="summer.html" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Enroll in Summer Course →</a>
+      <a href="webinar.html" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Reserve Your Free Seat →</a>
     </div>
   </div>
   <div class="hero-visual">
@@ -859,19 +918,19 @@
 
 <div class="divider"></div>
 
-<!-- SUMMER COURSES -->
+<!-- SKILL COURSES -->
 <section id="summer">
   <div class="section-inner">
     <p class="s-eye reveal" style="color:var(--summer);">
       <span style="width:1.2rem;height:2px;background:var(--summer);display:inline-block;"></span>
-      Summer 2026
+      Skill Courses
     </p>
-    <h2 class="s-title reveal">Make your summer<br/><em style="color:var(--summer);">actually count.</em></h2>
-    <p class="s-sub reveal">Short, focused, and genuinely fun courses designed for school students on vacation. No textbooks. No exams. Just real skills you'll actually use.</p>
+    <h2 class="s-title reveal">Skills the syllabus<br/><em style="color:var(--summer);">doesn't teach.</em></h2>
+    <p class="s-sub reveal">Short, focused, and genuinely fun courses for school students, running year-round. No textbooks. No exams. Just real skills you'll actually use.</p>
 
     <div class="summer-project-note reveal">
       <span class="spn-icon">🔭</span>
-      <p><strong style="color:var(--summer);">Part of a special project.</strong> These summer courses are running as part of CoRadix's student engagement initiative — designed to keep curious minds active over the break and give students a head start on skills the school syllabus doesn't cover. Each course is short, practical, and built around doing. Completion certificates will be issued for all participants.</p>
+      <p><strong style="color:var(--summer);">Part of a special project.</strong> These courses run as part of CoRadix's student engagement initiative — designed to keep curious minds active and give students a head start on skills the school syllabus doesn't cover. Each course is short, practical, and built around doing. Completion certificates are issued for all participants.</p>
     </div>
 
     <div class="summer-courses-grid">
@@ -961,15 +1020,64 @@
       </div>
     </div>
 
-    <!-- Summer Enroll Box -->
+    <!-- Skill Courses Enroll Box -->
     <div class="summer-enroll-box reveal">
       <div class="seb-left">
-        <h3>Ready to make this summer <em>different?</em></h3>
+        <h3>Ready to make this term <em>different?</em></h3>
         <p>Spots are limited. Pick your course and enroll today — it's free to apply.</p>
       </div>
       <div class="seb-actions">
-        <a href="summer.html" class="btn btn-summer">☀️ Enroll in Summer Course →</a>
+        <a href="summer.html" class="btn btn-summer">Enroll in a Skill Course →</a>
         <a href="#" onclick="openInquiry(); return false;" class="btn btn-outline" style="border-color:rgba(255,255,255,0.2);color:#fff;">Ask a Question</a>
+      </div>
+    </div>
+
+  </div>
+</section>
+
+<div class="divider"></div>
+
+<!-- WEBINAR + DISCOUNT -->
+<section id="webinar">
+  <div class="section-inner">
+    <p class="s-eye reveal">Free Live Webinar</p>
+    <h2 class="s-title reveal">Learn the method.<br/><em>Then get rewarded for acting fast.</em></h2>
+    <p class="s-sub reveal">One free session with the founder. Real techniques you can use immediately — and a special enrollment offer for those who join us live.</p>
+
+    <div class="webinar-card reveal">
+      <div class="webinar-left">
+        <div class="wb-badge">🎓 Free · No card required</div>
+        <h3>The Science of <em>Studying Smarter</em></h3>
+        <p>A live 45-minute session with Sam, founder of CoRadix, breaking down the exact techniques behind the M · U · P method — the same ones used in every CoRadix batch.</p>
+        <div class="webinar-meta">
+          <div class="wb-meta-item">📅 Date &amp; time announced on registration</div>
+          <div class="wb-meta-item">🎥 Live on Zoom</div>
+          <div class="wb-meta-item">👨‍👩‍👧 Parents &amp; students both welcome</div>
+        </div>
+        <div class="webinar-topics">
+          <div class="wb-topic"><span class="wb-check">✓</span> How to know what to memorise vs. understand vs. practise</div>
+          <div class="wb-topic"><span class="wb-check">✓</span> Active recall &amp; spaced repetition — how to actually use them</div>
+          <div class="wb-topic"><span class="wb-check">✓</span> The biggest study mistake most students don't know they're making</div>
+          <div class="wb-topic"><span class="wb-check">✓</span> Live Q&amp;A — bring your own study struggles</div>
+        </div>
+        <a href="webinar.html" class="btn btn-summer">Reserve Your Free Seat →</a>
+      </div>
+      <div class="webinar-right">
+        <div class="wb-offer-label">Enrollment Offer — Live Attendees Only</div>
+        <div class="wb-tier">
+          <span class="wb-tier-label">Enroll within 30 mins of webinar ending</span>
+          <span class="wb-tier-value">30% off</span>
+        </div>
+        <div class="wb-tier">
+          <span class="wb-tier-label">Enroll within 48 hours</span>
+          <span class="wb-tier-value">15% off</span>
+        </div>
+        <div class="wb-tier">
+          <span class="wb-tier-label">Standard enrollment</span>
+          <span class="wb-tier-value dim">Free trial only</span>
+        </div>
+        <a href="webinar.html" class="btn btn-blue wb-cta">Register Free →</a>
+        <p class="wb-fineprint">Discount applies to first month's fee only. Available exclusively to students who attend the live webinar — offer isn't available for those who watch a recording.</p>
       </div>
     </div>
 
@@ -1156,7 +1264,7 @@
       <p>Seats in every batch are limited to nine. Once full, the next opening is the next batch. Don't wait.</p>
       <div class="cta-actions">
         <a href="apply.html" class="btn btn-blue" style="font-size:1rem;padding:0.85rem 2rem;">Apply for the Next Batch →</a>
-        <a href="summer.html" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">☀️ Summer Course Enrollment →</a>
+        <a href="webinar.html" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">🎓 Join the Free Webinar →</a>
       </div>
       <p class="cta-note">Batches fill quickly. Enquire early to secure a spot.</p>
     </div>
@@ -1173,13 +1281,14 @@
     <li><a href="#method">Method</a></li>
     <li><a href="#procedure">How to Join</a></li>
     <li><a href="#courses">Courses</a></li>
-    <li><a href="#summer">Summer</a></li>
+    <li><a href="#summer">Skill Courses</a></li>
+    <li><a href="#webinar">Webinar</a></li>
     <li><a href="#why">Why Us</a></li>
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="terms.html">Terms</a></li>
     <li><a href="apply.html">Enroll</a></li>
-    <li><a href="summer.html">Summer Form</a></li>
+    <li><a href="webinar.html">Webinar Signup</a></li>
   </ul>
   <p class="footer-copy">© 2026 CoRadix Academy. All rights reserved.</p>
 </footer>
