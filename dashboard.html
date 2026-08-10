@@ -54,11 +54,18 @@
       <div class="grid">
         <div class="stat-card"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div></div>
         <div class="stat-card"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
+        <div class="stat-card"><div class="stat-num" id="avgScorePct">—</div><div class="stat-lbl">Average score</div></div>
+        <div class="stat-card"><div class="stat-num" id="avgRating">—</div><div class="stat-lbl">Average session rating</div></div>
       </div>
 
       <div class="panel">
         <h3>📋 Attendance</h3>
         <div id="attendanceList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>📈 Performance</h3>
+        <div id="scoresList"></div>
       </div>
 
       <div class="panel">
@@ -135,6 +142,29 @@
         });
         document.getElementById('attendancePct').textContent = Math.round((presentCount / attSnap.size) * 100) + '%';
         document.getElementById('sessionCount').textContent = attSnap.size;
+      }
+
+      // Scores / Performance
+      const scSnap = await db.collection('students').doc(uid).collection('scores').orderBy('date', 'desc').get();
+      const scList = document.getElementById('scoresList');
+      if (scSnap.empty) {
+        scList.innerHTML = '<div class="empty">No scores recorded yet.</div>';
+      } else {
+        scList.innerHTML = '';
+        let pctSum = 0, pctCount = 0, ratingSum = 0, ratingCount = 0;
+        scSnap.forEach(doc => {
+          const d = doc.data();
+          const pct = d.max ? Math.round((d.score / d.max) * 100) : null;
+          if (pct !== null) { pctSum += pct; pctCount++; }
+          if (d.rating) { ratingSum += d.rating; ratingCount++; }
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `<span class="rl"><strong>${d.subject||''}</strong> — ${d.date||''}${d.notes ? ' · '+d.notes : ''}</span>
+            <span class="rr">${d.score}/${d.max} (${pct!==null?pct+'%':''})${d.rating ? ' · Rating: '+d.rating+'/10' : ''}</span>`;
+          scList.appendChild(row);
+        });
+        document.getElementById('avgScorePct').textContent = pctCount ? Math.round(pctSum / pctCount) + '%' : '—';
+        document.getElementById('avgRating').textContent = ratingCount ? (ratingSum / ratingCount).toFixed(1) + '/10' : '—';
       }
 
       // Feedback
