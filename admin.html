@@ -103,6 +103,24 @@
         </div>
 
         <div class="panel">
+          <h3>📈 Add Performance Score</h3>
+          <div class="row2">
+            <div><label>Subject / Test Name</label><input id="scSubject" placeholder="e.g. Physics Unit Test 2"></div>
+            <div><label>Date</label><input type="date" id="scDate"></div>
+          </div>
+          <div class="row2">
+            <div><label>Score Obtained</label><input type="number" id="scScore" placeholder="e.g. 42"></div>
+            <div><label>Out Of</label><input type="number" id="scMax" placeholder="e.g. 50"></div>
+          </div>
+          <label>Session Rating (1–10, optional — effort, focus, participation)</label>
+          <input type="number" id="scRating" min="1" max="10" placeholder="e.g. 8">
+          <label>Notes (optional)</label>
+          <textarea id="scNotes" rows="2" placeholder="Any short context for this score"></textarea>
+          <button class="action" onclick="addScore()">Add Score</button>
+          <div id="scStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
           <h3>📝 Add Assessment Link</h3>
           <div class="row2">
             <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
@@ -221,6 +239,35 @@
         document.getElementById('matTitle').value = '';
         document.getElementById('matLink').value = '';
       } catch (e) { showMsg('matStatus_msg', 'Error: ' + e.message, false); }
+    }
+
+    async function addScore() {
+      if (!selectedUid) return;
+      const subject = document.getElementById('scSubject').value.trim();
+      const date = document.getElementById('scDate').value;
+      const score = document.getElementById('scScore').value;
+      const max = document.getElementById('scMax').value;
+      const rating = document.getElementById('scRating').value;
+      const notes = document.getElementById('scNotes').value.trim();
+      if (!subject || !date || score === '' || max === '') {
+        showMsg('scStatus_msg', 'Subject, date, score, and out-of are required.', false);
+        return;
+      }
+      try {
+        await db.collection('students').doc(selectedUid).collection('scores').add({
+          subject, date,
+          score: Number(score),
+          max: Number(max),
+          rating: rating ? Number(rating) : null,
+          notes
+        });
+        showMsg('scStatus_msg', 'Score added.', true);
+        document.getElementById('scSubject').value = '';
+        document.getElementById('scScore').value = '';
+        document.getElementById('scMax').value = '';
+        document.getElementById('scRating').value = '';
+        document.getElementById('scNotes').value = '';
+      } catch (e) { showMsg('scStatus_msg', 'Error: ' + e.message, false); }
     }
 
     async function addAssessment() {
