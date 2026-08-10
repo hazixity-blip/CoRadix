@@ -10,12 +10,12 @@
 // ============================================================
 
 const firebaseConfig = {
-  apiKey: "PASTE_YOUR_API_KEY_HERE",
-  authDomain: "PASTE_YOUR_PROJECT.firebaseapp.com",
-  projectId: "PASTE_YOUR_PROJECT_ID",
-  storageBucket: "PASTE_YOUR_PROJECT.appspot.com",
-  messagingSenderId: "PASTE_YOUR_SENDER_ID",
-  appId: "PASTE_YOUR_APP_ID"
+  apiKey: "AIzaSyB_LavhWrj9Zw_EXRLzj1sbBkBuqFUmP1U",
+  authDomain: "coradix-academy.firebaseapp.com",
+  projectId: "coradix-academy",
+  storageBucket: "coradix-academy.firebasestorage.app",
+  messagingSenderId: "787654248791",
+  appId: "1:787654248791:web:0c1038c52688c01c7e1612"
 };
 
 firebase.initializeApp(firebaseConfig);
