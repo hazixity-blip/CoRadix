@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Student Login — CoRadix Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#1c1c1e; --muted:#6b7280; --border:#e5e7eb; --blue:#0057ff; --blue-light:#e8efff; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--ink); min-height:100vh; display:flex; align-items:center; justify-content:center; padding:1.5rem; }
+  .card { background:#fff; border-radius:14px; padding:2.4rem; width:100%; max-width:400px; box-shadow:0 20px 60px rgba(0,0,0,0.3); }
+  h1 { font-family:'DM Serif Display',serif; font-weight:400; font-size:1.5rem; margin-bottom:0.3rem; }
+  .sub { color:var(--muted); font-size:0.85rem; margin-bottom:1.6rem; }
+  label { display:block; font-size:0.78rem; font-weight:700; color:#3a3a3c; margin-bottom:0.35rem; }
+  input { width:100%; font-size:0.9rem; border:1.5px solid var(--border); border-radius:7px; padding:0.7rem 0.9rem; margin-bottom:1rem; outline:none; }
+  input:focus { border-color:var(--blue); box-shadow:0 0 0 3px rgba(0,87,255,0.1); }
+  button { width:100%; background:var(--blue); color:#fff; border:none; border-radius:8px; padding:0.85rem; font-weight:700; font-size:0.92rem; cursor:pointer; }
+  button:hover { background:#0047d6; }
+  button:disabled { opacity:0.6; cursor:not-allowed; }
+  #errorMsg { display:none; background:#fef2f2; color:#b91c1c; border:1px solid #fecaca; border-radius:7px; padding:0.6rem 0.8rem; font-size:0.8rem; margin-bottom:1rem; }
+  .back { display:block; text-align:center; color:rgba(255,255,255,0.4); font-size:0.8rem; margin-top:1.2rem; text-decoration:none; }
+  .back:hover { color:rgba(255,255,255,0.7); }
+</style>
+</head>
+<body>
+  <div>
+    <div class="card">
+      <h1>Student &amp; Parent Login</h1>
+      <p class="sub">Access attendance, feedback, materials, and assessments.</p>
+      <div id="errorMsg"></div>
+      <form id="loginForm">
+        <label for="email">Email</label>
+        <input type="email" id="email" required autocomplete="username">
+        <label for="password">Password</label>
+        <input type="password" id="password" required autocomplete="current-password">
+        <button type="submit" id="loginBtn">Log In</button>
+      </form>
+    </div>
+    <a href="../index.html" class="back">← Back to CoRadix Academy</a>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('loginBtn');
+      const err = document.getElementById('errorMsg');
+      err.style.display = 'none';
+      btn.disabled = true;
+      btn.textContent = 'Logging in…';
+      const email = document.getElementById('email').value.trim();
+      const password = document.getElementById('password').value;
+      try {
+        const cred = await auth.signInWithEmailAndPassword(email, password);
+        const uid = cred.user.uid;
+        const adminDoc = await db.collection('admins').doc(uid).get();
+        if (adminDoc.exists) {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'dashboard.html';
+        }
+      } catch (e) {
+        err.textContent = 'Login failed — check your email and password, or contact the academy.';
+        err.style.display = 'block';
+        btn.disabled = false;
+        btn.textContent = 'Log In';
+      }
+    });
+  </script>
+</body>
+</html>

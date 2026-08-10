@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>My Dashboard — CoRadix Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#1c1c1e; --muted:#6b7280; --border:#e5e7eb; --blue:#0057ff; --blue-light:#e8efff; --bg-soft:#f5f7fa; }
+  * { box-sizing:border-box; margin:0; padding:0; -webkit-user-select:none; user-select:none; }
+  body { font-family:'Inter',sans-serif; background:var(--bg-soft); color:var(--ink); min-height:100vh; }
+  header { background:#fff; border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  header h2 { font-family:'DM Serif Display',serif; font-weight:400; font-size:1.2rem; }
+  #studentMeta { font-size:0.8rem; color:var(--muted); }
+  #logoutBtn { background:none; border:1px solid var(--border); border-radius:6px; padding:0.45rem 0.9rem; font-size:0.8rem; font-weight:600; cursor:pointer; color:var(--ink); }
+  #logoutBtn:hover { border-color:var(--blue); color:var(--blue); }
+  main { max-width:900px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+  .grid { display:grid; grid-template-columns:1fr 1fr; gap:1.2rem; margin-bottom:1.5rem; }
+  .stat-card { background:#fff; border:1px solid var(--border); border-radius:10px; padding:1.4rem; }
+  .stat-num { font-family:'DM Serif Display',serif; font-size:2rem; color:var(--blue); }
+  .stat-lbl { font-size:0.8rem; color:var(--muted); margin-top:0.2rem; }
+  .panel { background:#fff; border:1px solid var(--border); border-radius:10px; padding:1.4rem 1.6rem; margin-bottom:1.2rem; }
+  .panel h3 { font-size:0.95rem; font-weight:700; margin-bottom:0.9rem; }
+  .row { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding:0.7rem 0; border-bottom:1px solid var(--border); font-size:0.85rem; }
+  .row:last-child { border-bottom:none; }
+  .row .rl { color:var(--muted); }
+  .row .rr { font-weight:600; text-align:right; }
+  .status-present { color:#16a34a; font-weight:700; }
+  .status-absent { color:#dc2626; font-weight:700; }
+  .empty { color:var(--muted); font-size:0.85rem; padding:0.6rem 0; }
+  a.mat-link { color:var(--blue); font-weight:600; text-decoration:none; font-size:0.85rem; }
+  a.mat-link:hover { text-decoration:underline; }
+  .watermark-wrap { position:relative; }
+  .watermark-overlay {
+    position:fixed; inset:0; pointer-events:none; z-index:9999;
+    display:flex; flex-wrap:wrap; align-content:space-around; justify-content:space-around;
+    opacity:0.07; overflow:hidden;
+  }
+  .watermark-overlay span { transform:rotate(-30deg); font-size:1.1rem; font-weight:700; color:#000; white-space:nowrap; margin:2rem; }
+  #loadingMsg { text-align:center; padding:4rem 1rem; color:var(--muted); }
+</style>
+</head>
+<body>
+  <div id="loadingMsg">Loading your dashboard…</div>
+  <div id="appRoot" style="display:none;">
+    <header>
+      <div>
+        <h2>My Dashboard</h2>
+        <div id="studentMeta"></div>
+      </div>
+      <button id="logoutBtn">Log Out</button>
+    </header>
+    <main>
+      <div class="grid">
+        <div class="stat-card"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div></div>
+        <div class="stat-card"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
+      </div>
+
+      <div class="panel">
+        <h3>📋 Attendance</h3>
+        <div id="attendanceList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>💬 Feedback</h3>
+        <div id="feedbackList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>📚 Course Materials</h3>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;">View-only. Materials are watermarked with your name and Student ID — please do not share, screenshot, or redistribute (see our Materials Policy).</p>
+        <div id="materialsList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>📝 Assessment Links</h3>
+        <div id="assessmentsList"></div>
+      </div>
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    let currentUid = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      currentUid = user.uid;
+      await loadDashboard(user.uid);
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => window.location.href = 'login.html');
+    });
+
+    async function loadDashboard(uid) {
+      const studentDoc = await db.collection('students').doc(uid).get();
+      if (!studentDoc.exists) {
+        document.getElementById('loadingMsg').textContent = 'No student record found. Please contact the academy.';
+        return;
+      }
+      const student = studentDoc.data();
+      document.getElementById('studentMeta').textContent =
+        `${student.name || ''} · ${student.studentId || ''} · ${student.batchName || ''}`;
+
+      // Watermark overlay
+      const wm = document.createElement('div');
+      wm.className = 'watermark-overlay';
+      const label = `${student.name || ''} · ${student.studentId || ''}`;
+      for (let i = 0; i < 24; i++) {
+        const s = document.createElement('span');
+        s.textContent = label;
+        wm.appendChild(s);
+      }
+      document.body.appendChild(wm);
+
+      // Attendance
+      const attSnap = await db.collection('students').doc(uid).collection('attendance').orderBy('date', 'desc').get();
+      const attList = document.getElementById('attendanceList');
+      let presentCount = 0;
+      if (attSnap.empty) {
+        attList.innerHTML = '<div class="empty">No attendance records yet.</div>';
+      } else {
+        attList.innerHTML = '';
+        attSnap.forEach(doc => {
+          const d = doc.data();
+          if (d.status === 'Present') presentCount++;
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `<span class="rl">${d.date}</span><span class="rr ${d.status==='Present'?'status-present':'status-absent'}">${d.status}</span>`;
+          attList.appendChild(row);
+        });
+        document.getElementById('attendancePct').textContent = Math.round((presentCount / attSnap.size) * 100) + '%';
+        document.getElementById('sessionCount').textContent = attSnap.size;
+      }
+
+      // Feedback
+      const fbSnap = await db.collection('students').doc(uid).collection('feedback').orderBy('date', 'desc').get();
+      const fbList = document.getElementById('feedbackList');
+      fbList.innerHTML = fbSnap.empty ? '<div class="empty">No feedback yet.</div>' : '';
+      fbSnap.forEach(doc => {
+        const d = doc.data();
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<span class="rl"><strong>${d.subject||''}</strong> — ${d.note||''}</span><span class="rr" style="font-weight:400;color:var(--muted);">${d.date||''}</span>`;
+        fbList.appendChild(row);
+      });
+
+      // Materials
+      const matSnap = await db.collection('students').doc(uid).collection('materials').orderBy('title').get();
+      const matList = document.getElementById('materialsList');
+      matList.innerHTML = matSnap.empty ? '<div class="empty">No materials shared yet.</div>' : '';
+      matSnap.forEach(doc => {
+        const d = doc.data();
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<span class="rl">${d.title||''}</span><a class="mat-link" href="${d.link}" target="_blank" rel="noopener">View →</a>`;
+        matList.appendChild(row);
+      });
+
+      // Assessments
+      const asSnap = await db.collection('students').doc(uid).collection('assessments').orderBy('dueDate').get();
+      const asList = document.getElementById('assessmentsList');
+      asList.innerHTML = asSnap.empty ? '<div class="empty">No assessments assigned yet.</div>' : '';
+      asSnap.forEach(doc => {
+        const d = doc.data();
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<span class="rl">${d.title||''} <span style="color:var(--muted);">(due ${d.dueDate||''})</span></span><a class="mat-link" href="${d.link}" target="_blank" rel="noopener">Open →</a>`;
+        asList.appendChild(row);
+      });
+
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'block';
+    }
+
+    // Mild deterrents — not real protection, see chat notes
+    document.addEventListener('contextmenu', e => e.preventDefault());
+    document.addEventListener('keydown', e => {
+      if (e.key === 'PrintScreen') { navigator.clipboard.writeText(''); }
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — CoRadix Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#1c1c1e; --muted:#6b7280; --border:#e5e7eb; --blue:#0057ff; --blue-light:#e8efff; --bg-soft:#f5f7fa; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--bg-soft); color:var(--ink); min-height:100vh; }
+  header { background:#fff; border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  header h2 { font-family:'DM Serif Display',serif; font-weight:400; font-size:1.2rem; }
+  #logoutBtn { background:none; border:1px solid var(--border); border-radius:6px; padding:0.45rem 0.9rem; font-size:0.8rem; font-weight:600; cursor:pointer; }
+  #logoutBtn:hover { border-color:var(--blue); color:var(--blue); }
+  main { max-width:1000px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+  .panel { background:#fff; border:1px solid var(--border); border-radius:10px; padding:1.4rem 1.6rem; margin-bottom:1.2rem; }
+  .panel h3 { font-size:0.95rem; font-weight:700; margin-bottom:0.9rem; }
+  label { display:block; font-size:0.75rem; font-weight:700; color:#3a3a3c; margin-bottom:0.3rem; }
+  input, select, textarea {
+    width:100%; font-family:'Inter',sans-serif; font-size:0.85rem; border:1.5px solid var(--border);
+    border-radius:6px; padding:0.6rem 0.8rem; margin-bottom:0.8rem; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--blue); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  button.action { background:var(--blue); color:#fff; border:none; border-radius:7px; padding:0.65rem 1.2rem; font-weight:700; font-size:0.85rem; cursor:pointer; }
+  button.action:hover { background:#0047d6; }
+  #studentSelect { margin-bottom:1.4rem; }
+  .status-msg { font-size:0.8rem; padding:0.5rem 0.7rem; border-radius:6px; margin-bottom:0.8rem; display:none; }
+  .status-ok { background:#f0fdf4; color:#166534; }
+  .status-err { background:#fef2f2; color:#b91c1c; }
+  .new-student-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:0.6rem; align-items:end; }
+  table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  th, td { text-align:left; padding:0.5rem 0.4rem; border-bottom:1px solid var(--border); }
+  #loadingMsg { text-align:center; padding:4rem 1rem; color:var(--muted); }
+</style>
+</head>
+<body>
+  <div id="loadingMsg">Checking admin access…</div>
+  <div id="appRoot" style="display:none;">
+    <header>
+      <h2>CoRadix Admin</h2>
+      <button id="logoutBtn">Log Out</button>
+    </header>
+    <main>
+
+      <div class="panel">
+        <h3>➕ Add a New Student Record</h3>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;">
+          Note: this only creates their <em>data record</em>. Their login (email + password) must still be created once,
+          separately, in Firebase Console → Authentication → Add User. Use the same UID shown there as the Student UID below.
+        </p>
+        <div class="new-student-row">
+          <div><label>Student UID (from Firebase Auth)</label><input id="newUid" placeholder="e.g. aBc123XyZ"></div>
+          <div><label>Name</label><input id="newName" placeholder="Full name"></div>
+          <div><label>Student ID</label><input id="newStudentId" placeholder="CRX-2026-001"></div>
+          <div><label>Batch</label><input id="newBatch" placeholder="e.g. Batch A - Class 10"></div>
+          <button class="action" onclick="createStudent()">Create</button>
+        </div>
+        <div id="createStatus" class="status-msg"></div>
+      </div>
+
+      <div class="panel">
+        <h3>Select Student to Update</h3>
+        <select id="studentSelect" onchange="onStudentChange()">
+          <option value="">— Select a student —</option>
+        </select>
+      </div>
+
+      <div id="studentPanels" style="display:none;">
+        <div class="panel">
+          <h3>📋 Add Attendance</h3>
+          <div class="row2">
+            <div><label>Date</label><input type="date" id="attDate"></div>
+            <div><label>Status</label>
+              <select id="attStatus"><option>Present</option><option>Absent</option></select>
+            </div>
+          </div>
+          <button class="action" onclick="addAttendance()">Add Attendance</button>
+          <div id="attStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>💬 Add Feedback</h3>
+          <div class="row2">
+            <div><label>Subject</label><input id="fbSubject" placeholder="e.g. Chemistry"></div>
+            <div><label>Date</label><input type="date" id="fbDate"></div>
+          </div>
+          <label>Note</label>
+          <textarea id="fbNote" rows="2" placeholder="Feedback note"></textarea>
+          <button class="action" onclick="addFeedback()">Add Feedback</button>
+          <div id="fbStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📚 Add Material Link</h3>
+          <div class="row2">
+            <div><label>Title</label><input id="matTitle" placeholder="e.g. Chapter 4 Notes"></div>
+            <div><label>Google Drive Link (view-only)</label><input id="matLink" placeholder="https://drive.google.com/..."></div>
+          </div>
+          <button class="action" onclick="addMaterial()">Add Material</button>
+          <div id="matStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📝 Add Assessment Link</h3>
+          <div class="row2">
+            <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
+            <div><label>Due Date</label><input type="date" id="asDue"></div>
+          </div>
+          <label>Link</label>
+          <input id="asLink" placeholder="https://forms.google.com/...">
+          <button class="action" onclick="addAssessment()">Add Assessment</button>
+          <div id="asStatus_msg" class="status-msg"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    let selectedUid = null;
+
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      const adminDoc = await db.collection('admins').doc(user.uid).get();
+      if (!adminDoc.exists) {
+        document.getElementById('loadingMsg').textContent = 'You do not have admin access.';
+        return;
+      }
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'block';
+      await loadStudentList();
+    });
+
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => window.location.href = 'login.html');
+    });
+
+    async function loadStudentList() {
+      const snap = await db.collection('students').get();
+      const sel = document.getElementById('studentSelect');
+      sel.innerHTML = '<option value="">— Select a student —</option>';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = `${d.name || '(no name)'} — ${d.studentId || ''} — ${d.batchName || ''}`;
+        sel.appendChild(opt);
+      });
+    }
+
+    function onStudentChange() {
+      selectedUid = document.getElementById('studentSelect').value;
+      document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
+    }
+
+    function showMsg(id, text, ok) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'status-msg ' + (ok ? 'status-ok' : 'status-err');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+    async function createStudent() {
+      const uid = document.getElementById('newUid').value.trim();
+      const name = document.getElementById('newName').value.trim();
+      const studentId = document.getElementById('newStudentId').value.trim();
+      const batchName = document.getElementById('newBatch').value.trim();
+      if (!uid || !name) { showMsg('createStatus', 'UID and Name are required.', false); return; }
+      try {
+        await db.collection('students').doc(uid).set({ name, studentId, batchName });
+        showMsg('createStatus', 'Student record created.', true);
+        document.getElementById('newUid').value = '';
+        document.getElementById('newName').value = '';
+        document.getElementById('newStudentId').value = '';
+        document.getElementById('newBatch').value = '';
+        await loadStudentList();
+      } catch (e) {
+        showMsg('createStatus', 'Error: ' + e.message, false);
+      }
+    }
+
+    async function addAttendance() {
+      if (!selectedUid) return;
+      const date = document.getElementById('attDate').value;
+      const status = document.getElementById('attStatus').value;
+      if (!date) { showMsg('attStatus_msg', 'Pick a date.', false); return; }
+      try {
+        await db.collection('students').doc(selectedUid).collection('attendance').add({ date, status });
+        showMsg('attStatus_msg', 'Attendance added.', true);
+      } catch (e) { showMsg('attStatus_msg', 'Error: ' + e.message, false); }
+    }
+
+    async function addFeedback() {
+      if (!selectedUid) return;
+      const subject = document.getElementById('fbSubject').value.trim();
+      const date = document.getElementById('fbDate').value;
+      const note = document.getElementById('fbNote').value.trim();
+      if (!note) { showMsg('fbStatus_msg', 'Write a note.', false); return; }
+      try {
+        await db.collection('students').doc(selectedUid).collection('feedback').add({ subject, date, note });
+        showMsg('fbStatus_msg', 'Feedback added.', true);
+        document.getElementById('fbNote').value = '';
+      } catch (e) { showMsg('fbStatus_msg', 'Error: ' + e.message, false); }
+    }
+
+    async function addMaterial() {
+      if (!selectedUid) return;
+      const title = document.getElementById('matTitle').value.trim();
+      const link = document.getElementById('matLink').value.trim();
+      if (!title || !link) { showMsg('matStatus_msg', 'Title and link required.', false); return; }
+      try {
+        await db.collection('students').doc(selectedUid).collection('materials').add({ title, link });
+        showMsg('matStatus_msg', 'Material added.', true);
+        document.getElementById('matTitle').value = '';
+        document.getElementById('matLink').value = '';
+      } catch (e) { showMsg('matStatus_msg', 'Error: ' + e.message, false); }
+    }
+
+    async function addAssessment() {
+      if (!selectedUid) return;
+      const title = document.getElementById('asTitle').value.trim();
+      const dueDate = document.getElementById('asDue').value;
+      const link = document.getElementById('asLink').value.trim();
+      if (!title || !link) { showMsg('asStatus_msg', 'Title and link required.', false); return; }
+      try {
+        await db.collection('students').doc(selectedUid).collection('assessments').add({ title, dueDate, link });
+        showMsg('asStatus_msg', 'Assessment added.', true);
+        document.getElementById('asTitle').value = '';
+        document.getElementById('asLink').value = '';
+      } catch (e) { showMsg('asStatus_msg', 'Error: ' + e.message, false); }
+    }
+  </script>
+</body>
+</html>
