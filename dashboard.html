@@ -51,16 +51,28 @@
       <button id="logoutBtn">Log Out</button>
     </header>
     <main>
-      <div class="grid">
-        <div class="stat-card"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div></div>
-        <div class="stat-card"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
+      <div id="skillBadgeWrap"></div>
+
+      <div class="grid" id="statsGrid">
+        <div class="stat-card" id="attCard"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div></div>
+        <div class="stat-card" id="sessCard"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
         <div class="stat-card"><div class="stat-num" id="avgScorePct">—</div><div class="stat-lbl">Average score</div></div>
         <div class="stat-card"><div class="stat-num" id="avgRating">—</div><div class="stat-lbl">Average session rating</div></div>
       </div>
 
-      <div class="panel">
+      <div class="panel" id="attendancePanel">
         <h3>📋 Attendance</h3>
         <div id="attendanceList"></div>
+      </div>
+
+      <div class="panel" id="workflowPanel" style="display:none;">
+        <h3>🛠️ Project Workflow</h3>
+        <div id="workflowList"></div>
+      </div>
+
+      <div class="panel" id="certPanel" style="display:none;">
+        <h3>🏆 Certificate & Project Details</h3>
+        <div id="certContent"></div>
       </div>
 
       <div class="panel">
@@ -71,6 +83,11 @@
       <div class="panel">
         <h3>💬 Feedback</h3>
         <div id="feedbackList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>🔗 Feedback Forms & Links</h3>
+        <div id="linksList"></div>
       </div>
 
       <div class="panel">
@@ -124,6 +141,50 @@
       }
       document.body.appendChild(wm);
 
+      // Enrollment-based section visibility
+      const programs = student.programs || { academic: true, skill: false }; // default: treat old records as academic-only
+      const isAcademic = !!programs.academic;
+      const isSkill = !!programs.skill;
+
+      document.getElementById('attendancePanel').style.display = isAcademic ? 'block' : 'none';
+      document.getElementById('attCard').style.display = isAcademic ? 'block' : 'none';
+      document.getElementById('sessCard').style.display = isAcademic ? 'block' : 'none';
+      document.getElementById('workflowPanel').style.display = isSkill ? 'block' : 'none';
+      document.getElementById('certPanel').style.display = isSkill ? 'block' : 'none';
+
+      if (isSkill && student.skillInfo) {
+        const badge = document.createElement('div');
+        badge.style.cssText = 'background:#e8efff;color:#0057ff;font-weight:700;font-size:0.85rem;padding:0.7rem 1rem;border-radius:8px;margin-bottom:1.2rem;';
+        badge.textContent = `🎯 ${student.skillInfo.skillName || 'Skill Course'} — ${student.skillInfo.level || ''} Level`;
+        document.getElementById('skillBadgeWrap').appendChild(badge);
+      }
+
+      // Project Workflow (skill students)
+      if (isSkill) {
+        const wfSnap = await db.collection('students').doc(uid).collection('projectSteps').orderBy('date').get();
+        const wfList = document.getElementById('workflowList');
+        wfList.innerHTML = wfSnap.empty ? '<div class="empty">No workflow steps added yet.</div>' : '';
+        wfSnap.forEach(doc => {
+          const d = doc.data();
+          const statusColor = d.status === 'Complete' ? '#16a34a' : (d.status === 'In Progress' ? '#d97706' : '#6b7280');
+          const row = document.createElement('div');
+          row.className = 'row';
+          row.innerHTML = `<span class="rl"><strong>${d.title||''}</strong>${d.notes ? ' — '+d.notes : ''} ${d.date ? '<span style="color:var(--muted);">('+d.date+')</span>' : ''}</span><span class="rr" style="color:${statusColor};">${d.status||''}</span>`;
+          wfList.appendChild(row);
+        });
+
+        // Certificate & Project Details
+        const cert = student.certificate || {};
+        const certEl = document.getElementById('certContent');
+        certEl.innerHTML = `
+          <div class="row"><span class="rl">Project Title</span><span class="rr">${cert.projectTitle || '—'}</span></div>
+          <div class="row"><span class="rl">Description</span><span class="rr" style="font-weight:400;max-width:60%;">${cert.description || '—'}</span></div>
+          ${cert.publicationLink ? `<div class="row"><span class="rl">Publication</span><a class="mat-link" href="${cert.publicationLink}" target="_blank" rel="noopener">View →</a></div>` : ''}
+          <div class="row"><span class="rl">Certificate Status</span><span class="rr" style="color:${cert.issued ? '#16a34a' : '#6b7280'};">${cert.issued ? 'Issued — ' + (cert.issueDate||'') : 'Not yet issued'}</span></div>
+          ${cert.issued && cert.certificateLink ? `<div class="row"><span class="rl">Your Certificate</span><a class="mat-link" href="${cert.certificateLink}" target="_blank" rel="noopener">Download →</a></div>` : ''}
+        `;
+      }
+
       // Attendance
       const attSnap = await db.collection('students').doc(uid).collection('attendance').orderBy('date', 'desc').get();
       const attList = document.getElementById('attendanceList');
@@ -166,6 +227,18 @@
         document.getElementById('avgScorePct').textContent = pctCount ? Math.round(pctSum / pctCount) + '%' : '—';
         document.getElementById('avgRating').textContent = ratingCount ? (ratingSum / ratingCount).toFixed(1) + '/10' : '—';
       }
+
+      // Feedback Forms & Links
+      const lnSnap = await db.collection('students').doc(uid).collection('links').get();
+      const lnList = document.getElementById('linksList');
+      lnList.innerHTML = lnSnap.empty ? '<div class="empty">No links shared yet.</div>' : '';
+      lnSnap.forEach(doc => {
+        const d = doc.data();
+        const row = document.createElement('div');
+        row.className = 'row';
+        row.innerHTML = `<span class="rl">${d.title||''}</span><a class="mat-link" href="${d.link}" target="_blank" rel="noopener">Open →</a>`;
+        lnList.appendChild(row);
+      });
 
       // Feedback
       const fbSnap = await db.collection('students').doc(uid).collection('feedback').orderBy('date', 'desc').get();
