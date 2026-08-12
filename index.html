@@ -418,6 +418,18 @@
       gap: 1.5rem;
       flex-wrap: wrap;
     }
+    /* ── SKILL COURSE PRICING ── */
+    .pricing-note { background:#fff; border:1.5px solid #ffd4b8; border-radius:10px; padding:1.1rem 1.4rem; margin-bottom:1.5rem; font-size:0.84rem; color:var(--grey); line-height:1.6; }
+    .pricing-note strong { color: var(--summer); }
+    .pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin-bottom:2rem; }
+    .price-card { background:#fff; border:1.5px solid #ffd4b8; border-radius:12px; padding:1.6rem 1.4rem; text-align:center; position:relative; }
+    .price-card.featured { border-color:var(--summer); box-shadow:0 8px 28px rgba(255,107,43,0.12); }
+    .price-card .pc-badge { position:absolute; top:-0.7rem; left:50%; transform:translateX(-50%); background:var(--summer); color:#fff; font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:0.25rem 0.8rem; border-radius:20px; white-space:nowrap; }
+    .price-card h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.2rem; color:var(--ink); }
+    .price-card .pc-sessions { font-size:0.75rem; color:var(--muted); margin-bottom:1rem; }
+    .price-card .pc-true { font-size:0.9rem; color:var(--muted); text-decoration:line-through; }
+    .price-card .pc-founding { font-family:'DM Serif Display',serif; font-size:2.1rem; color:var(--summer); line-height:1.2; }
+    .price-card .pc-label { font-size:0.7rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); margin-top:0.3rem; }
     .seb-left h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: #fff; margin-bottom: 0.3rem; }
     .seb-left h3 em { font-style: italic; color: #fb923c; }
     .seb-left p { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
@@ -604,6 +616,7 @@
       .step-split { grid-template-columns:1fr; }
       .outcome-row { grid-template-columns:1fr; }
       .summer-courses-grid { grid-template-columns:repeat(2,1fr); }
+      .pricing-grid { grid-template-columns:1fr; }
       .inq-row { grid-template-columns:1fr; }
       .webinar-card { grid-template-columns:1fr; }
     }
@@ -645,7 +658,6 @@
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
     <li> <a href="inq.html" class="btn">Book Enquiry</a> </li>
-    <li><a href="login.html">Student Login</a></li>
   </ul>
 </nav>
 
@@ -1018,6 +1030,35 @@
         <h4>Public Speaking &amp; Debate Basics</h4>
         <p>Confidence on camera, in class, and in life. Structure arguments, control nerves, and speak so people listen.</p>
         <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
+      </div>
+    </div>
+
+    <!-- Skill Course Pricing -->
+    <div class="pricing-note reveal">
+      <strong>Founding Batch Pricing.</strong> These are launch prices for our earliest students — as CoRadix grows, prices will move toward the standard rate shown below. Founding batch students keep their rate for the course they enrolled in.
+    </div>
+    <div class="pricing-grid">
+      <div class="price-card reveal">
+        <h4>🔰 Beginner</h4>
+        <div class="pc-sessions">6 live group sessions · 10 days</div>
+        <div class="pc-true">₹1,499</div>
+        <div class="pc-founding">₹350</div>
+        <div class="pc-label">Founding Batch Price</div>
+      </div>
+      <div class="price-card featured reveal">
+        <span class="pc-badge">Most Popular</span>
+        <h4>⚙️ Intermediate</h4>
+        <div class="pc-sessions">8 group + 2 one-on-one sessions · 1 month</div>
+        <div class="pc-true">₹2,999</div>
+        <div class="pc-founding">₹800</div>
+        <div class="pc-label">Founding Batch Price</div>
+      </div>
+      <div class="price-card reveal">
+        <h4>🚀 Advanced</h4>
+        <div class="pc-sessions">~7 group + 10 one-on-one sessions · 2-3 months</div>
+        <div class="pc-true">₹8,999</div>
+        <div class="pc-founding">₹2,500</div>
+        <div class="pc-label">Founding Batch Price</div>
       </div>
     </div>
 
