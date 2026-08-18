@@ -94,6 +94,31 @@
     .nav-links { display: flex; align-items: center; gap: 1.8rem; list-style: none; }
     .nav-links a { font-size: var(--fs-small); font-weight: 500; text-decoration: none; color: var(--muted); letter-spacing: 0.02em; transition: color 0.2s; }
     .nav-links a:hover { color: var(--ink); }
+    .hamburger-btn {
+      display: none;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 5px;
+      width: 40px;
+      height: 40px;
+      background: none;
+      border: none;
+      cursor: pointer;
+      padding: 0;
+      z-index: 250;
+    }
+    .hamburger-btn span {
+      display: block;
+      width: 22px;
+      height: 2px;
+      background: var(--ink);
+      border-radius: 2px;
+      transition: transform 0.25s var(--ease), opacity 0.2s;
+    }
+    .hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
+    .hamburger-btn.open span:nth-child(2) { opacity: 0; }
+    .hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
     .nav-cta { background: var(--blue) !important; color: #fff !important; padding: 0.45rem 1.1rem; border-radius: 6px; font-weight: 600 !important; transition: opacity 0.2s, transform 0.2s !important; }
     .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); color: #fff !important; }
 
@@ -610,7 +635,26 @@
       .proof-grid { grid-template-columns:1fr; }
       .side-courses-grid { grid-template-columns:repeat(2,1fr); }
       .contact-grid { grid-template-columns:1fr; }
-      .nav-links { display:none; }
+      .nav-links {
+        display: none;
+        position: absolute;
+        top: 100%;
+        left: 0;
+        right: 0;
+        flex-direction: column;
+        align-items: stretch;
+        gap: 0;
+        background: #fff;
+        border-bottom: 1px solid var(--border);
+        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
+        padding: 0.5rem 0;
+      }
+      .nav-links.open { display: flex; }
+      .nav-links li { width: 100%; }
+      .nav-links a { display: block; padding: 0.9rem 5vw; border-bottom: 1px solid var(--border); }
+      .nav-links li:last-child a { border-bottom: none; }
+      .nav-links a.btn { margin: 0.6rem 5vw; text-align: center; }
+      .hamburger-btn { display: flex; }
       .course-cards { grid-template-columns:1fr; }
       .materials-grid { grid-template-columns:1fr; }
       .step-split { grid-template-columns:1fr; }
@@ -648,7 +692,7 @@
     <img src="Favicon.jpeg" alt="Favicon" style="height:24px; margin-right:4px;" onerror="this.style.display='none'">
     <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
   </a>
-  <ul class="nav-links">
+  <ul class="nav-links" id="navLinks">
     <li><a href="#method">Method</a></li>
     <li><a href="#procedure">How to Join</a></li>
     <li><a href="#courses">Courses</a></li>
@@ -657,9 +701,12 @@
     <li><a href="#why">Why Us</a></li>
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
-    <li><a href="login.html">Student Login</a></li>
+    <li><a href="portal/login.html">Student Login</a></li>
     <li> <a href="inq.html" class="btn">Book Enquiry</a> </li>
   </ul>
+  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
+    <span></span><span></span><span></span>
+  </button>
 </nav>
 
 <!-- HERO -->
@@ -1332,6 +1379,7 @@
     <li><a href="terms.html">Terms</a></li>
     <li><a href="apply.html">Enroll</a></li>
     <li><a href="webinar.html">Webinar Signup</a></li>
+    <li><a href="portal/login.html">Student Login</a></li>
   </ul>
   <p class="footer-copy">© 2026 CoRadix Academy. All rights reserved.</p>
 </footer>
@@ -1355,6 +1403,23 @@
     b.style.display = 'none';
     document.getElementById('mainNav').style.top = '0';
   }
+
+  /* ── Mobile hamburger menu ── */
+  const hamburgerBtn = document.getElementById('hamburgerBtn');
+  const navLinks = document.getElementById('navLinks');
+  hamburgerBtn.addEventListener('click', () => {
+    const isOpen = navLinks.classList.toggle('open');
+    hamburgerBtn.classList.toggle('open', isOpen);
+    hamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
+  });
+  // Close the menu after tapping any link inside it
+  navLinks.querySelectorAll('a').forEach(link => {
+    link.addEventListener('click', () => {
+      navLinks.classList.remove('open');
+      hamburgerBtn.classList.remove('open');
+      hamburgerBtn.setAttribute('aria-expanded', 'false');
+    });
+  });
 
   /* ── Scroll reveal ── */
   const reveals = document.querySelectorAll('.reveal');
