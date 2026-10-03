@@ -33,6 +33,21 @@
   table { width:100%; border-collapse:collapse; font-size:0.82rem; }
   th, td { text-align:left; padding:0.5rem 0.4rem; border-bottom:1px solid var(--border); }
   #loadingMsg { text-align:center; padding:4rem 1rem; color:var(--muted); }
+  button.ghost { background:#fff; color:var(--ink); border:1px solid var(--border); margin-left:0.5rem; }
+  button.ghost:hover { background:var(--bg-soft); }
+  .panel.editing { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-light); }
+  .entries-title { font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin:1.2rem 0 0.3rem; padding-top:1rem; border-top:1px solid var(--border); }
+  .entry { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.55rem 0; border-bottom:1px solid var(--border); font-size:0.82rem; }
+  .entry:last-child { border-bottom:none; }
+  .entry-text { min-width:0; display:flex; flex-direction:column; gap:0.15rem; }
+  .entry-text span { color:var(--muted); overflow-wrap:anywhere; }
+  .entry-actions { display:flex; gap:0.4rem; flex-shrink:0; }
+  .mini { background:#fff; border:1px solid var(--border); border-radius:6px; padding:0.3rem 0.7rem; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; }
+  .mini:hover { border-color:var(--blue); color:var(--blue); }
+  .mini.danger:hover { border-color:#b91c1c; color:#b91c1c; }
+  .empty-note { color:var(--muted); font-size:0.8rem; padding:0.3rem 0; }
+  .student-actions { display:none; gap:0.6rem; flex-wrap:wrap; }
+  textarea.md { font-family:ui-monospace,Menlo,Consolas,monospace; }
 </style>
 </head>
 <body>
@@ -55,7 +70,7 @@
           <div><label>Name</label><input id="newName" placeholder="Full name"></div>
           <div><label>Student ID</label><input id="newStudentId" placeholder="CRX-2026-001"></div>
           <div><label>Batch</label><input id="newBatch" placeholder="e.g. Batch A - Class 10"></div>
-          <button class="action" onclick="createStudent()">Create</button>
+          <div style="display:flex;gap:0.4rem;"><button class="action" id="createBtn" onclick="createStudent()">Create</button><button class="action ghost" id="createCancel" style="display:none;margin-left:0;" onclick="resetStudentForm()">Cancel</button></div>
         </div>
         <div class="row2" style="margin-top:0.6rem;">
           <div>
@@ -86,6 +101,11 @@
         <select id="studentSelect" onchange="onStudentChange()">
           <option value="">— Select a student —</option>
         </select>
+        <div id="studentActions" class="student-actions">
+          <button class="mini" onclick="editStudent()">✏️ Edit student details</button>
+          <button class="mini danger" onclick="deleteStudent()">🗑 Delete student</button>
+        </div>
+        <div id="studentStatus_msg" class="status-msg" style="margin-top:0.6rem;"></div>
       </div>
 
       <div id="studentPanels" style="display:none;">
@@ -95,7 +115,7 @@
             <div><label>Title</label><input id="lnTitle" placeholder="e.g. Session Feedback Form"></div>
             <div><label>Link</label><input id="lnLink" placeholder="https://forms.google.com/..."></div>
           </div>
-          <button class="action" onclick="addLink()">Add Link</button>
+          <button class="action" id="lnBtn" onclick="saveEntry('links')">Add Link</button>
           <div id="lnStatus_msg" class="status-msg"></div>
         </div>
 
@@ -111,7 +131,7 @@
             <div><label>Date</label><input type="date" id="psDate"></div>
             <div><label>Notes</label><input id="psNotes" placeholder="Optional"></div>
           </div>
-          <button class="action" onclick="addProjectStep()">Add Step</button>
+          <button class="action" id="psBtn" onclick="saveEntry('projectSteps')">Add Step</button>
           <div id="psStatus_msg" class="status-msg"></div>
         </div>
 
@@ -143,7 +163,7 @@
               <select id="attStatus"><option>Present</option><option>Absent</option></select>
             </div>
           </div>
-          <button class="action" onclick="addAttendance()">Add Attendance</button>
+          <button class="action" id="attBtn" onclick="saveEntry('attendance')">Add Attendance</button>
           <div id="attStatus_msg" class="status-msg"></div>
         </div>
 
@@ -155,7 +175,7 @@
           </div>
           <label>Note</label>
           <textarea id="fbNote" rows="2" placeholder="Feedback note"></textarea>
-          <button class="action" onclick="addFeedback()">Add Feedback</button>
+          <button class="action" id="fbBtn" onclick="saveEntry('feedback')">Add Feedback</button>
           <div id="fbStatus_msg" class="status-msg"></div>
         </div>
 
@@ -165,7 +185,7 @@
             <div><label>Title</label><input id="matTitle" placeholder="e.g. Chapter 4 Notes"></div>
             <div><label>Google Drive Link (view-only)</label><input id="matLink" placeholder="https://drive.google.com/..."></div>
           </div>
-          <button class="action" onclick="addMaterial()">Add Material</button>
+          <button class="action" id="matBtn" onclick="saveEntry('materials')">Add Material</button>
           <div id="matStatus_msg" class="status-msg"></div>
         </div>
 
@@ -183,19 +203,30 @@
           <input type="number" id="scRating" min="1" max="10" placeholder="e.g. 8">
           <label>Notes (optional)</label>
           <textarea id="scNotes" rows="2" placeholder="Any short context for this score"></textarea>
-          <button class="action" onclick="addScore()">Add Score</button>
+          <button class="action" id="scBtn" onclick="saveEntry('scores')">Add Score</button>
           <div id="scStatus_msg" class="status-msg"></div>
         </div>
 
         <div class="panel">
-          <h3>📝 Add Assessment Link</h3>
+          <h3>📝 Add Assessment</h3>
           <div class="row2">
             <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
             <div><label>Due Date</label><input type="date" id="asDue"></div>
           </div>
-          <label>Link</label>
-          <input id="asLink" placeholder="https://forms.google.com/...">
-          <button class="action" onclick="addAssessment()">Add Assessment</button>
+          <label>Assessment Type</label>
+          <select id="asType" onchange="toggleAssessmentMode()">
+            <option value="link">Link (Google Form, PDF, any URL)</option>
+            <option value="text">Paste question text (plain text or Markdown)</option>
+          </select>
+          <div id="asLinkWrap">
+            <label>Link</label>
+            <input id="asLink" placeholder="https://forms.google.com/...">
+          </div>
+          <div id="asTextWrap" style="display:none;">
+            <label>Question text (plain text or Markdown)</label>
+            <textarea id="asText" class="md" rows="10" placeholder="Paste the questions here...&#10;&#10;**1.** What is ...&#10;**2.** Explain ..."></textarea>
+          </div>
+          <button class="action" id="asBtn" onclick="saveEntry('assessments')">Add Assessment</button>
           <div id="asStatus_msg" class="status-msg"></div>
         </div>
       </div>
@@ -226,34 +257,6 @@
       auth.signOut().then(() => window.location.href = 'login.html');
     });
 
-    async function loadStudentList() {
-      const snap = await db.collection('students').get();
-      const sel = document.getElementById('studentSelect');
-      sel.innerHTML = '<option value="">— Select a student —</option>';
-      snap.forEach(doc => {
-        const d = doc.data();
-        const opt = document.createElement('option');
-        opt.value = doc.id;
-        opt.textContent = `${d.name || '(no name)'} — ${d.studentId || ''} — ${d.batchName || ''}`;
-        sel.appendChild(opt);
-      });
-    }
-
-    async function onStudentChange() {
-      selectedUid = document.getElementById('studentSelect').value;
-      document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
-      if (!selectedUid) return;
-      const doc = await db.collection('students').doc(selectedUid).get();
-      const d = doc.data() || {};
-      const cert = d.certificate || {};
-      document.getElementById('ctProjectTitle').value = cert.projectTitle || '';
-      document.getElementById('ctPubLink').value = cert.publicationLink || '';
-      document.getElementById('ctDesc').value = cert.description || '';
-      document.getElementById('ctIssued').value = cert.issued ? 'true' : 'false';
-      document.getElementById('ctDate').value = cert.issueDate || '';
-      document.getElementById('ctLink').value = cert.certificateLink || '';
-    }
-
     function showMsg(id, text, ok) {
       const el = document.getElementById(id);
       el.textContent = text;
@@ -279,46 +282,11 @@
           skillInfo: isSkill ? { skillName, level: skillLevel } : null
         }, { merge: true });
         showMsg('createStatus', 'Student record saved.', true);
-        document.getElementById('newUid').value = '';
-        document.getElementById('newName').value = '';
-        document.getElementById('newStudentId').value = '';
-        document.getElementById('newBatch').value = '';
-        document.getElementById('newIsAcademic').checked = false;
-        document.getElementById('newIsSkill').checked = false;
-        document.getElementById('newSkillName').value = '';
-        document.getElementById('newSkillLevel').value = '';
+        resetStudentForm();
         await loadStudentList();
       } catch (e) {
         showMsg('createStatus', 'Error: ' + e.message, false);
       }
-    }
-
-    async function addLink() {
-      if (!selectedUid) return;
-      const title = document.getElementById('lnTitle').value.trim();
-      const link = document.getElementById('lnLink').value.trim();
-      if (!title || !link) { showMsg('lnStatus_msg', 'Title and link required.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('links').add({ title, link });
-        showMsg('lnStatus_msg', 'Link added.', true);
-        document.getElementById('lnTitle').value = '';
-        document.getElementById('lnLink').value = '';
-      } catch (e) { showMsg('lnStatus_msg', 'Error: ' + e.message, false); }
-    }
-
-    async function addProjectStep() {
-      if (!selectedUid) return;
-      const title = document.getElementById('psTitle').value.trim();
-      const status = document.getElementById('psStatus').value;
-      const date = document.getElementById('psDate').value;
-      const notes = document.getElementById('psNotes').value.trim();
-      if (!title) { showMsg('psStatus_msg', 'Step title required.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('projectSteps').add({ title, status, date, notes });
-        showMsg('psStatus_msg', 'Step added.', true);
-        document.getElementById('psTitle').value = '';
-        document.getElementById('psNotes').value = '';
-      } catch (e) { showMsg('psStatus_msg', 'Error: ' + e.message, false); }
     }
 
     async function saveCertificate() {
@@ -337,85 +305,352 @@
       } catch (e) { showMsg('ctStatus_msg', 'Error: ' + e.message, false); }
     }
 
-    async function addAttendance() {
-      if (!selectedUid) return;
-      const date = document.getElementById('attDate').value;
-      const status = document.getElementById('attStatus').value;
-      if (!date) { showMsg('attStatus_msg', 'Pick a date.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('attendance').add({ date, status });
-        showMsg('attStatus_msg', 'Attendance added.', true);
-      } catch (e) { showMsg('attStatus_msg', 'Error: ' + e.message, false); }
+
+    /* ================= Student list / selection ================= */
+    async function loadStudentList() {
+      const sel = document.getElementById('studentSelect');
+      const prev = sel.value;
+      const snap = await db.collection('students').get();
+      sel.innerHTML = '<option value="">— Select a student —</option>';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = `${d.name || '(no name)'} — ${d.studentId || ''} — ${d.batchName || ''}`;
+        sel.appendChild(opt);
+      });
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
     }
 
-    async function addFeedback() {
+    async function onStudentChange() {
+      selectedUid = document.getElementById('studentSelect').value;
+      document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
+      document.getElementById('studentActions').style.display = selectedUid ? 'flex' : 'none';
+      for (const key of Object.keys(SECTIONS)) { endEdit(key); clearForm(key, false); }
       if (!selectedUid) return;
-      const subject = document.getElementById('fbSubject').value.trim();
-      const date = document.getElementById('fbDate').value;
-      const note = document.getElementById('fbNote').value.trim();
-      if (!note) { showMsg('fbStatus_msg', 'Write a note.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('feedback').add({ subject, date, note });
-        showMsg('fbStatus_msg', 'Feedback added.', true);
-        document.getElementById('fbNote').value = '';
-      } catch (e) { showMsg('fbStatus_msg', 'Error: ' + e.message, false); }
+      const uid = selectedUid;
+      Object.keys(SECTIONS).forEach(k => loadList(k));
+      const doc = await db.collection('students').doc(uid).get();
+      if (uid !== selectedUid) return;
+      const d = doc.data() || {};
+      const cert = d.certificate || {};
+      document.getElementById('ctProjectTitle').value = cert.projectTitle || '';
+      document.getElementById('ctPubLink').value = cert.publicationLink || '';
+      document.getElementById('ctDesc').value = cert.description || '';
+      document.getElementById('ctIssued').value = cert.issued ? 'true' : 'false';
+      document.getElementById('ctDate').value = cert.issueDate || '';
+      document.getElementById('ctLink').value = cert.certificateLink || '';
     }
 
-    async function addMaterial() {
-      if (!selectedUid) return;
-      const title = document.getElementById('matTitle').value.trim();
-      const link = document.getElementById('matLink').value.trim();
-      if (!title || !link) { showMsg('matStatus_msg', 'Title and link required.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('materials').add({ title, link });
-        showMsg('matStatus_msg', 'Material added.', true);
-        document.getElementById('matTitle').value = '';
-        document.getElementById('matLink').value = '';
-      } catch (e) { showMsg('matStatus_msg', 'Error: ' + e.message, false); }
+    /* ================= Edit / delete a whole student ================= */
+    function resetStudentForm() {
+      ['newUid','newName','newStudentId','newBatch','newSkillName','newSkillLevel'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('newUid').readOnly = false;
+      document.getElementById('newIsAcademic').checked = false;
+      document.getElementById('newIsSkill').checked = false;
+      document.getElementById('createBtn').textContent = 'Create';
+      document.getElementById('createCancel').style.display = 'none';
     }
 
-    async function addScore() {
+    async function editStudent() {
       if (!selectedUid) return;
-      const subject = document.getElementById('scSubject').value.trim();
-      const date = document.getElementById('scDate').value;
-      const score = document.getElementById('scScore').value;
-      const max = document.getElementById('scMax').value;
-      const rating = document.getElementById('scRating').value;
-      const notes = document.getElementById('scNotes').value.trim();
-      if (!subject || !date || score === '' || max === '') {
-        showMsg('scStatus_msg', 'Subject, date, score, and out-of are required.', false);
+      try {
+        const doc = await db.collection('students').doc(selectedUid).get();
+        const d = doc.data() || {};
+        const p = d.programs || {};
+        const sk = d.skillInfo || {};
+        document.getElementById('newUid').value = selectedUid;
+        document.getElementById('newUid').readOnly = true;
+        document.getElementById('newName').value = d.name || '';
+        document.getElementById('newStudentId').value = d.studentId || '';
+        document.getElementById('newBatch').value = d.batchName || '';
+        document.getElementById('newIsAcademic').checked = !!p.academic;
+        document.getElementById('newIsSkill').checked = !!p.skill;
+        document.getElementById('newSkillName').value = sk.skillName || '';
+        document.getElementById('newSkillLevel').value = sk.level || '';
+        document.getElementById('createBtn').textContent = 'Save Changes';
+        document.getElementById('createCancel').style.display = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showMsg('createStatus', 'Editing this student — change the fields and press Save Changes.', true);
+      } catch (e) { showMsg('studentStatus_msg', 'Error: ' + friendlyError(e), false); }
+    }
+
+    async function deleteStudent() {
+      if (!selectedUid) return;
+      const label = document.getElementById('studentSelect').selectedOptions[0].textContent;
+      if (!confirm(`Delete "${label}" and ALL of their entries (links, steps, attendance, feedback, materials, scores, assessments)?\n\nThis cannot be undone.\n\nNote: their login in Firebase Authentication is NOT removed — delete it separately in Firebase Console.`)) return;
+      try {
+        const ref = db.collection('students').doc(selectedUid);
+        for (const c of SUB_COLLECTIONS) {
+          const snap = await ref.collection(c).get();
+          let batch = db.batch(), n = 0;
+          for (const d of snap.docs) {
+            batch.delete(d.ref);
+            if (++n === 400) { await batch.commit(); batch = db.batch(); n = 0; }
+          }
+          if (n) await batch.commit();
+        }
+        await ref.delete();
+        await loadStudentList();
+        await onStudentChange();
+        showMsg('studentStatus_msg', 'Student deleted.', true);
+      } catch (e) { showMsg('studentStatus_msg', 'Error: ' + friendlyError(e), false); }
+    }
+
+    /* ================= Add / edit / delete for every per-student entry ================= */
+    const SUB_COLLECTIONS = ['links','projectSteps','attendance','feedback','materials','scores','assessments'];
+    const editing = {};   // section key -> id of the entry being edited (or null)
+    const cache = {};     // section key -> { id: data }
+
+    const badLink = (u) => /^\s*(javascript|data|vbscript):/i.test(u);
+    const clip = (t, n = 140) => { t = String(t ?? ''); return t.length > n ? t.slice(0, n) + '…' : t; };
+    const byTitle = (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
+    const byDateDesc = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
+
+    function friendlyError(e) {
+      if (e && e.code === 'permission-denied') {
+        return e.message + ' (Your Firestore security rules may only allow "create" — admins also need "update" and "delete" on these paths.)';
+      }
+      return e.message;
+    }
+
+    // fields: { dataKey: 'domElementId' }   keep: fields left filled after a successful *add*
+    const SECTIONS = {
+      links: {
+        noun: 'link', col: 'links', btn: 'lnBtn', msg: 'lnStatus_msg', list: 'lnList',
+        fields: { title: 'lnTitle', link: 'lnLink' }, keep: [], sort: byTitle,
+        build: v => {
+          if (!v.title || !v.link) return 'Title and link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, link: v.link };
+        },
+        summary: d => ({ title: d.title, meta: d.link })
+      },
+      projectSteps: {
+        noun: 'step', col: 'projectSteps', btn: 'psBtn', msg: 'psStatus_msg', list: 'psList',
+        fields: { title: 'psTitle', status: 'psStatus', date: 'psDate', notes: 'psNotes' },
+        keep: ['status', 'date'], sort: byDateDesc,
+        build: v => v.title ? { title: v.title, status: v.status, date: v.date, notes: v.notes } : 'Step title required.',
+        summary: d => ({ title: d.title, meta: [d.status, d.date, d.notes].filter(Boolean).join(' · ') })
+      },
+      attendance: {
+        noun: 'attendance entry', col: 'attendance', btn: 'attBtn', msg: 'attStatus_msg', list: 'attList',
+        fields: { date: 'attDate', status: 'attStatus' }, keep: ['date', 'status'], sort: byDateDesc,
+        build: v => v.date ? { date: v.date, status: v.status } : 'Pick a date.',
+        summary: d => ({ title: d.date, meta: d.status })
+      },
+      feedback: {
+        noun: 'feedback note', col: 'feedback', btn: 'fbBtn', msg: 'fbStatus_msg', list: 'fbList',
+        fields: { subject: 'fbSubject', date: 'fbDate', note: 'fbNote' }, keep: ['subject', 'date'], sort: byDateDesc,
+        build: v => v.note ? { subject: v.subject, date: v.date, note: v.note } : 'Write a note.',
+        summary: d => ({ title: [d.subject || '(no subject)', d.date].filter(Boolean).join(' — '), meta: clip(d.note) })
+      },
+      materials: {
+        noun: 'material', col: 'materials', btn: 'matBtn', msg: 'matStatus_msg', list: 'matList',
+        fields: { title: 'matTitle', link: 'matLink' }, keep: [], sort: byTitle,
+        build: v => {
+          if (!v.title || !v.link) return 'Title and link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, link: v.link };
+        },
+        summary: d => ({ title: d.title, meta: d.link })
+      },
+      scores: {
+        noun: 'score', col: 'scores', btn: 'scBtn', msg: 'scStatus_msg', list: 'scList',
+        fields: { subject: 'scSubject', date: 'scDate', score: 'scScore', max: 'scMax', rating: 'scRating', notes: 'scNotes' },
+        keep: ['date'], sort: byDateDesc,
+        build: v => {
+          if (!v.subject || !v.date || v.score === '' || v.max === '') return 'Subject, date, score, and out-of are required.';
+          return { subject: v.subject, date: v.date, score: Number(v.score), max: Number(v.max),
+                   rating: v.rating ? Number(v.rating) : null, notes: v.notes };
+        },
+        summary: d => ({ title: d.subject, meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
+      },
+      assessments: {
+        noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
+        fields: { title: 'asTitle', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
+        keep: ['dueDate', 'type'], sort: (a, b) => String(b.dueDate || '').localeCompare(String(a.dueDate || '')),
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Paste the question text.';
+            return { title: v.title, dueDate: v.dueDate, type: 'text', content: v.content, link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, dueDate: v.dueDate, type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('asType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleAssessmentMode();
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title,
+                   meta: `Due ${d.dueDate || '—'} · ` + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
+        }
+      }
+    };
+
+    function toggleAssessmentMode() {
+      const isText = document.getElementById('asType').value === 'text';
+      document.getElementById('asLinkWrap').style.display = isText ? 'none' : '';
+      document.getElementById('asTextWrap').style.display = isText ? '' : 'none';
+    }
+
+    function initSections() {
+      for (const [key, s] of Object.entries(SECTIONS)) {
+        const btn = document.getElementById(s.btn);
+        s.addLabel = btn.textContent;
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'action ghost';
+        cancel.id = s.btn + 'Cancel';
+        cancel.textContent = 'Cancel edit';
+        cancel.style.display = 'none';
+        cancel.onclick = () => cancelEdit(key);
+        btn.after(cancel);
+        const h = document.createElement('h4');
+        h.className = 'entries-title';
+        h.textContent = 'Existing entries';
+        const list = document.createElement('div');
+        list.id = s.list;
+        btn.closest('.panel').append(h, list);
+      }
+    }
+
+    function readFields(s) {
+      const v = {};
+      for (const [k, id] of Object.entries(s.fields)) {
+        const el = document.getElementById(id);
+        // keep line breaks / indentation in pasted text, only trim the ends
+        v[k] = el.tagName === 'TEXTAREA' ? el.value.replace(/\s+$/, '').replace(/^\s*\n/, '') : el.value.trim();
+        if (el.tagName === 'TEXTAREA' && v[k].trim() === '') v[k] = '';
+      }
+      return v;
+    }
+
+    function clearForm(key, keepSome) {
+      const s = SECTIONS[key];
+      for (const [k, id] of Object.entries(s.fields)) {
+        if (keepSome && s.keep.includes(k)) continue;
+        const el = document.getElementById(id);
+        if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+      }
+      if (key === 'assessments') toggleAssessmentMode();
+    }
+
+    function endEdit(key) {
+      const s = SECTIONS[key];
+      editing[key] = null;
+      const btn = document.getElementById(s.btn);
+      btn.textContent = s.addLabel;
+      document.getElementById(s.btn + 'Cancel').style.display = 'none';
+      btn.closest('.panel').classList.remove('editing');
+    }
+
+    function cancelEdit(key) { endEdit(key); clearForm(key, false); }
+
+    function startEdit(key, id) {
+      const s = SECTIONS[key];
+      const d = cache[key] && cache[key][id];
+      if (!d) return;
+      editing[key] = id;
+      for (const [k, elId] of Object.entries(s.fields)) {
+        document.getElementById(elId).value = d[k] ?? '';
+      }
+      if (s.afterFill) s.afterFill(d);
+      const btn = document.getElementById(s.btn);
+      btn.textContent = 'Save Changes';
+      document.getElementById(s.btn + 'Cancel').style.display = '';
+      const panel = btn.closest('.panel');
+      panel.classList.add('editing');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function saveEntry(key) {
+      if (!selectedUid) return;
+      const s = SECTIONS[key];
+      const res = s.build(readFields(s));
+      if (typeof res === 'string') { showMsg(s.msg, res, false); return; }
+      const wasEditing = editing[key];
+      try {
+        const col = db.collection('students').doc(selectedUid).collection(s.col);
+        if (wasEditing) await col.doc(wasEditing).set(res);
+        else await col.add(res);
+        showMsg(s.msg, wasEditing ? 'Changes saved.' : 'Added.', true);
+        endEdit(key);
+        clearForm(key, !wasEditing);
+        await loadList(key);
+      } catch (e) { showMsg(s.msg, 'Error: ' + friendlyError(e), false); }
+    }
+
+    async function deleteEntry(key, id) {
+      const s = SECTIONS[key];
+      if (!confirm(`Delete this ${s.noun}? This cannot be undone.`)) return;
+      try {
+        await db.collection('students').doc(selectedUid).collection(s.col).doc(id).delete();
+        if (editing[key] === id) cancelEdit(key);
+        showMsg(s.msg, 'Deleted.', true);
+        await loadList(key);
+      } catch (e) { showMsg(s.msg, 'Error: ' + friendlyError(e), false); }
+    }
+
+    async function loadList(key) {
+      const uid = selectedUid;
+      const s = SECTIONS[key];
+      const box = document.getElementById(s.list);
+      if (!uid) { box.textContent = ''; return; }
+      try {
+        const snap = await db.collection('students').doc(uid).collection(s.col).get();
+        if (uid !== selectedUid) return;   // student changed while loading
+        const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(s.sort);
+        cache[key] = {};
+        rows.forEach(r => { cache[key][r.id] = r; });
+        renderList(key, rows);
+      } catch (e) { box.textContent = 'Could not load entries: ' + friendlyError(e); }
+    }
+
+    function renderList(key, rows) {
+      const box = document.getElementById(SECTIONS[key].list);
+      box.textContent = '';
+      if (!rows.length) {
+        const n = document.createElement('div');
+        n.className = 'empty-note';
+        n.textContent = 'No entries yet.';
+        box.appendChild(n);
         return;
       }
-      try {
-        await db.collection('students').doc(selectedUid).collection('scores').add({
-          subject, date,
-          score: Number(score),
-          max: Number(max),
-          rating: rating ? Number(rating) : null,
-          notes
-        });
-        showMsg('scStatus_msg', 'Score added.', true);
-        document.getElementById('scSubject').value = '';
-        document.getElementById('scScore').value = '';
-        document.getElementById('scMax').value = '';
-        document.getElementById('scRating').value = '';
-        document.getElementById('scNotes').value = '';
-      } catch (e) { showMsg('scStatus_msg', 'Error: ' + e.message, false); }
+      for (const r of rows) {
+        const { title, meta } = SECTIONS[key].summary(r);
+        const item = document.createElement('div');
+        item.className = 'entry';
+        const text = document.createElement('div');
+        text.className = 'entry-text';
+        const t = document.createElement('strong');
+        t.textContent = title || '(untitled)';
+        const m = document.createElement('span');
+        m.textContent = meta || '';
+        text.append(t, m);
+        const actions = document.createElement('div');
+        actions.className = 'entry-actions';
+        const editBtn = document.createElement('button');
+        editBtn.className = 'mini';
+        editBtn.textContent = 'Edit';
+        editBtn.onclick = () => startEdit(key, r.id);
+        const delBtn = document.createElement('button');
+        delBtn.className = 'mini danger';
+        delBtn.textContent = 'Delete';
+        delBtn.onclick = () => deleteEntry(key, r.id);
+        actions.append(editBtn, delBtn);
+        item.append(text, actions);
+        box.appendChild(item);
+      }
     }
 
-    async function addAssessment() {
-      if (!selectedUid) return;
-      const title = document.getElementById('asTitle').value.trim();
-      const dueDate = document.getElementById('asDue').value;
-      const link = document.getElementById('asLink').value.trim();
-      if (!title || !link) { showMsg('asStatus_msg', 'Title and link required.', false); return; }
-      try {
-        await db.collection('students').doc(selectedUid).collection('assessments').add({ title, dueDate, link });
-        showMsg('asStatus_msg', 'Assessment added.', true);
-        document.getElementById('asTitle').value = '';
-        document.getElementById('asLink').value = '';
-      } catch (e) { showMsg('asStatus_msg', 'Error: ' + e.message, false); }
-    }
+    initSections();
   </script>
 </body>
 </html>
