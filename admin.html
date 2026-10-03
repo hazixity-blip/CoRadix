@@ -48,6 +48,14 @@
   .empty-note { color:var(--muted); font-size:0.8rem; padding:0.3rem 0; }
   .student-actions { display:none; gap:0.6rem; flex-wrap:wrap; }
   textarea.md { font-family:ui-monospace,Menlo,Consolas,monospace; }
+  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  @media (max-width:640px) { .row3 { grid-template-columns:1fr; } }
+  .att-summary { display:none; background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:0.8rem 1rem; margin-bottom:1rem; }
+  .att-big { font-size:1.7rem; font-weight:700; line-height:1.1; }
+  .att-big small { font-size:0.75rem; font-weight:500; color:var(--muted); margin-left:0.4rem; }
+  .att-chips { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem; }
+  .att-chip { background:#fff; border:1px solid var(--border); border-radius:999px; padding:0.2rem 0.7rem; font-size:0.75rem; }
+  .att-note { font-size:0.72rem; color:var(--muted); margin-top:0.5rem; }
 </style>
 </head>
 <body>
@@ -157,10 +165,20 @@
 
         <div class="panel">
           <h3>📋 Add Attendance</h3>
+          <div id="attSummary" class="att-summary"></div>
           <div class="row2">
             <div><label>Date</label><input type="date" id="attDate"></div>
-            <div><label>Status</label>
-              <select id="attStatus"><option>Present</option><option>Absent</option></select>
+            <div><label>Notes (optional)</label><input id="attNotes" placeholder="e.g. joined 10 min late, task submitted next day"></div>
+          </div>
+          <div class="row3">
+            <div><label>Pre-session task</label>
+              <select id="attPre"><option>Completed</option><option>Partial</option><option>Not done</option><option selected>Not assigned</option></select>
+            </div>
+            <div><label>Session</label>
+              <select id="attSession"><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select>
+            </div>
+            <div><label>Post-session task</label>
+              <select id="attPost"><option>Completed</option><option>Partial</option><option>Not done</option><option selected>Not assigned</option></select>
             </div>
           </div>
           <button class="action" id="attBtn" onclick="saveEntry('attendance')">Add Attendance</button>
@@ -326,7 +344,7 @@
       selectedUid = document.getElementById('studentSelect').value;
       document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
       document.getElementById('studentActions').style.display = selectedUid ? 'flex' : 'none';
-      for (const key of Object.keys(SECTIONS)) { endEdit(key); clearForm(key, false); }
+      for (const key of Object.keys(SECTIONS)) { endEdit(key); clearForm(key, false); if (SECTIONS[key].onLoad) SECTIONS[key].onLoad([]); }
       if (!selectedUid) return;
       const uid = selectedUid;
       Object.keys(SECTIONS).forEach(k => loadList(k));
@@ -416,6 +434,64 @@
       return e.message;
     }
 
+    /* ---------- Attendance scoring ----------
+       Each attendance entry has up to 3 parts: pre-session task, the session itself, post-session task.
+       Entry % = (sum of weight x points for counted parts) / (sum of weights of counted parts).
+       "Not assigned" tasks and "Excused" sessions are NOT counted (they neither help nor hurt).
+       Older entries (only Present/Absent) still work: they count as a session only.
+       Change the numbers below to change how the percentage is calculated. */
+    const ATT_WEIGHTS = { pre: 25, session: 50, post: 25 };
+    const ATT_POINTS = {
+      task:    { 'Completed': 1, 'Partial': 0.5, 'Not done': 0 },
+      session: { 'Present': 1, 'Late': 0.75, 'Absent': 0 }
+    };
+    function attComponents(d) {
+      return [
+        ['pre',     ATT_POINTS.task[d.preTask]],
+        ['session', ATT_POINTS.session[d.session || d.status]],
+        ['post',    ATT_POINTS.task[d.postTask]]
+      ];
+    }
+    function attEntryPercent(d) {
+      let e = 0, p = 0;
+      for (const [k, pts] of attComponents(d)) { if (pts === undefined) continue; e += pts * ATT_WEIGHTS[k]; p += ATT_WEIGHTS[k]; }
+      return p ? (e / p) * 100 : null;
+    }
+    function renderAttSummary(rows) {
+      const box = document.getElementById('attSummary');
+      box.textContent = '';
+      if (!rows.length) { box.style.display = 'none'; return; }
+      let earned = 0, possible = 0;
+      const comp = { pre: { e: 0, n: 0 }, session: { e: 0, n: 0 }, post: { e: 0, n: 0 } };
+      for (const d of rows) {
+        for (const [k, pts] of attComponents(d)) {
+          if (pts === undefined) continue;
+          earned += pts * ATT_WEIGHTS[k]; possible += ATT_WEIGHTS[k];
+          comp[k].e += pts; comp[k].n++;
+        }
+      }
+      const pct = (e, n) => n ? Math.round((e / n) * 100) + '%' : '—';
+      const big = document.createElement('div');
+      big.className = 'att-big';
+      big.textContent = possible ? Math.round((earned / possible) * 100) + '%' : '—';
+      const small = document.createElement('small');
+      small.textContent = `overall attendance · ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}`;
+      big.appendChild(small);
+      const chips = document.createElement('div');
+      chips.className = 'att-chips';
+      [['Pre-session tasks', comp.pre], ['Sessions', comp.session], ['Post-session tasks', comp.post]].forEach(([label, c]) => {
+        const chip = document.createElement('span');
+        chip.className = 'att-chip';
+        chip.textContent = `${label}: ${pct(c.e, c.n)}${c.n ? ` (${c.n})` : ''}`;
+        chips.appendChild(chip);
+      });
+      const note = document.createElement('div');
+      note.className = 'att-note';
+      note.textContent = `Weights: pre-session ${ATT_WEIGHTS.pre}% · session ${ATT_WEIGHTS.session}% · post-session ${ATT_WEIGHTS.post}%. Not-assigned tasks and excused sessions are left out.`;
+      box.append(big, chips, note);
+      box.style.display = 'block';
+    }
+
     // fields: { dataKey: 'domElementId' }   keep: fields left filled after a successful *add*
     const SECTIONS = {
       links: {
@@ -437,9 +513,23 @@
       },
       attendance: {
         noun: 'attendance entry', col: 'attendance', btn: 'attBtn', msg: 'attStatus_msg', list: 'attList',
-        fields: { date: 'attDate', status: 'attStatus' }, keep: ['date', 'status'], sort: byDateDesc,
-        build: v => v.date ? { date: v.date, status: v.status } : 'Pick a date.',
-        summary: d => ({ title: d.date, meta: d.status })
+        fields: { date: 'attDate', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
+        keep: ['date'], sort: byDateDesc,
+        build: v => v.date ? { date: v.date, preTask: v.preTask, session: v.session, postTask: v.postTask,
+                               status: v.session,   // kept so older pages that read "status" still work
+                               notes: v.notes } : 'Pick a date.',
+        afterFill: d => {
+          document.getElementById('attSession').value = d.session || d.status || 'Present';
+          document.getElementById('attPre').value = d.preTask || 'Not assigned';
+          document.getElementById('attPost').value = d.postTask || 'Not assigned';
+        },
+        onLoad: rows => renderAttSummary(rows),
+        summary: d => {
+          const p = attEntryPercent(d);
+          return { title: d.date,
+                   meta: [`Pre: ${d.preTask || 'Not assigned'}`, `Session: ${d.session || d.status || '—'}`, `Post: ${d.postTask || 'Not assigned'}`,
+                          p === null ? '' : Math.round(p) + '%', d.notes].filter(Boolean).join(' · ') };
+        }
       },
       feedback: {
         noun: 'feedback note', col: 'feedback', btn: 'fbBtn', msg: 'fbStatus_msg', list: 'fbList',
@@ -537,7 +627,10 @@
       for (const [k, id] of Object.entries(s.fields)) {
         if (keepSome && s.keep.includes(k)) continue;
         const el = document.getElementById(id);
-        if (el.tagName === 'SELECT') el.selectedIndex = 0; else el.value = '';
+        if (el.tagName === 'SELECT') {
+          const def = [...el.options].findIndex(o => o.defaultSelected);
+          el.selectedIndex = def >= 0 ? def : 0;
+        } else el.value = '';
       }
       if (key === 'assessments') toggleAssessmentMode();
     }
@@ -609,6 +702,7 @@
         const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(s.sort);
         cache[key] = {};
         rows.forEach(r => { cache[key][r.id] = r; });
+        if (s.onLoad) s.onLoad(rows);
         renderList(key, rows);
       } catch (e) { box.textContent = 'Could not load entries: ' + friendlyError(e); }
     }
