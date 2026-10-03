@@ -65,6 +65,9 @@
   .md-body table { border-collapse:collapse; margin:0.6rem 0; display:block; overflow-x:auto; }
   .md-body th, .md-body td { border:1px solid var(--border); padding:0.35rem 0.6rem; text-align:left; }
   .md-body a { color:var(--blue); }
+  .md-body hr { border:none; border-top:1px solid var(--border); margin:1.1rem 0; }
+  .md-body del { color:var(--muted); }
+  .md-body li > ul, .md-body li > ol { margin-top:0.2rem; }
   .md-body img { max-width:100%; }
 </style>
 </head>
@@ -135,8 +138,6 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script>
     let currentUid = null;
 
@@ -231,22 +232,128 @@
     }
 
     /* ---------- Assessments: link OR pasted text/Markdown ---------- */
-    if (window.DOMPurify) {
-      DOMPurify.addHook('afterSanitizeAttributes', n => {
-        if (n.tagName === 'A') { n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
-      });
+    /* If pasted text lost its line breaks (common when copying from some tools), put the
+       Markdown structure back: headings, --- rules and * bullets each go on their own line.
+       Text that already has line breaks is left exactly as typed. */
+    function repairCollapsedMarkdown(t) {
+      t = String(t || '');
+      if (/\n/.test(t)) return t;
+      t = t.replace(/\s+(#{1,6})\s+(?=\S)/g, '\n\n$1 ')
+           .replace(/\s+---+\s+/g, '\n\n---\n\n')
+           .replace(/\s+\*\s+(?=\S)/g, '\n* ');
+      let nested = false, colon = false;
+      return t.split('\n').map(l => {
+        if (!/^\* /.test(l)) { nested = false; colon = false; return l; }
+        if (/^\* \*\*\(/.test(l)) nested = false;      // "* **(a)** ..." starts a new top-level item
+        else if (colon) nested = true;                 // bullets after an item ending in ":" are its sub-points
+        const out = nested ? '    ' + l : l;
+        colon = nested ? false : /:\s*$/.test(l);
+        return out;
+      }).join('\n');
+    }
+
+    /* ---------- Markdown renderer (built in, no external libraries; all HTML is escaped) ---------- */
+    function mdEscape(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
+    function mdInline(raw) {
+      let s = mdEscape(raw);
+      const codes = [];
+      s = s.replace(/`([^`]+)`/g, (m, c) => { codes.push(c); return '\u0000' + (codes.length - 1) + '\u0000'; });
+      s = s.replace(/\[([^\]]+)\]\((https?:\/\/[^\s)]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+      s = s.replace(/\*\*\*([^*]+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+      s = s.replace(/\*\*([^*]+?)\*\*/g, '<strong>$1</strong>');
+      s = s.replace(/__([^_]+?)__/g, '<strong>$1</strong>');
+      s = s.replace(/(^|[^*\w])\*([^*\s][^*]*?)\*(?![*\w])/g, '$1<em>$2</em>');
+      s = s.replace(/(^|\W)_([^_\s][^_]*?)_(?!\w)/g, '$1<em>$2</em>');
+      s = s.replace(/~~([^~]+?)~~/g, '<del>$1</del>');
+      return s.replace(/\u0000(\d+)\u0000/g, (m, i) => '<code>' + codes[i] + '</code>');
+    }
+    const MD_TABLE_SEP = /^\s*\|?\s*:?-{2,}:?\s*(\|\s*:?-{2,}:?\s*)*\|?\s*$/;
+    const MD_LIST_ITEM = /^(\s*)([-*+]|\d+[.)])\s+(.*)$/;
+    const MD_HR = /^\s{0,3}([-*_])(\s*\1){2,}\s*$/;
+    function mdBlockStart(line, next) {
+      return /^\s*```/.test(line) || /^\s{0,3}#{1,6}\s+\S/.test(line) || MD_HR.test(line) || /^\s{0,3}>/.test(line)
+        || /^\s*([-*+]|\d+[.)])\s+\S/.test(line)
+        || (line.includes('|') && next !== undefined && MD_TABLE_SEP.test(next));
+    }
+    function mdList(lines, i) {
+      const items = [];
+      while (i < lines.length) {
+        const m = lines[i].match(MD_LIST_ITEM);
+        if (!m) {
+          if (items.length && /^\s+\S/.test(lines[i])) { items[items.length - 1].text += '\n' + lines[i].trim(); i++; continue; }
+          break;
+        }
+        items.push({ indent: m[1].replace(/\t/g, '    ').length, ordered: /\d/.test(m[2]), text: m[3] });
+        i++;
+        if (i + 1 < lines.length && /^\s*$/.test(lines[i]) && MD_LIST_ITEM.test(lines[i + 1])) i++;   // one blank line between items
+      }
+      let html = '';
+      const stack = [];
+      for (const it of items) {
+        const tag = it.ordered ? 'ol' : 'ul';
+        while (stack.length && it.indent < stack[stack.length - 1].indent) html += '</li></' + stack.pop().tag + '>';
+        if (!stack.length || it.indent > stack[stack.length - 1].indent) { html += '<' + tag + '><li>'; stack.push({ indent: it.indent, tag }); }
+        else html += '</li><li>';
+        html += mdInline(it.text).replace(/\n/g, '<br>');
+      }
+      while (stack.length) html += '</li></' + stack.pop().tag + '>';
+      return { html, next: i };
+    }
+    function mdRender(text) {
+      const lines = String(text).replace(/\r\n?/g, '\n').split('\n');
+      const out = [];
+      let i = 0, m;
+      while (i < lines.length) {
+        const line = lines[i];
+        if (/^\s*$/.test(line)) { i++; continue; }
+        if (/^\s*```/.test(line)) {
+          const code = [];
+          i++;
+          while (i < lines.length && !/^\s*```/.test(lines[i])) code.push(lines[i++]);
+          i++;
+          out.push('<pre><code>' + mdEscape(code.join('\n')) + '</code></pre>');
+        } else if ((m = line.match(/^\s{0,3}(#{1,6})\s+(.*?)\s*$/))) {
+          out.push(`<h${m[1].length}>${mdInline(m[2].replace(/\s+#+$/, ''))}</h${m[1].length}>`);
+          i++;
+        } else if (MD_HR.test(line)) {
+          out.push('<hr>');
+          i++;
+        } else if (/^\s{0,3}>/.test(line)) {
+          const q = [];
+          while (i < lines.length && /^\s{0,3}>/.test(lines[i])) q.push(lines[i++].replace(/^\s{0,3}>\s?/, ''));
+          out.push('<blockquote>' + q.map(mdInline).join('<br>') + '</blockquote>');
+        } else if (line.includes('|') && i + 1 < lines.length && MD_TABLE_SEP.test(lines[i + 1])) {
+          const cells = r => r.trim().replace(/^\|/, '').replace(/\|$/, '').split('|').map(c => c.trim());
+          const head = cells(line);
+          const rows = [];
+          i += 2;
+          while (i < lines.length && lines[i].includes('|') && !/^\s*$/.test(lines[i])) rows.push(cells(lines[i++]));
+          out.push('<table><thead><tr>' + head.map(c => '<th>' + mdInline(c) + '</th>').join('') + '</tr></thead><tbody>'
+            + rows.map(r => '<tr>' + r.map(c => '<td>' + mdInline(c) + '</td>').join('') + '</tr>').join('') + '</tbody></table>');
+        } else if (/^\s*([-*+]|\d+[.)])\s+\S/.test(line)) {
+          const r = mdList(lines, i);
+          out.push(r.html);
+          i = r.next;
+        } else {
+          const p = [];
+          while (i < lines.length && !/^\s*$/.test(lines[i]) && (p.length === 0 || !mdBlockStart(lines[i], lines[i + 1]))) p.push(lines[i++].trim());
+          out.push('<p>' + p.map(mdInline).join('<br>') + '</p>');
+        }
+      }
+      return out.join('\n');
     }
     function renderMarkdown(text) {
-      try {
-        if (window.marked && window.DOMPurify) {
-          return DOMPurify.sanitize(marked.parse(text, { breaks: true }));
-        }
-      } catch (e) { /* fall through to plain text */ }
-      const el = document.createElement('div');
-      el.style.whiteSpace = 'pre-wrap';
-      el.textContent = text;
-      return el.outerHTML;
+      try { return mdRender(repairCollapsedMarkdown(text)); }
+      catch (e) {
+        const el = document.createElement('div');
+        el.style.whiteSpace = 'pre-wrap';
+        el.textContent = text;
+        return el.outerHTML;
+      }
     }
+
     function buildAssessmentRow(d) {
       const isText = d.type === 'text' || (!d.link && !!d.content);
       const wrap = document.createElement('div');
