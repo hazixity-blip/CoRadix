@@ -566,7 +566,7 @@
           if (!v.title) return 'Title required.';
           if (v.type === 'text') {
             if (!v.content) return 'Paste the question text.';
-            return { title: v.title, dueDate: v.dueDate, type: 'text', content: v.content, link: '' };
+            return { title: v.title, dueDate: v.dueDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
           }
           if (!v.link) return 'Link required.';
           if (badLink(v.link)) return 'That link type is not allowed.';
@@ -583,6 +583,26 @@
         }
       }
     };
+
+    /* If pasted text lost its line breaks (common when copying from some tools), put the
+       Markdown structure back: headings, --- rules and * bullets each go on their own line.
+       Text that already has line breaks is left exactly as typed. */
+    function repairCollapsedMarkdown(t) {
+      t = String(t || '');
+      if (/\n/.test(t)) return t;
+      t = t.replace(/\s+(#{1,6})\s+(?=\S)/g, '\n\n$1 ')
+           .replace(/\s+---+\s+/g, '\n\n---\n\n')
+           .replace(/\s+\*\s+(?=\S)/g, '\n* ');
+      let nested = false, colon = false;
+      return t.split('\n').map(l => {
+        if (!/^\* /.test(l)) { nested = false; colon = false; return l; }
+        if (/^\* \*\*\(/.test(l)) nested = false;      // "* **(a)** ..." starts a new top-level item
+        else if (colon) nested = true;                 // bullets after an item ending in ":" are its sub-points
+        const out = nested ? '    ' + l : l;
+        colon = nested ? false : /:\s*$/.test(l);
+        return out;
+      }).join('\n');
+    }
 
     function toggleAssessmentMode() {
       const isText = document.getElementById('asType').value === 'text';
