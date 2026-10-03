@@ -38,6 +38,34 @@
   }
   .watermark-overlay span { transform:rotate(-30deg); font-size:1.1rem; font-weight:700; color:#000; white-space:nowrap; margin:2rem; }
   #loadingMsg { text-align:center; padding:4rem 1rem; color:var(--muted); }
+  .status-late { color:#d97706; font-weight:700; }
+  .status-excused { color:#6b7280; font-weight:700; }
+  .chip { display:inline-block; font-size:0.7rem; font-weight:600; padding:0.1rem 0.55rem; border-radius:999px; margin:0.3rem 0.3rem 0 0; }
+  .chip-ok { background:#f0fdf4; color:#166534; }
+  .chip-mid { background:#fffbeb; color:#92400e; }
+  .chip-bad { background:#fef2f2; color:#b91c1c; }
+  .chip-na { background:#f3f4f6; color:#6b7280; }
+  .att-note { font-size:0.75rem; color:var(--muted); margin-top:0.35rem; font-weight:400; }
+  .att-breakdown { font-size:0.7rem; color:var(--muted); margin-top:0.5rem; }
+  .as-item { border-bottom:1px solid var(--border); }
+  .as-item:last-child { border-bottom:none; }
+  .as-item .row { border-bottom:none; }
+  button.mat-link { background:none; border:none; cursor:pointer; font-family:inherit; padding:0; }
+  .md-body { background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:1rem 1.2rem; margin:0 0 0.9rem; font-size:0.88rem; line-height:1.65; }
+  .md-body h1, .md-body h2, .md-body h3, .md-body h4 { margin:1rem 0 0.4rem; line-height:1.3; }
+  .md-body h1 { font-size:1.15rem; } .md-body h2 { font-size:1.05rem; } .md-body h3, .md-body h4 { font-size:0.95rem; }
+  .md-body > :first-child { margin-top:0; }
+  .md-body p { margin:0.5rem 0; }
+  .md-body ul, .md-body ol { margin:0.5rem 0 0.5rem 1.4rem; }
+  .md-body li { margin:0.2rem 0; }
+  .md-body code { background:#e5e7eb; border-radius:4px; padding:0.05rem 0.35rem; font-family:ui-monospace,Menlo,Consolas,monospace; font-size:0.82rem; }
+  .md-body pre { background:#1c1c1e; color:#f5f5f7; border-radius:8px; padding:0.8rem 1rem; overflow-x:auto; margin:0.6rem 0; }
+  .md-body pre code { background:none; padding:0; color:inherit; }
+  .md-body blockquote { border-left:3px solid var(--blue); padding-left:0.8rem; color:#3a3a3c; margin:0.6rem 0; }
+  .md-body table { border-collapse:collapse; margin:0.6rem 0; display:block; overflow-x:auto; }
+  .md-body th, .md-body td { border:1px solid var(--border); padding:0.35rem 0.6rem; text-align:left; }
+  .md-body a { color:var(--blue); }
+  .md-body img { max-width:100%; }
 </style>
 </head>
 <body>
@@ -54,7 +82,7 @@
       <div id="skillBadgeWrap"></div>
 
       <div class="grid" id="statsGrid">
-        <div class="stat-card" id="attCard"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div></div>
+        <div class="stat-card" id="attCard"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div><div class="att-breakdown" id="attBreakdown"></div></div>
         <div class="stat-card" id="sessCard"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
         <div class="stat-card"><div class="stat-num" id="avgScorePct">—</div><div class="stat-lbl">Average score</div></div>
         <div class="stat-card"><div class="stat-num" id="avgRating">—</div><div class="stat-lbl">Average session rating</div></div>
@@ -97,7 +125,7 @@
       </div>
 
       <div class="panel">
-        <h3>📝 Assessment Links</h3>
+        <h3>📝 Assessments</h3>
         <div id="assessmentsList"></div>
       </div>
     </main>
@@ -107,6 +135,8 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
   <script src="firebase-config.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.2/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
   <script>
     let currentUid = null;
 
@@ -119,6 +149,153 @@
     document.getElementById('logoutBtn').addEventListener('click', () => {
       auth.signOut().then(() => window.location.href = 'login.html');
     });
+
+    /* ---------- Attendance scoring (same rules as the admin page) ----------
+       Entry has up to 3 parts: pre-session task, the session, post-session task.
+       "Not assigned" tasks and "Excused" sessions are not counted.
+       Older entries (only Present/Absent in "status") count as session-only. */
+    const ATT_WEIGHTS = { pre: 25, session: 50, post: 25 };
+    const ATT_POINTS = {
+      task:    { 'Completed': 1, 'Partial': 0.5, 'Not done': 0 },
+      session: { 'Present': 1, 'Late': 0.75, 'Absent': 0 }
+    };
+    function attComponents(d) {
+      return [
+        ['pre',     ATT_POINTS.task[d.preTask]],
+        ['session', ATT_POINTS.session[d.session || d.status]],
+        ['post',    ATT_POINTS.task[d.postTask]]
+      ];
+    }
+    function attEntryPercent(d) {
+      let e = 0, p = 0;
+      for (const [k, pts] of attComponents(d)) { if (pts === undefined) continue; e += pts * ATT_WEIGHTS[k]; p += ATT_WEIGHTS[k]; }
+      return p ? Math.round((e / p) * 100) : null;
+    }
+    function summarizeAttendance(entries) {
+      let earned = 0, possible = 0;
+      const comp = { pre: { e: 0, n: 0 }, session: { e: 0, n: 0 }, post: { e: 0, n: 0 } };
+      for (const d of entries) {
+        for (const [k, pts] of attComponents(d)) {
+          if (pts === undefined) continue;
+          earned += pts * ATT_WEIGHTS[k]; possible += ATT_WEIGHTS[k];
+          comp[k].e += pts; comp[k].n++;
+        }
+      }
+      const pct = c => Math.round((c.e / c.n) * 100);
+      const parts = [];
+      if (comp.pre.n) parts.push(`Pre-session tasks ${pct(comp.pre)}%`);
+      if (comp.session.n) parts.push(`Sessions ${pct(comp.session)}%`);
+      if (comp.post.n) parts.push(`Post-session tasks ${pct(comp.post)}%`);
+      return {
+        overall: possible ? Math.round((earned / possible) * 100) : null,
+        breakdown: (comp.pre.n || comp.post.n) ? parts.join(' · ') : ''
+      };
+    }
+    function chipClass(v) {
+      if (v === 'Completed' || v === 'Present') return 'chip-ok';
+      if (v === 'Partial' || v === 'Late') return 'chip-mid';
+      if (v === 'Not done' || v === 'Absent') return 'chip-bad';
+      return 'chip-na';
+    }
+    function buildAttendanceRow(d) {
+      const session = d.session || d.status || '';
+      const row = document.createElement('div');
+      row.className = 'row';
+      const left = document.createElement('div');
+      left.className = 'rl';
+      left.textContent = d.date || '';
+      const chips = document.createElement('div');
+      const addChip = (label, value) => {
+        const c = document.createElement('span');
+        c.className = 'chip ' + chipClass(value);
+        c.textContent = `${label}: ${value}`;
+        chips.appendChild(c);
+      };
+      if (d.preTask && d.preTask !== 'Not assigned') addChip('Pre-session task', d.preTask);
+      if (d.postTask && d.postTask !== 'Not assigned') addChip('Post-session task', d.postTask);
+      if (chips.children.length) left.appendChild(chips);
+      if (d.notes) {
+        const n = document.createElement('div');
+        n.className = 'att-note';
+        n.textContent = d.notes;
+        left.appendChild(n);
+      }
+      const right = document.createElement('span');
+      const cls = { Present: 'status-present', Late: 'status-late', Absent: 'status-absent', Excused: 'status-excused' }[session] || 'status-excused';
+      right.className = 'rr ' + cls;
+      const hasTask = (d.preTask && d.preTask !== 'Not assigned') || (d.postTask && d.postTask !== 'Not assigned');
+      const p = attEntryPercent(d);
+      right.textContent = session + (hasTask && p !== null ? ` · ${p}%` : '');
+      row.append(left, right);
+      return row;
+    }
+
+    /* ---------- Assessments: link OR pasted text/Markdown ---------- */
+    if (window.DOMPurify) {
+      DOMPurify.addHook('afterSanitizeAttributes', n => {
+        if (n.tagName === 'A') { n.setAttribute('target', '_blank'); n.setAttribute('rel', 'noopener noreferrer'); }
+      });
+    }
+    function renderMarkdown(text) {
+      try {
+        if (window.marked && window.DOMPurify) {
+          return DOMPurify.sanitize(marked.parse(text, { breaks: true }));
+        }
+      } catch (e) { /* fall through to plain text */ }
+      const el = document.createElement('div');
+      el.style.whiteSpace = 'pre-wrap';
+      el.textContent = text;
+      return el.outerHTML;
+    }
+    function buildAssessmentRow(d) {
+      const isText = d.type === 'text' || (!d.link && !!d.content);
+      const wrap = document.createElement('div');
+      wrap.className = 'as-item';
+      const row = document.createElement('div');
+      row.className = 'row';
+      const left = document.createElement('span');
+      left.className = 'rl';
+      left.textContent = (d.title || '') + ' ';
+      const due = document.createElement('span');
+      due.style.color = 'var(--muted)';
+      due.textContent = `(due ${d.dueDate || ''})`;
+      left.appendChild(due);
+      row.appendChild(left);
+      wrap.appendChild(row);
+
+      if (isText) {
+        const body = document.createElement('div');
+        body.className = 'md-body';
+        body.style.display = 'none';
+        body.innerHTML = renderMarkdown(d.content || '');
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'mat-link';
+        btn.textContent = 'View questions ▾';
+        btn.onclick = () => {
+          const open = body.style.display === 'none';
+          body.style.display = open ? 'block' : 'none';
+          btn.textContent = open ? 'Hide questions ▴' : 'View questions ▾';
+        };
+        row.appendChild(btn);
+        wrap.appendChild(body);
+      } else if (d.link && !/^\s*(javascript|data|vbscript):/i.test(d.link)) {
+        const a = document.createElement('a');
+        a.className = 'mat-link';
+        a.href = d.link;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = 'Open →';
+        row.appendChild(a);
+      } else {
+        const na = document.createElement('span');
+        na.className = 'rr';
+        na.style.cssText = 'font-weight:400;color:var(--muted);';
+        na.textContent = 'Not available';
+        row.appendChild(na);
+      }
+      return wrap;
+    }
 
     async function loadDashboard(uid) {
       const studentDoc = await db.collection('students').doc(uid).get();
@@ -185,24 +362,20 @@
         `;
       }
 
-      // Attendance
+      // Attendance (pre-session task + session + post-session task)
       const attSnap = await db.collection('students').doc(uid).collection('attendance').orderBy('date', 'desc').get();
       const attList = document.getElementById('attendanceList');
-      let presentCount = 0;
       if (attSnap.empty) {
         attList.innerHTML = '<div class="empty">No attendance records yet.</div>';
       } else {
         attList.innerHTML = '';
-        attSnap.forEach(doc => {
-          const d = doc.data();
-          if (d.status === 'Present') presentCount++;
-          const row = document.createElement('div');
-          row.className = 'row';
-          row.innerHTML = `<span class="rl">${d.date}</span><span class="rr ${d.status==='Present'?'status-present':'status-absent'}">${d.status}</span>`;
-          attList.appendChild(row);
-        });
-        document.getElementById('attendancePct').textContent = Math.round((presentCount / attSnap.size) * 100) + '%';
-        document.getElementById('sessionCount').textContent = attSnap.size;
+        const entries = [];
+        attSnap.forEach(doc => entries.push(doc.data()));
+        entries.forEach(d => attList.appendChild(buildAttendanceRow(d)));
+        const sum = summarizeAttendance(entries);
+        document.getElementById('attendancePct').textContent = sum.overall === null ? '—' : sum.overall + '%';
+        document.getElementById('attBreakdown').textContent = sum.breakdown;
+        document.getElementById('sessionCount').textContent = entries.length;
       }
 
       // Scores / Performance
@@ -264,17 +437,11 @@
         matList.appendChild(row);
       });
 
-      // Assessments
+      // Assessments (link or pasted text/Markdown)
       const asSnap = await db.collection('students').doc(uid).collection('assessments').orderBy('dueDate').get();
       const asList = document.getElementById('assessmentsList');
       asList.innerHTML = asSnap.empty ? '<div class="empty">No assessments assigned yet.</div>' : '';
-      asSnap.forEach(doc => {
-        const d = doc.data();
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `<span class="rl">${d.title||''} <span style="color:var(--muted);">(due ${d.dueDate||''})</span></span><a class="mat-link" href="${d.link}" target="_blank" rel="noopener">Open →</a>`;
-        asList.appendChild(row);
-      });
+      asSnap.forEach(doc => asList.appendChild(buildAssessmentRow(doc.data())));
 
       document.getElementById('loadingMsg').style.display = 'none';
       document.getElementById('appRoot').style.display = 'block';
