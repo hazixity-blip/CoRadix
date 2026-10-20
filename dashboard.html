@@ -581,28 +581,21 @@
       const asSnap = await db.collection('students').doc(uid).collection('assessments').orderBy('dueDate').get();
       const asList = document.getElementById('assessmentsList');
       asList.innerHTML = asSnap.empty ? '<div class="empty">No assessments assigned yet.</div>' : '';
-      // grouped by due-date month: this month and later are open, older months are closed
+      // grouped by subject (same as materials)
       const asGroups = new Map();
       asSnap.forEach(doc => {
         const a = doc.data();
-        const key = a.dueDate ? String(a.dueDate).slice(0, 7) : 'none';
-        if (!asGroups.has(key)) asGroups.set(key, []);
-        asGroups.get(key).push(a);
+        const subj = (a.subject || '').trim() || 'General';
+        if (!asGroups.has(subj)) asGroups.set(subj, []);
+        asGroups.get(subj).push(a);
       });
-      const nowD = new Date();
-      const curKey = `${nowD.getFullYear()}-${String(nowD.getMonth() + 1).padStart(2, '0')}`;
-      const asKeys = [...asGroups.keys()].sort((x, y) => x === 'none' ? 1 : y === 'none' ? -1 : x.localeCompare(y));
-      const isCurrentOrLater = k => k === 'none' || k >= curKey;
-      const anyOpen = asKeys.some(isCurrentOrLater);
-      asKeys.forEach((k, idx) => {
-        const items = asGroups.get(k);
+      [...asGroups.keys()].sort((x, y) => x.localeCompare(y)).forEach(subj => {
+        const items = asGroups.get(subj);
         const det = document.createElement('details');
         det.className = 'mat-group';
-        det.open = anyOpen ? isCurrentOrLater(k) : idx === asKeys.length - 1;
+        det.open = asGroups.size === 1;
         const sum = document.createElement('summary');
-        const label = k === 'none' ? 'No due date'
-          : new Date(k + '-01T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' });
-        sum.textContent = `${label} (${items.length})`;
+        sum.textContent = `${subj} (${items.length})`;
         det.appendChild(sum);
         items.forEach(a => det.appendChild(buildAssessmentRow(a)));
         asList.appendChild(det);
