@@ -67,6 +67,7 @@
   details.group > summary { cursor:pointer; padding:0.55rem 0.8rem; font-size:0.82rem; font-weight:600; background:var(--bg-soft); border-radius:8px; }
   details.group[open] > summary { border-bottom:1px solid var(--border); border-radius:8px 8px 0 0; }
   details.group > .entry { padding:0.55rem 0.8rem; }
+  details.group details.group { margin:0.5rem 0.8rem; }
 </style>
 </head>
 <body>
@@ -223,8 +224,9 @@
 
         <div class="panel">
           <h3>📈 Performance Scores</h3>
-          <div class="row2">
-            <div><label>Subject / Test Name</label><input id="scSubject" placeholder="e.g. Physics Unit Test 2"></div>
+          <div class="row3">
+            <div><label>Subject</label><input id="scSubject" list="subjectList" placeholder="e.g. Physics"></div>
+            <div><label>Test / Topic</label><input id="scTest" placeholder="e.g. Unit Test 2"></div>
             <div><label>Date</label><input type="date" id="scDate"></div>
           </div>
           <div class="row2">
@@ -448,6 +450,9 @@
     const byDateDesc = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
 
     const subjectOf = d => (d.subject || '').trim() || 'General';
+    // older scores stored "subject / test name" in one box: keep them under General, shown by their old label
+    const scoreSubject = d => d.testName === undefined ? 'General' : subjectOf(d);
+    const scoreLabel = d => d.testName === undefined ? d.subject : d.testName;
     const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
     const openGroups = {};   // section key -> Set of group names left open
 
@@ -577,15 +582,22 @@
       },
       scores: {
         noun: 'score', col: 'scores', btn: 'scBtn', msg: 'scStatus_msg', list: 'scList',
-        fields: { subject: 'scSubject', date: 'scDate', score: 'scScore', max: 'scMax', rating: 'scRating', notes: 'scNotes' },
-        keep: ['date'], sort: byDateDesc,
-        groupOf: d => monthOf(d.date, 'No date'),
+        fields: { subject: 'scSubject', testName: 'scTest', date: 'scDate', score: 'scScore', max: 'scMax', rating: 'scRating', notes: 'scNotes' },
+        keep: ['subject', 'date'],
+        sort: (x, y) => scoreSubject(x).localeCompare(scoreSubject(y)) || byDateDesc(x, y),
+        groupOf: d => [scoreSubject(d), monthOf(d.date, 'No date')],   // subject, then month inside it
         build: v => {
-          if (!v.subject || !v.date || v.score === '' || v.max === '') return 'Subject, date, score, and out-of are required.';
-          return { subject: v.subject, date: v.date, score: Number(v.score), max: Number(v.max),
+          if (!v.testName || !v.date || v.score === '' || v.max === '') return 'Test / topic, date, score, and out-of are required.';
+          return { subject: v.subject || 'General', testName: v.testName, date: v.date, score: Number(v.score), max: Number(v.max),
                    rating: v.rating ? Number(v.rating) : null, notes: v.notes };
         },
-        summary: d => ({ title: d.subject, meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
+        afterFill: d => {
+          if (d.testName === undefined) {   // older entry: move its old label into Test / Topic
+            document.getElementById('scSubject').value = '';
+            document.getElementById('scTest').value = d.subject || '';
+          }
+        },
+        summary: d => ({ title: scoreLabel(d), meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
       },
       assessments: {
         noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
@@ -726,7 +738,11 @@
         if (wasEditing) await col.doc(wasEditing).set(res);
         else await col.add(res);
         showMsg(s.msg, wasEditing ? 'Changes saved.' : 'Added.', true);
-        if (s.groupOf) (openGroups[key] = openGroups[key] || new Set()).add(s.groupOf(res));
+        if (s.groupOf) {
+          const g = s.groupOf(res), path = Array.isArray(g) ? g : [g];
+          const set = (openGroups[key] = openGroups[key] || new Set());
+          path.forEach((_, i) => set.add(path.slice(0, i + 1).join(' › ')));
+        }
         endEdit(key);
         clearForm(key, !wasEditing);
         await loadList(key);
@@ -801,27 +817,33 @@
         return;
       }
       if (!s.groupOf) { rows.forEach(r => box.appendChild(buildEntry(key, r))); return; }
-      // grouped (e.g. materials by subject, attendance by month): every group is closed until opened
-      const groups = new Map();
-      rows.forEach(r => { const g = s.groupOf(r); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
+      // grouped (subject, month, or subject then month): every group is closed until opened
+      const pathOf = d => { const g = s.groupOf(d); return Array.isArray(g) ? g : [g]; };
       const open = openGroups[key] = openGroups[key] || new Set();
-      groups.forEach((items, g) => {
-        const det = document.createElement('details');
-        det.className = 'group';
-        det.open = open.has(g);
-        det.addEventListener('toggle', () => { if (det.open) open.add(g); else open.delete(g); });
-        const sum = document.createElement('summary');
-        sum.textContent = `${g} (${items.length})`;
-        det.appendChild(sum);
-        items.forEach(r => det.appendChild(buildEntry(key, r)));
-        box.appendChild(det);
-      });
+      const addGroups = (container, items, depth, prefix) => {
+        const groups = new Map();
+        items.forEach(r => { const g = pathOf(r)[depth]; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
+        groups.forEach((list, g) => {
+          const id = prefix + g;
+          const det = document.createElement('details');
+          det.className = 'group';
+          det.open = open.has(id);
+          det.addEventListener('toggle', () => { if (det.open) open.add(id); else open.delete(id); });
+          const sum = document.createElement('summary');
+          sum.textContent = `${g} (${list.length})`;
+          det.appendChild(sum);
+          if (depth + 1 < pathOf(list[0]).length) addGroups(det, list, depth + 1, id + ' › ');
+          else list.forEach(r => det.appendChild(buildEntry(key, r)));
+          container.appendChild(det);
+        });
+      };
+      addGroups(box, rows, 0, '');
     }
 
     // subject suggestions (typing a subject offers the ones already used for this student)
     function refreshSubjects() {
       const set = new Set();
-      ['materials', 'feedback', 'assessments'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(subjectOf(d))));
+      ['materials', 'feedback', 'assessments', 'scores'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(k === 'scores' ? scoreSubject(d) : subjectOf(d))));
       const dl = document.getElementById('subjectList');
       dl.textContent = '';
       [...set].sort((x, y) => x.localeCompare(y)).forEach(v => {
