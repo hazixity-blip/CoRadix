@@ -69,6 +69,10 @@
   .md-body del { color:var(--muted); }
   .md-body li > ul, .md-body li > ol { margin-top:0.2rem; }
   .md-body img { max-width:100%; }
+  details.mat-group { border:1px solid var(--border); border-radius:8px; margin:0.5rem 0; }
+  details.mat-group > summary { cursor:pointer; padding:0.65rem 0.9rem; font-size:0.85rem; font-weight:600; background:var(--bg-soft); border-radius:8px; }
+  details.mat-group[open] > summary { border-bottom:1px solid var(--border); border-radius:8px 8px 0 0; }
+  details.mat-group > .row { padding:0.7rem 0.9rem; }
 </style>
 </head>
 <body>
@@ -532,16 +536,44 @@
         fbList.appendChild(row);
       });
 
-      // Materials
+      // Materials (grouped by subject)
       const matSnap = await db.collection('students').doc(uid).collection('materials').orderBy('title').get();
       const matList = document.getElementById('materialsList');
       matList.innerHTML = matSnap.empty ? '<div class="empty">No materials shared yet.</div>' : '';
+      const bySubject = new Map();
       matSnap.forEach(doc => {
-        const d = doc.data();
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `<span class="rl">${d.title||''}</span><a class="mat-link" href="${d.link}" target="_blank" rel="noopener">View →</a>`;
-        matList.appendChild(row);
+        const m = doc.data();
+        const subj = (m.subject || '').trim() || 'General';
+        if (!bySubject.has(subj)) bySubject.set(subj, []);
+        bySubject.get(subj).push(m);
+      });
+      [...bySubject.keys()].sort((x, y) => x.localeCompare(y)).forEach(subj => {
+        const items = bySubject.get(subj);
+        const det = document.createElement('details');
+        det.className = 'mat-group';
+        det.open = bySubject.size === 1;
+        const sum = document.createElement('summary');
+        sum.textContent = `${subj} (${items.length})`;
+        det.appendChild(sum);
+        items.forEach(m => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          const left = document.createElement('span');
+          left.className = 'rl';
+          left.textContent = m.title || '';
+          row.appendChild(left);
+          if (m.link && !/^\s*(javascript|data|vbscript):/i.test(m.link)) {
+            const a = document.createElement('a');
+            a.className = 'mat-link';
+            a.href = m.link;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = 'View →';
+            row.appendChild(a);
+          }
+          det.appendChild(row);
+        });
+        matList.appendChild(det);
       });
 
       // Assessments (link or pasted text/Markdown)
