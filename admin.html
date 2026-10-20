@@ -241,8 +241,9 @@
 
         <div class="panel">
           <h3>📝 Assessments</h3>
-          <div class="row2">
+          <div class="row3">
             <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
+            <div><label>Subject</label><input id="asSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
             <div><label>Due Date</label><input type="date" id="asDue"></div>
           </div>
           <label>Assessment Type</label>
@@ -588,18 +589,19 @@
       },
       assessments: {
         noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
-        fields: { title: 'asTitle', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
-        keep: ['dueDate', 'type'], sort: (a, b) => String(b.dueDate || '').localeCompare(String(a.dueDate || '')),
-        groupOf: d => monthOf(d.dueDate, 'No due date'),
+        fields: { title: 'asTitle', subject: 'asSubject', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
+        keep: ['subject', 'dueDate', 'type'],
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || String(y.dueDate || '').localeCompare(String(x.dueDate || '')),
+        groupOf: d => subjectOf(d),
         build: v => {
           if (!v.title) return 'Title required.';
           if (v.type === 'text') {
             if (!v.content) return 'Paste the question text.';
-            return { title: v.title, dueDate: v.dueDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+            return { title: v.title, subject: v.subject || 'General', dueDate: v.dueDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
           }
           if (!v.link) return 'Link required.';
           if (badLink(v.link)) return 'That link type is not allowed.';
-          return { title: v.title, dueDate: v.dueDate, type: 'link', link: v.link, content: '' };
+          return { title: v.title, subject: v.subject || 'General', dueDate: v.dueDate, type: 'link', link: v.link, content: '' };
         },
         afterFill: d => {
           document.getElementById('asType').value = d.type || (d.content && !d.link ? 'text' : 'link');
@@ -819,7 +821,7 @@
     // subject suggestions (typing a subject offers the ones already used for this student)
     function refreshSubjects() {
       const set = new Set();
-      ['materials', 'feedback'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(subjectOf(d))));
+      ['materials', 'feedback', 'assessments'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(subjectOf(d))));
       const dl = document.getElementById('subjectList');
       dl.textContent = '';
       [...set].sort((x, y) => x.localeCompare(y)).forEach(v => {
