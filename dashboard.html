@@ -74,6 +74,14 @@
   details.mat-group[open] > summary { border-bottom:1px solid var(--border); border-radius:8px 8px 0 0; }
   details.mat-group > .row { padding:0.7rem 0.9rem; }
   details.mat-group > .as-item { padding:0 0.9rem; }
+  details.mat-group details.mat-group { margin:0.5rem 0.9rem; }
+  .panel-toggle { cursor:pointer; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.9rem; }
+  .panel-toggle::before { content:'▸'; color:var(--muted); font-size:0.8rem; display:inline-block; transition:transform 0.15s; }
+  .panel.open .panel-toggle::before { transform:rotate(90deg); }
+  .panel.collapsed .panel-toggle { margin-bottom:0; }
+  .panel.collapsed .panel-body { display:none; }
+  .count-badge { margin-left:auto; background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; font-size:0.72rem; font-weight:600; color:var(--muted); padding:0.1rem 0.65rem; }
+  .count-badge:empty { display:none; }
 </style>
 </head>
 <body>
@@ -409,6 +417,39 @@
       return wrap;
     }
 
+    // Collapsible sections: closed by default, tap a heading to open/close
+    function setPanelOpen(panel, open) {
+      panel.classList.toggle('open', open);
+      panel.classList.toggle('collapsed', !open);
+      const h = panel.querySelector('.panel-toggle');
+      if (h) h.setAttribute('aria-expanded', open ? 'true' : 'false');
+    }
+    function initCollapsiblePanels() {
+      document.querySelectorAll('#appRoot main .panel').forEach(panel => {
+        const h = panel.querySelector('h3');
+        if (!h) return;
+        const body = document.createElement('div');
+        body.className = 'panel-body';
+        while (h.nextSibling) body.appendChild(h.nextSibling);
+        panel.appendChild(body);
+        h.classList.add('panel-toggle');
+        h.setAttribute('role', 'button');
+        h.tabIndex = 0;
+        const badge = document.createElement('span');
+        badge.className = 'count-badge';
+        h.appendChild(badge);
+        const toggle = () => setPanelOpen(panel, panel.classList.contains('collapsed'));
+        h.addEventListener('click', toggle);
+        h.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); } });
+        setPanelOpen(panel, false);
+      });
+    }
+    function setBadge(listId, n) {
+      const b = document.getElementById(listId).closest('.panel').querySelector('.count-badge');
+      if (b) b.textContent = n || '';
+    }
+    initCollapsiblePanels();
+
     async function loadDashboard(uid) {
       const studentDoc = await db.collection('students').doc(uid).get();
       if (!studentDoc.exists) {
@@ -451,6 +492,7 @@
       // Project Workflow (skill students)
       if (isSkill) {
         const wfSnap = await db.collection('students').doc(uid).collection('projectSteps').orderBy('date').get();
+        setBadge('workflowList', wfSnap.size);
         const wfList = document.getElementById('workflowList');
         wfList.innerHTML = wfSnap.empty ? '<div class="empty">No workflow steps added yet.</div>' : '';
         wfSnap.forEach(doc => {
@@ -476,6 +518,7 @@
 
       // Attendance (pre-session task + session + post-session task)
       const attSnap = await db.collection('students').doc(uid).collection('attendance').orderBy('date', 'desc').get();
+      setBadge('attendanceList', attSnap.size);
       const attList = document.getElementById('attendanceList');
       if (attSnap.empty) {
         attList.innerHTML = '<div class="empty">No attendance records yet.</div>';
@@ -490,24 +533,66 @@
         document.getElementById('sessionCount').textContent = entries.length;
       }
 
-      // Scores / Performance
+      // Scores / Performance (grouped by subject, then month)
       const scSnap = await db.collection('students').doc(uid).collection('scores').orderBy('date', 'desc').get();
+      setBadge('scoresList', scSnap.size);
       const scList = document.getElementById('scoresList');
       if (scSnap.empty) {
         scList.innerHTML = '<div class="empty">No scores recorded yet.</div>';
       } else {
         scList.innerHTML = '';
         let pctSum = 0, pctCount = 0, ratingSum = 0, ratingCount = 0;
+        const bySubj = new Map();   // subject -> Map(month -> rows)
         scSnap.forEach(doc => {
-          const d = doc.data();
-          const pct = d.max ? Math.round((d.score / d.max) * 100) : null;
+          const s = doc.data();
+          const pct = s.max ? Math.round((s.score / s.max) * 100) : null;
           if (pct !== null) { pctSum += pct; pctCount++; }
-          if (d.rating) { ratingSum += d.rating; ratingCount++; }
-          const row = document.createElement('div');
-          row.className = 'row';
-          row.innerHTML = `<span class="rl"><strong>${d.subject||''}</strong> — ${d.date||''}${d.notes ? ' · '+d.notes : ''}</span>
-            <span class="rr">${d.score}/${d.max} (${pct!==null?pct+'%':''})${d.rating ? ' · Rating: '+d.rating+'/10' : ''}</span>`;
-          scList.appendChild(row);
+          if (s.rating) { ratingSum += s.rating; ratingCount++; }
+          const legacy = s.testName === undefined;   // older entries had one "subject / test name" box
+          const subj = legacy ? 'General' : ((s.subject || '').trim() || 'General');
+          const mKey = s.date ? String(s.date).slice(0, 7) : 'none';
+          if (!bySubj.has(subj)) bySubj.set(subj, new Map());
+          const months = bySubj.get(subj);
+          if (!months.has(mKey)) months.set(mKey, []);
+          months.get(mKey).push({ s, pct, label: legacy ? s.subject : s.testName });
+        });
+        [...bySubj.keys()].sort((x, y) => x.localeCompare(y)).forEach(subj => {
+          const months = bySubj.get(subj);
+          const total = [...months.values()].reduce((n, r) => n + r.length, 0);
+          const det = document.createElement('details');
+          det.className = 'mat-group';
+          det.open = bySubj.size === 1;
+          const sum = document.createElement('summary');
+          sum.textContent = `${subj} (${total})`;
+          det.appendChild(sum);
+          let firstMonth = true;   // newest month of each subject is open
+          months.forEach((rows, mKey) => {
+            const inner = document.createElement('details');
+            inner.className = 'mat-group';
+            inner.open = firstMonth;
+            firstMonth = false;
+            const isum = document.createElement('summary');
+            const label = mKey === 'none' ? 'No date'
+              : new Date(mKey + '-01T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' });
+            isum.textContent = `${label} (${rows.length})`;
+            inner.appendChild(isum);
+            rows.forEach(({ s, pct, label: testLabel }) => {
+              const row = document.createElement('div');
+              row.className = 'row';
+              const left = document.createElement('span');
+              left.className = 'rl';
+              const st = document.createElement('strong');
+              st.textContent = testLabel || '';
+              left.append(st, document.createTextNode(` — ${s.date || ''}${s.notes ? ' · ' + s.notes : ''}`));
+              const right = document.createElement('span');
+              right.className = 'rr';
+              right.textContent = `${s.score}/${s.max} (${pct !== null ? pct + '%' : ''})${s.rating ? ' · Rating: ' + s.rating + '/10' : ''}`;
+              row.append(left, right);
+              inner.appendChild(row);
+            });
+            det.appendChild(inner);
+          });
+          scList.appendChild(det);
         });
         document.getElementById('avgScorePct').textContent = pctCount ? Math.round(pctSum / pctCount) + '%' : '—';
         document.getElementById('avgRating').textContent = ratingCount ? (ratingSum / ratingCount).toFixed(1) + '/10' : '—';
@@ -515,6 +600,7 @@
 
       // Feedback Forms & Links
       const lnSnap = await db.collection('students').doc(uid).collection('links').get();
+      setBadge('linksList', lnSnap.size);
       const lnList = document.getElementById('linksList');
       lnList.innerHTML = lnSnap.empty ? '<div class="empty">No links shared yet.</div>' : '';
       lnSnap.forEach(doc => {
@@ -525,20 +611,46 @@
         lnList.appendChild(row);
       });
 
-      // Feedback
+      // Feedback (grouped by subject)
       const fbSnap = await db.collection('students').doc(uid).collection('feedback').orderBy('date', 'desc').get();
+      setBadge('feedbackList', fbSnap.size);
       const fbList = document.getElementById('feedbackList');
       fbList.innerHTML = fbSnap.empty ? '<div class="empty">No feedback yet.</div>' : '';
+      const fbGroups = new Map();
       fbSnap.forEach(doc => {
-        const d = doc.data();
-        const row = document.createElement('div');
-        row.className = 'row';
-        row.innerHTML = `<span class="rl"><strong>${d.subject||''}</strong> — ${d.note||''}</span><span class="rr" style="font-weight:400;color:var(--muted);">${d.date||''}</span>`;
-        fbList.appendChild(row);
+        const f = doc.data();
+        const subj = (f.subject || '').trim() || 'General';
+        if (!fbGroups.has(subj)) fbGroups.set(subj, []);
+        fbGroups.get(subj).push(f);
+      });
+      [...fbGroups.keys()].sort((x, y) => x.localeCompare(y)).forEach(subj => {
+        const items = fbGroups.get(subj);
+        const det = document.createElement('details');
+        det.className = 'mat-group';
+        det.open = fbGroups.size === 1;
+        const sum = document.createElement('summary');
+        sum.textContent = `${subj} (${items.length})`;
+        det.appendChild(sum);
+        items.forEach(f => {
+          const row = document.createElement('div');
+          row.className = 'row';
+          const left = document.createElement('span');
+          left.className = 'rl';
+          left.style.whiteSpace = 'pre-wrap';
+          left.textContent = f.note || '';
+          const right = document.createElement('span');
+          right.className = 'rr';
+          right.style.cssText = 'font-weight:400;color:var(--muted);white-space:nowrap;';
+          right.textContent = f.date || '';
+          row.append(left, right);
+          det.appendChild(row);
+        });
+        fbList.appendChild(det);
       });
 
       // Materials (grouped by subject)
       const matSnap = await db.collection('students').doc(uid).collection('materials').orderBy('title').get();
+      setBadge('materialsList', matSnap.size);
       const matList = document.getElementById('materialsList');
       matList.innerHTML = matSnap.empty ? '<div class="empty">No materials shared yet.</div>' : '';
       const bySubject = new Map();
@@ -579,6 +691,7 @@
 
       // Assessments (link or pasted text/Markdown)
       const asSnap = await db.collection('students').doc(uid).collection('assessments').orderBy('dueDate').get();
+      setBadge('assessmentsList', asSnap.size);
       const asList = document.getElementById('assessmentsList');
       asList.innerHTML = asSnap.empty ? '<div class="empty">No assessments assigned yet.</div>' : '';
       // grouped by subject (same as materials)
