@@ -447,6 +447,7 @@
     const byDateDesc = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
 
     const subjectOf = d => (d.subject || '').trim() || 'General';
+    const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
     const openGroups = {};   // section key -> Set of group names left open
 
     function friendlyError(e) {
@@ -546,7 +547,7 @@
           document.getElementById('attPost').value = d.postTask || 'Not assigned';
         },
         onLoad: rows => renderAttSummary(rows),
-        groupOf: d => d.date ? new Date(d.date + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : 'No date',
+        groupOf: d => monthOf(d.date, 'No date'),
         summary: d => {
           const p = attEntryPercent(d);
           return { title: d.date,
@@ -577,6 +578,7 @@
         noun: 'score', col: 'scores', btn: 'scBtn', msg: 'scStatus_msg', list: 'scList',
         fields: { subject: 'scSubject', date: 'scDate', score: 'scScore', max: 'scMax', rating: 'scRating', notes: 'scNotes' },
         keep: ['date'], sort: byDateDesc,
+        groupOf: d => monthOf(d.date, 'No date'),
         build: v => {
           if (!v.subject || !v.date || v.score === '' || v.max === '') return 'Subject, date, score, and out-of are required.';
           return { subject: v.subject, date: v.date, score: Number(v.score), max: Number(v.max),
@@ -588,6 +590,7 @@
         noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
         fields: { title: 'asTitle', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
         keep: ['dueDate', 'type'], sort: (a, b) => String(b.dueDate || '').localeCompare(String(a.dueDate || '')),
+        groupOf: d => monthOf(d.dueDate, 'No due date'),
         build: v => {
           if (!v.title) return 'Title required.';
           if (v.type === 'text') {
