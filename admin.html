@@ -56,6 +56,17 @@
   .att-chips { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem; }
   .att-chip { background:#fff; border:1px solid var(--border); border-radius:999px; padding:0.2rem 0.7rem; font-size:0.75rem; }
   .att-note { font-size:0.72rem; color:var(--muted); margin-top:0.5rem; }
+  .panel-toggle { cursor:pointer; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.9rem; }
+  .panel-toggle::before { content:'▸'; color:var(--muted); font-size:0.8rem; display:inline-block; transition:transform 0.15s; }
+  .panel.open .panel-toggle::before { transform:rotate(90deg); }
+  .panel.collapsed .panel-toggle { margin-bottom:0; }
+  .panel.collapsed .panel-body { display:none; }
+  .count-badge { margin-left:auto; background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; font-size:0.72rem; font-weight:600; color:var(--muted); padding:0.1rem 0.65rem; }
+  .count-badge:empty { display:none; }
+  details.group { border:1px solid var(--border); border-radius:8px; margin:0.5rem 0; }
+  details.group > summary { cursor:pointer; padding:0.55rem 0.8rem; font-size:0.82rem; font-weight:600; background:var(--bg-soft); border-radius:8px; }
+  details.group[open] > summary { border-bottom:1px solid var(--border); border-radius:8px 8px 0 0; }
+  details.group > .entry { padding:0.55rem 0.8rem; }
 </style>
 </head>
 <body>
@@ -118,7 +129,7 @@
 
       <div id="studentPanels" style="display:none;">
         <div class="panel">
-          <h3>🔗 Add Feedback Form / Other Link</h3>
+          <h3>🔗 Feedback Forms & Links</h3>
           <div class="row2">
             <div><label>Title</label><input id="lnTitle" placeholder="e.g. Session Feedback Form"></div>
             <div><label>Link</label><input id="lnLink" placeholder="https://forms.google.com/..."></div>
@@ -128,7 +139,7 @@
         </div>
 
         <div class="panel">
-          <h3>🛠️ Add Project Workflow Step <span style="font-weight:400;color:var(--muted);font-size:0.78rem;">(Skill Course students)</span></h3>
+          <h3>🛠️ Project Workflow <span style="font-weight:400;color:var(--muted);font-size:0.78rem;">(Skill Course students)</span></h3>
           <div class="row2">
             <div><label>Step Title</label><input id="psTitle" placeholder="e.g. Research & Topic Finalisation"></div>
             <div><label>Status</label>
@@ -164,7 +175,7 @@
         </div>
 
         <div class="panel">
-          <h3>📋 Add Attendance</h3>
+          <h3>📋 Attendance</h3>
           <div id="attSummary" class="att-summary"></div>
           <div class="row2">
             <div><label>Date</label><input type="date" id="attDate"></div>
@@ -186,9 +197,9 @@
         </div>
 
         <div class="panel">
-          <h3>💬 Add Feedback</h3>
+          <h3>💬 Feedback</h3>
           <div class="row2">
-            <div><label>Subject</label><input id="fbSubject" placeholder="e.g. Chemistry"></div>
+            <div><label>Subject</label><input id="fbSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
             <div><label>Date</label><input type="date" id="fbDate"></div>
           </div>
           <label>Note</label>
@@ -198,17 +209,20 @@
         </div>
 
         <div class="panel">
-          <h3>📚 Add Material Link</h3>
+          <h3>📚 Course Materials</h3>
           <div class="row2">
+            <div><label>Subject</label><input id="matSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
             <div><label>Title</label><input id="matTitle" placeholder="e.g. Chapter 4 Notes"></div>
-            <div><label>Google Drive Link (view-only)</label><input id="matLink" placeholder="https://drive.google.com/..."></div>
           </div>
+          <label>Google Drive Link (view-only)</label>
+          <input id="matLink" placeholder="https://drive.google.com/...">
+          <datalist id="subjectList"></datalist>
           <button class="action" id="matBtn" onclick="saveEntry('materials')">Add Material</button>
           <div id="matStatus_msg" class="status-msg"></div>
         </div>
 
         <div class="panel">
-          <h3>📈 Add Performance Score</h3>
+          <h3>📈 Performance Scores</h3>
           <div class="row2">
             <div><label>Subject / Test Name</label><input id="scSubject" placeholder="e.g. Physics Unit Test 2"></div>
             <div><label>Date</label><input type="date" id="scDate"></div>
@@ -226,7 +240,7 @@
         </div>
 
         <div class="panel">
-          <h3>📝 Add Assessment</h3>
+          <h3>📝 Assessments</h3>
           <div class="row2">
             <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
             <div><label>Due Date</label><input type="date" id="asDue"></div>
@@ -345,6 +359,11 @@
       document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
       document.getElementById('studentActions').style.display = selectedUid ? 'flex' : 'none';
       for (const key of Object.keys(SECTIONS)) { endEdit(key); clearForm(key, false); if (SECTIONS[key].onLoad) SECTIONS[key].onLoad([]); }
+      Object.keys(cache).forEach(k => delete cache[k]);
+      Object.keys(openGroups).forEach(k => delete openGroups[k]);
+      refreshSubjects();
+      document.querySelectorAll('#studentPanels .count-badge').forEach(b => { b.textContent = ''; });
+      collapseAllPanels();
       if (!selectedUid) return;
       const uid = selectedUid;
       Object.keys(SECTIONS).forEach(k => loadList(k));
@@ -426,6 +445,9 @@
     const clip = (t, n = 140) => { t = String(t ?? ''); return t.length > n ? t.slice(0, n) + '…' : t; };
     const byTitle = (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
     const byDateDesc = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
+
+    const subjectOf = d => (d.subject || '').trim() || 'General';
+    const openGroups = {};   // section key -> Set of group names left open
 
     function friendlyError(e) {
       if (e && e.code === 'permission-denied') {
@@ -524,6 +546,7 @@
           document.getElementById('attPost').value = d.postTask || 'Not assigned';
         },
         onLoad: rows => renderAttSummary(rows),
+        groupOf: d => d.date ? new Date(d.date + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : 'No date',
         summary: d => {
           const p = attEntryPercent(d);
           return { title: d.date,
@@ -534,16 +557,19 @@
       feedback: {
         noun: 'feedback note', col: 'feedback', btn: 'fbBtn', msg: 'fbStatus_msg', list: 'fbList',
         fields: { subject: 'fbSubject', date: 'fbDate', note: 'fbNote' }, keep: ['subject', 'date'], sort: byDateDesc,
+        groupOf: d => subjectOf(d),
         build: v => v.note ? { subject: v.subject, date: v.date, note: v.note } : 'Write a note.',
         summary: d => ({ title: [d.subject || '(no subject)', d.date].filter(Boolean).join(' — '), meta: clip(d.note) })
       },
       materials: {
         noun: 'material', col: 'materials', btn: 'matBtn', msg: 'matStatus_msg', list: 'matList',
-        fields: { title: 'matTitle', link: 'matLink' }, keep: [], sort: byTitle,
+        fields: { subject: 'matSubject', title: 'matTitle', link: 'matLink' }, keep: ['subject'],
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || byTitle(x, y),
+        groupOf: d => subjectOf(d),
         build: v => {
           if (!v.title || !v.link) return 'Title and link required.';
           if (badLink(v.link)) return 'That link type is not allowed.';
-          return { title: v.title, link: v.link };
+          return { subject: v.subject || 'General', title: v.title, link: v.link };
         },
         summary: d => ({ title: d.title, meta: d.link })
       },
@@ -679,6 +705,7 @@
       btn.textContent = 'Save Changes';
       document.getElementById(s.btn + 'Cancel').style.display = '';
       const panel = btn.closest('.panel');
+      setPanelOpen(panel, true);
       panel.classList.add('editing');
       panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
     }
@@ -694,6 +721,7 @@
         if (wasEditing) await col.doc(wasEditing).set(res);
         else await col.add(res);
         showMsg(s.msg, wasEditing ? 'Changes saved.' : 'Added.', true);
+        if (s.groupOf) (openGroups[key] = openGroups[key] || new Set()).add(s.groupOf(res));
         endEdit(key);
         clearForm(key, !wasEditing);
         await loadList(key);
@@ -723,13 +751,43 @@
         cache[key] = {};
         rows.forEach(r => { cache[key][r.id] = r; });
         if (s.onLoad) s.onLoad(rows);
+        refreshSubjects();
         renderList(key, rows);
       } catch (e) { box.textContent = 'Could not load entries: ' + friendlyError(e); }
     }
 
+    function buildEntry(key, r) {
+      const { title, meta } = SECTIONS[key].summary(r);
+      const item = document.createElement('div');
+      item.className = 'entry';
+      const text = document.createElement('div');
+      text.className = 'entry-text';
+      const t = document.createElement('strong');
+      t.textContent = title || '(untitled)';
+      const m = document.createElement('span');
+      m.textContent = meta || '';
+      text.append(t, m);
+      const actions = document.createElement('div');
+      actions.className = 'entry-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'mini';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => startEdit(key, r.id);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'mini danger';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => deleteEntry(key, r.id);
+      actions.append(editBtn, delBtn);
+      item.append(text, actions);
+      return item;
+    }
+
     function renderList(key, rows) {
-      const box = document.getElementById(SECTIONS[key].list);
+      const s = SECTIONS[key];
+      const box = document.getElementById(s.list);
       box.textContent = '';
+      const badge = box.closest('.panel').querySelector('.count-badge');
+      if (badge) badge.textContent = rows.length || '';
       if (!rows.length) {
         const n = document.createElement('div');
         n.className = 'empty-note';
@@ -737,34 +795,64 @@
         box.appendChild(n);
         return;
       }
-      for (const r of rows) {
-        const { title, meta } = SECTIONS[key].summary(r);
-        const item = document.createElement('div');
-        item.className = 'entry';
-        const text = document.createElement('div');
-        text.className = 'entry-text';
-        const t = document.createElement('strong');
-        t.textContent = title || '(untitled)';
-        const m = document.createElement('span');
-        m.textContent = meta || '';
-        text.append(t, m);
-        const actions = document.createElement('div');
-        actions.className = 'entry-actions';
-        const editBtn = document.createElement('button');
-        editBtn.className = 'mini';
-        editBtn.textContent = 'Edit';
-        editBtn.onclick = () => startEdit(key, r.id);
-        const delBtn = document.createElement('button');
-        delBtn.className = 'mini danger';
-        delBtn.textContent = 'Delete';
-        delBtn.onclick = () => deleteEntry(key, r.id);
-        actions.append(editBtn, delBtn);
-        item.append(text, actions);
-        box.appendChild(item);
-      }
+      if (!s.groupOf) { rows.forEach(r => box.appendChild(buildEntry(key, r))); return; }
+      // grouped (e.g. materials by subject, attendance by month): every group is closed until opened
+      const groups = new Map();
+      rows.forEach(r => { const g = s.groupOf(r); if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
+      const open = openGroups[key] = openGroups[key] || new Set();
+      groups.forEach((items, g) => {
+        const det = document.createElement('details');
+        det.className = 'group';
+        det.open = open.has(g);
+        det.addEventListener('toggle', () => { if (det.open) open.add(g); else open.delete(g); });
+        const sum = document.createElement('summary');
+        sum.textContent = `${g} (${items.length})`;
+        det.appendChild(sum);
+        items.forEach(r => det.appendChild(buildEntry(key, r)));
+        box.appendChild(det);
+      });
+    }
+
+    // subject suggestions (typing a subject offers the ones already used for this student)
+    function refreshSubjects() {
+      const set = new Set();
+      ['materials', 'feedback'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(subjectOf(d))));
+      const dl = document.getElementById('subjectList');
+      dl.textContent = '';
+      [...set].sort((x, y) => x.localeCompare(y)).forEach(v => {
+        const o = document.createElement('option');
+        o.value = v;
+        dl.appendChild(o);
+      });
+    }
+
+    // collapsible sections: closed by default, click a heading to open/close
+    function setPanelOpen(panel, open) {
+      panel.classList.toggle('open', open);
+      panel.classList.toggle('collapsed', !open);
+    }
+    function collapseAllPanels() {
+      document.querySelectorAll('#studentPanels > .panel').forEach(p => setPanelOpen(p, false));
+    }
+    function initCollapsiblePanels() {
+      document.querySelectorAll('#studentPanels > .panel').forEach(panel => {
+        const h = panel.querySelector('h3');
+        if (!h) return;
+        const body = document.createElement('div');
+        body.className = 'panel-body';
+        while (h.nextSibling) body.appendChild(h.nextSibling);
+        panel.appendChild(body);
+        h.classList.add('panel-toggle');
+        const badge = document.createElement('span');
+        badge.className = 'count-badge';
+        h.appendChild(badge);
+        h.addEventListener('click', () => setPanelOpen(panel, panel.classList.contains('collapsed')));
+        setPanelOpen(panel, false);
+      });
     }
 
     initSections();
+    initCollapsiblePanels();
   </script>
 </body>
 </html>
