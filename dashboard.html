@@ -82,6 +82,17 @@
   .panel.collapsed .panel-body { display:none; }
   .count-badge { margin-left:auto; background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; font-size:0.72rem; font-weight:600; color:var(--muted); padding:0.1rem 0.65rem; }
   .count-badge:empty { display:none; }
+  .sg-box { margin-top:1.2rem; padding-top:1rem; border-top:1px solid var(--border); }
+  .sg-box label { display:block; font-size:0.85rem; font-weight:700; margin-bottom:0.5rem; }
+  .sg-box textarea { width:100%; border:1px solid var(--border); border-radius:8px; padding:0.6rem 0.8rem; font:inherit; font-size:0.85rem; resize:vertical; -webkit-user-select:text; user-select:text; }
+  .sg-box textarea:focus { outline:none; border-color:var(--blue); }
+  .sg-box button { background:var(--blue); color:#fff; border:none; border-radius:8px; padding:0.55rem 1.1rem; font-size:0.82rem; font-weight:600; cursor:pointer; margin-top:0.5rem; font-family:inherit; }
+  .sg-box button:disabled { opacity:0.6; cursor:default; }
+  .sg-msg { font-size:0.8rem; color:var(--muted); margin-top:0.5rem; min-height:1em; }
+  .sg-mine { margin-top:0.8rem; font-size:0.8rem; }
+  .sg-mine .sg-item { padding:0.45rem 0; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:1rem; }
+  .sg-mine .sg-item span:first-child { white-space:pre-wrap; }
+  .sg-mine .sg-item span:last-child { color:var(--muted); white-space:nowrap; }
 </style>
 </head>
 <body>
@@ -107,6 +118,23 @@
       <div class="panel" id="attendancePanel">
         <h3>📋 Attendance</h3>
         <div id="attendanceList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>✅ Pre &amp; Post Session Tasks</h3>
+        <div id="tasksList"></div>
+      </div>
+
+      <div class="panel">
+        <h3>🎮 Activities &amp; Games</h3>
+        <div id="activitiesList"></div>
+        <div class="sg-box">
+          <label for="sgText">💡 Suggest an activity</label>
+          <textarea id="sgText" rows="3" maxlength="500" placeholder="Tell us a game or activity you'd like to try, e.g. a crossword on the human body"></textarea>
+          <button type="button" id="sgBtn">Send suggestion</button>
+          <div class="sg-msg" id="sgMsg"></div>
+          <div class="sg-mine" id="mySuggestions"></div>
+        </div>
       </div>
 
       <div class="panel" id="workflowPanel" style="display:none;">
@@ -153,6 +181,7 @@
   <script src="firebase-config.js"></script>
   <script>
     let currentUid = null;
+    let currentStudentName = '';
 
     auth.onAuthStateChanged(async (user) => {
       if (!user) { window.location.href = 'login.html'; return; }
@@ -217,7 +246,8 @@
       row.className = 'row';
       const left = document.createElement('div');
       left.className = 'rl';
-      left.textContent = d.date || '';
+      const subjName = (d.subject || '').trim();
+      left.textContent = (d.date || '') + (subjName ? ' · ' + subjName : '');
       const chips = document.createElement('div');
       const addChip = (label, value) => {
         const c = document.createElement('span');
@@ -367,7 +397,8 @@
       }
     }
 
-    function buildAssessmentRow(d) {
+    // one row for an item that is either a link or pasted text/Markdown (assessments, tasks, activities)
+    function buildContentRow(d, metaText, noun) {
       const isText = d.type === 'text' || (!d.link && !!d.content);
       const wrap = document.createElement('div');
       wrap.className = 'as-item';
@@ -376,10 +407,12 @@
       const left = document.createElement('span');
       left.className = 'rl';
       left.textContent = (d.title || '') + ' ';
-      const due = document.createElement('span');
-      due.style.color = 'var(--muted)';
-      due.textContent = `(due ${d.dueDate || ''})`;
-      left.appendChild(due);
+      if (metaText) {
+        const meta = document.createElement('span');
+        meta.style.color = 'var(--muted)';
+        meta.textContent = metaText;
+        left.appendChild(meta);
+      }
       row.appendChild(left);
       wrap.appendChild(row);
 
@@ -391,11 +424,11 @@
         const btn = document.createElement('button');
         btn.type = 'button';
         btn.className = 'mat-link';
-        btn.textContent = 'View questions ▾';
+        btn.textContent = `View ${noun} ▾`;
         btn.onclick = () => {
           const open = body.style.display === 'none';
           body.style.display = open ? 'block' : 'none';
-          btn.textContent = open ? 'Hide questions ▴' : 'View questions ▾';
+          btn.textContent = open ? `Hide ${noun} ▴` : `View ${noun} ▾`;
         };
         row.appendChild(btn);
         wrap.appendChild(body);
@@ -416,6 +449,56 @@
       }
       return wrap;
     }
+    function buildAssessmentRow(d) { return buildContentRow(d, `(due ${d.dueDate || ''})`, 'questions'); }
+
+    // student suggestions for activities
+    async function loadMySuggestions(uid) {
+      const box = document.getElementById('mySuggestions');
+      try {
+        const snap = await db.collection('students').doc(uid).collection('suggestions').get();
+        const rows = [];
+        snap.forEach(doc => rows.push(doc.data()));
+        rows.sort((x, y) => ((y.createdAt && y.createdAt.seconds) || 0) - ((x.createdAt && x.createdAt.seconds) || 0));
+        box.textContent = '';
+        if (!rows.length) return;
+        const h = document.createElement('div');
+        h.style.cssText = 'font-weight:700;margin-bottom:0.2rem;';
+        h.textContent = 'Your suggestions';
+        box.appendChild(h);
+        rows.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'sg-item';
+          const t = document.createElement('span');
+          t.textContent = r.text || '';
+          const dt = document.createElement('span');
+          dt.textContent = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) : 'just now';
+          item.append(t, dt);
+          box.appendChild(item);
+        });
+      } catch (e) { box.textContent = ''; }
+    }
+    async function submitSuggestion() {
+      const ta = document.getElementById('sgText');
+      const msg = document.getElementById('sgMsg');
+      const btn = document.getElementById('sgBtn');
+      const text = ta.value.trim();
+      if (!text) { msg.textContent = 'Please write your idea first.'; return; }
+      btn.disabled = true;
+      try {
+        await db.collection('students').doc(currentUid).collection('suggestions').add({
+          text: text.slice(0, 500),
+          studentName: currentStudentName,
+          createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        });
+        ta.value = '';
+        msg.textContent = 'Thank you! Your idea was sent.';
+        await loadMySuggestions(currentUid);
+      } catch (e) {
+        msg.textContent = 'Sorry, your idea could not be sent. Please try again later.';
+      }
+      btn.disabled = false;
+    }
+    document.getElementById('sgBtn').addEventListener('click', submitSuggestion);
 
     // Collapsible sections: closed by default, tap a heading to open/close
     function setPanelOpen(panel, open) {
@@ -457,6 +540,7 @@
         return;
       }
       const student = studentDoc.data();
+      currentStudentName = student.name || '';
       document.getElementById('studentMeta').textContent =
         `${student.name || ''} · ${student.studentId || ''} · ${student.batchName || ''}`;
 
@@ -713,6 +797,79 @@
         items.forEach(a => det.appendChild(buildAssessmentRow(a)));
         asList.appendChild(det);
       });
+
+      // Pre & post session tasks (grouped: subject, then pre/post)
+      try {
+        const tkSnap = await db.collection('students').doc(uid).collection('tasks').get();
+        const tkList = document.getElementById('tasksList');
+        setBadge('tasksList', tkSnap.size);
+        tkList.innerHTML = tkSnap.empty ? '<div class="empty">No tasks yet.</div>' : '';
+        const tasks = [];
+        tkSnap.forEach(doc => tasks.push(doc.data()));
+        tasks.sort((x, y) => String(y.sessionDate || '').localeCompare(String(x.sessionDate || '')));
+        const tkBySubj = new Map();
+        tasks.forEach(t => {
+          const subj = (t.subject || '').trim() || 'General';
+          const kind = t.kind === 'Post-session' ? 'Post-session' : 'Pre-session';
+          if (!tkBySubj.has(subj)) tkBySubj.set(subj, { 'Pre-session': [], 'Post-session': [] });
+          tkBySubj.get(subj)[kind].push(t);
+        });
+        [...tkBySubj.keys()].sort((x, y) => x.localeCompare(y)).forEach(subj => {
+          const kinds = tkBySubj.get(subj);
+          const outer = document.createElement('details');
+          outer.className = 'mat-group';
+          outer.open = tkBySubj.size === 1;
+          const osum = document.createElement('summary');
+          osum.textContent = `${subj} (${kinds['Pre-session'].length + kinds['Post-session'].length})`;
+          outer.appendChild(osum);
+          ['Pre-session', 'Post-session'].forEach(kind => {
+            const items = kinds[kind];
+            if (!items.length) return;
+            const inner = document.createElement('details');
+            inner.className = 'mat-group';
+            inner.open = true;
+            const isum = document.createElement('summary');
+            isum.textContent = `${kind} (${items.length})`;
+            inner.appendChild(isum);
+            items.forEach(t => inner.appendChild(buildContentRow(t, t.sessionDate ? `(${t.sessionDate})` : '', 'task')));
+            outer.appendChild(inner);
+          });
+          tkList.appendChild(outer);
+        });
+      } catch (e) {
+        document.getElementById('tasksList').innerHTML = '<div class="empty">Tasks could not be loaded right now.</div>';
+      }
+
+      // Activities & games (grouped by category)
+      try {
+        const acSnap = await db.collection('students').doc(uid).collection('activities').get();
+        const acList = document.getElementById('activitiesList');
+        setBadge('activitiesList', acSnap.size);
+        acList.innerHTML = acSnap.empty ? '<div class="empty">No activities yet.</div>' : '';
+        const acGroups = new Map();
+        const acRows = [];
+        acSnap.forEach(doc => acRows.push(doc.data()));
+        acRows.sort((x, y) => String(x.title || '').localeCompare(String(y.title || '')));
+        acRows.forEach(a => {
+          const cat = (a.category || '').trim() || 'Other';
+          if (!acGroups.has(cat)) acGroups.set(cat, []);
+          acGroups.get(cat).push(a);
+        });
+        [...acGroups.keys()].sort((x, y) => x.localeCompare(y)).forEach(cat => {
+          const items = acGroups.get(cat);
+          const det = document.createElement('details');
+          det.className = 'mat-group';
+          det.open = acGroups.size === 1;
+          const sum = document.createElement('summary');
+          sum.textContent = `${cat} (${items.length})`;
+          det.appendChild(sum);
+          items.forEach(a => det.appendChild(buildContentRow(a, '', 'instructions')));
+          acList.appendChild(det);
+        });
+      } catch (e) {
+        document.getElementById('activitiesList').innerHTML = '<div class="empty">Activities could not be loaded right now.</div>';
+      }
+      await loadMySuggestions(uid);
 
       document.getElementById('loadingMsg').style.display = 'none';
       document.getElementById('appRoot').style.display = 'block';
