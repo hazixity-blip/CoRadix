@@ -178,9 +178,10 @@
         <div class="panel">
           <h3>📋 Attendance</h3>
           <div id="attSummary" class="att-summary"></div>
-          <div class="row2">
+          <div class="row3">
             <div><label>Date</label><input type="date" id="attDate"></div>
-            <div><label>Notes (optional)</label><input id="attNotes" placeholder="e.g. joined 10 min late, task submitted next day"></div>
+            <div><label>Subject of the session</label><input id="attSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>Notes (optional)</label><input id="attNotes" placeholder="e.g. joined 10 min late"></div>
           </div>
           <div class="row3">
             <div><label>Pre-session task</label>
@@ -195,6 +196,67 @@
           </div>
           <button class="action" id="attBtn" onclick="saveEntry('attendance')">Add Attendance</button>
           <div id="attStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>✅ Pre &amp; Post Session Tasks</h3>
+          <div class="row3">
+            <div><label>Task title</label><input id="tkTitle" placeholder="e.g. Read Chapter 4"></div>
+            <div><label>Subject</label><input id="tkSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>When</label>
+              <select id="tkKind"><option>Pre-session</option><option>Post-session</option></select>
+            </div>
+          </div>
+          <div class="row2">
+            <div><label>Session date</label><input type="date" id="tkDate"></div>
+            <div></div>
+          </div>
+          <label>Format</label>
+          <select id="tkType" onchange="toggleMode('tk')">
+            <option value="link">Link (Google Drive, website, online game)</option>
+            <option value="text">Type or paste text (plain text or Markdown)</option>
+          </select>
+          <div id="tkLinkWrap">
+            <label>Link</label>
+            <input id="tkLink" placeholder="https://...">
+          </div>
+          <div id="tkTextWrap" style="display:none;">
+            <label>Text (plain text or Markdown)</label>
+            <textarea id="tkText" class="md" rows="8" placeholder="Write or paste it here..."></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="tkBatch" style="width:auto;margin:0;"> Also add this for everyone in this student's batch (new entries only)</label>
+          <button class="action" id="tkBtn" onclick="saveEntry('tasks')">Add Task</button>
+          <div id="tkStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>🎮 Activities &amp; Games</h3>
+          <div class="row2">
+            <div><label>Activity title</label><input id="acTitle" placeholder="e.g. Science Word Hunt"></div>
+            <div><label>Category</label><input id="acCategory" list="categoryList" placeholder="e.g. Word game"></div>
+          </div>
+          <datalist id="categoryList"></datalist>
+          <label>Format</label>
+          <select id="acType" onchange="toggleMode('ac')">
+            <option value="link">Link (Google Drive, website, online game)</option>
+            <option value="text">Type or paste text (plain text or Markdown)</option>
+          </select>
+          <div id="acLinkWrap">
+            <label>Link</label>
+            <input id="acLink" placeholder="https://...">
+          </div>
+          <div id="acTextWrap" style="display:none;">
+            <label>Text (plain text or Markdown)</label>
+            <textarea id="acText" class="md" rows="8" placeholder="Write or paste it here..."></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="acBatch" style="width:auto;margin:0;"> Also add this for everyone in this student's batch (new entries only)</label>
+          <button class="action" id="acBtn" onclick="saveEntry('activities')">Add Activity</button>
+          <div id="acStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>💡 Activity Suggestions <span style="font-weight:400;color:var(--muted);font-size:0.75rem;">(sent by this student)</span></h3>
+          <div id="sgAdminList"></div>
         </div>
 
         <div class="panel">
@@ -365,11 +427,13 @@
       Object.keys(cache).forEach(k => delete cache[k]);
       Object.keys(openGroups).forEach(k => delete openGroups[k]);
       refreshSubjects();
+      document.getElementById('sgAdminList').textContent = '';
       document.querySelectorAll('#studentPanels .count-badge').forEach(b => { b.textContent = ''; });
       collapseAllPanels();
       if (!selectedUid) return;
       const uid = selectedUid;
       Object.keys(SECTIONS).forEach(k => loadList(k));
+      loadSuggestions();
       const doc = await db.collection('students').doc(uid).get();
       if (uid !== selectedUid) return;
       const d = doc.data() || {};
@@ -453,6 +517,8 @@
     // older scores stored "subject / test name" in one box: keep them under General, shown by their old label
     const scoreSubject = d => d.testName === undefined ? 'General' : subjectOf(d);
     const scoreLabel = d => d.testName === undefined ? d.subject : d.testName;
+    const catOf = d => (d.category || '').trim() || 'Other';
+    const kindRank = d => d.kind === 'Post-session' ? 1 : 0;
     const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
     const openGroups = {};   // section key -> Set of group names left open
 
@@ -542,9 +608,9 @@
       },
       attendance: {
         noun: 'attendance entry', col: 'attendance', btn: 'attBtn', msg: 'attStatus_msg', list: 'attList',
-        fields: { date: 'attDate', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
-        keep: ['date'], sort: byDateDesc,
-        build: v => v.date ? { date: v.date, preTask: v.preTask, session: v.session, postTask: v.postTask,
+        fields: { date: 'attDate', subject: 'attSubject', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
+        keep: ['date', 'subject'], sort: byDateDesc,
+        build: v => v.date ? { date: v.date, subject: v.subject, preTask: v.preTask, session: v.session, postTask: v.postTask,
                                status: v.session,   // kept so older pages that read "status" still work
                                notes: v.notes } : 'Pick a date.',
         afterFill: d => {
@@ -556,7 +622,7 @@
         groupOf: d => monthOf(d.date, 'No date'),
         summary: d => {
           const p = attEntryPercent(d);
-          return { title: d.date,
+          return { title: (d.subject || '').trim() ? `${d.date} — ${d.subject.trim()}` : d.date,
                    meta: [`Pre: ${d.preTask || 'Not assigned'}`, `Session: ${d.session || d.status || '—'}`, `Post: ${d.postTask || 'Not assigned'}`,
                           p === null ? '' : Math.round(p) + '%', d.notes].filter(Boolean).join(' · ') };
         }
@@ -599,10 +665,60 @@
         },
         summary: d => ({ title: scoreLabel(d), meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
       },
+      tasks: {
+        noun: 'task', col: 'tasks', btn: 'tkBtn', msg: 'tkStatus_msg', list: 'tkList',
+        fields: { title: 'tkTitle', subject: 'tkSubject', kind: 'tkKind', sessionDate: 'tkDate', type: 'tkType', link: 'tkLink', content: 'tkText' },
+        keep: ['subject', 'kind', 'sessionDate', 'type'], modePrefix: 'tk', batchBox: 'tkBatch',
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || kindRank(x) - kindRank(y) || String(y.sessionDate || '').localeCompare(String(x.sessionDate || '')),
+        groupOf: d => [subjectOf(d), d.kind === 'Post-session' ? 'Post-session' : 'Pre-session'],   // subject, then pre/post
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Type or paste the text.';
+            return { title: v.title, subject: v.subject || 'General', kind: v.kind, sessionDate: v.sessionDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, subject: v.subject || 'General', kind: v.kind, sessionDate: v.sessionDate, type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('tkType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleMode('tk');
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title, meta: `${d.sessionDate || 'no date'} · ` + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
+        }
+      },
+      activities: {
+        noun: 'activity', col: 'activities', btn: 'acBtn', msg: 'acStatus_msg', list: 'acList',
+        fields: { title: 'acTitle', category: 'acCategory', type: 'acType', link: 'acLink', content: 'acText' },
+        keep: ['category', 'type'], modePrefix: 'ac', batchBox: 'acBatch',
+        sort: (x, y) => catOf(x).localeCompare(catOf(y)) || byTitle(x, y),
+        groupOf: d => catOf(d),
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Type or paste the text.';
+            return { title: v.title, category: v.category || 'Other', type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, category: v.category || 'Other', type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('acType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleMode('ac');
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title, meta: isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link };
+        }
+      },
       assessments: {
         noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
         fields: { title: 'asTitle', subject: 'asSubject', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
-        keep: ['subject', 'dueDate', 'type'],
+        keep: ['subject', 'dueDate', 'type'], modePrefix: 'as',
         sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || String(y.dueDate || '').localeCompare(String(x.dueDate || '')),
         groupOf: d => subjectOf(d),
         build: v => {
@@ -647,6 +763,61 @@
       }).join('\n');
     }
 
+    async function loadSuggestions() {
+      const uid = selectedUid;
+      const box = document.getElementById('sgAdminList');
+      const badge = box.closest('.panel').querySelector('.count-badge');
+      if (!uid) { box.textContent = ''; return; }
+      try {
+        const snap = await db.collection('students').doc(uid).collection('suggestions').get();
+        if (uid !== selectedUid) return;
+        const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((x, y) => ((y.createdAt && y.createdAt.seconds) || 0) - ((x.createdAt && x.createdAt.seconds) || 0));
+        if (badge) badge.textContent = rows.length || '';
+        box.textContent = '';
+        if (!rows.length) {
+          const n = document.createElement('div');
+          n.className = 'empty-note';
+          n.textContent = 'No suggestions yet.';
+          box.appendChild(n);
+          return;
+        }
+        rows.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'entry';
+          const text = document.createElement('div');
+          text.className = 'entry-text';
+          const t = document.createElement('strong');
+          t.style.whiteSpace = 'pre-wrap';
+          t.style.fontWeight = '500';
+          t.textContent = r.text || '';
+          const m = document.createElement('span');
+          m.textContent = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+          text.append(t, m);
+          const actions = document.createElement('div');
+          actions.className = 'entry-actions';
+          const del = document.createElement('button');
+          del.className = 'mini danger';
+          del.textContent = 'Delete';
+          del.onclick = async () => {
+            if (!confirm('Delete this suggestion?')) return;
+            try {
+              await db.collection('students').doc(uid).collection('suggestions').doc(r.id).delete();
+              await loadSuggestions();
+            } catch (e) { box.textContent = 'Error: ' + friendlyError(e); }
+          };
+          actions.appendChild(del);
+          item.append(text, actions);
+          box.appendChild(item);
+        });
+      } catch (e) { box.textContent = 'Could not load suggestions: ' + friendlyError(e); }
+    }
+
+    function toggleMode(p) {
+      const isText = document.getElementById(p + 'Type').value === 'text';
+      document.getElementById(p + 'LinkWrap').style.display = isText ? 'none' : '';
+      document.getElementById(p + 'TextWrap').style.display = isText ? '' : 'none';
+    }
     function toggleAssessmentMode() {
       const isText = document.getElementById('asType').value === 'text';
       document.getElementById('asLinkWrap').style.display = isText ? 'none' : '';
@@ -695,7 +866,8 @@
           el.selectedIndex = def >= 0 ? def : 0;
         } else el.value = '';
       }
-      if (key === 'assessments') toggleAssessmentMode();
+      if (s.modePrefix) toggleMode(s.modePrefix);
+      if (s.batchBox) document.getElementById(s.batchBox).checked = false;
     }
 
     function endEdit(key) {
@@ -717,6 +889,7 @@
       for (const [k, elId] of Object.entries(s.fields)) {
         document.getElementById(elId).value = d[k] ?? '';
       }
+      if (s.batchBox) document.getElementById(s.batchBox).checked = false;
       if (s.afterFill) s.afterFill(d);
       const btn = document.getElementById(s.btn);
       btn.textContent = 'Save Changes';
@@ -737,7 +910,9 @@
         const col = db.collection('students').doc(selectedUid).collection(s.col);
         if (wasEditing) await col.doc(wasEditing).set(res);
         else await col.add(res);
-        showMsg(s.msg, wasEditing ? 'Changes saved.' : 'Added.', true);
+        let extra = 0;
+        if (!wasEditing && s.batchBox && document.getElementById(s.batchBox).checked) extra = await addToBatch(s, res);
+        showMsg(s.msg, wasEditing ? 'Changes saved.' : (extra ? `Added for ${extra + 1} students.` : 'Added.'), true);
         if (s.groupOf) {
           const g = s.groupOf(res), path = Array.isArray(g) ? g : [g];
           const set = (openGroups[key] = openGroups[key] || new Set());
@@ -747,6 +922,23 @@
         clearForm(key, !wasEditing);
         await loadList(key);
       } catch (e) { showMsg(s.msg, 'Error: ' + friendlyError(e), false); }
+    }
+
+    // copy a new entry to every other student in the same batch
+    async function addToBatch(s, res) {
+      const me = await db.collection('students').doc(selectedUid).get();
+      const batchName = (me.data() || {}).batchName;
+      if (!batchName) throw new Error("This student has no batch name, so there is no batch to add to.");
+      const snap = await db.collection('students').where('batchName', '==', batchName).get();
+      let wb = db.batch(), n = 0, total = 0;
+      for (const st of snap.docs) {
+        if (st.id === selectedUid) continue;
+        wb.set(st.ref.collection(s.col).doc(), res);
+        total++;
+        if (++n === 400) { await wb.commit(); wb = db.batch(); n = 0; }
+      }
+      if (n) await wb.commit();
+      return total;
     }
 
     async function deleteEntry(key, id) {
@@ -842,15 +1034,20 @@
 
     // subject suggestions (typing a subject offers the ones already used for this student)
     function refreshSubjects() {
-      const set = new Set();
-      ['materials', 'feedback', 'assessments', 'scores'].forEach(k => Object.values(cache[k] || {}).forEach(d => set.add(k === 'scores' ? scoreSubject(d) : subjectOf(d))));
-      const dl = document.getElementById('subjectList');
-      dl.textContent = '';
-      [...set].sort((x, y) => x.localeCompare(y)).forEach(v => {
-        const o = document.createElement('option');
-        o.value = v;
-        dl.appendChild(o);
-      });
+      const subjects = new Set(), cats = new Set(['Word hunt', 'Crossword', 'Puzzle', 'Quiz', 'Riddles', 'Memory game', 'Drawing', 'Other']);
+      ['materials', 'feedback', 'assessments', 'scores', 'tasks', 'attendance'].forEach(k => Object.values(cache[k] || {}).forEach(d => {
+        if (k === 'scores') subjects.add(scoreSubject(d));
+        else if (k === 'attendance') { if ((d.subject || '').trim()) subjects.add(d.subject.trim()); }
+        else subjects.add(subjectOf(d));
+      }));
+      Object.values(cache.activities || {}).forEach(d => cats.add(catOf(d)));
+      const fill = (id, set) => {
+        const dl = document.getElementById(id);
+        dl.textContent = '';
+        [...set].sort((x, y) => x.localeCompare(y)).forEach(v => { const o = document.createElement('option'); o.value = v; dl.appendChild(o); });
+      };
+      fill('subjectList', subjects);
+      fill('categoryList', cats);
     }
 
     // collapsible sections: closed by default, click a heading to open/close
