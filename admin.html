@@ -199,6 +199,24 @@
         </div>
 
         <div class="panel">
+          <h3>💰 Fees</h3>
+          <div id="feeSummary" class="att-summary"></div>
+          <div class="row3">
+            <div><label>Fee for</label><input id="feTitle" placeholder="e.g. Term 1 fee"></div>
+            <div><label>Amount to pay (₹)</label><input type="number" id="feAmount" min="0" placeholder="e.g. 5000"></div>
+            <div><label>Pay by (deadline)</label><input type="date" id="feDue"></div>
+          </div>
+          <div class="row3">
+            <div><label>Amount paid so far (₹)</label><input type="number" id="fePaid" min="0" placeholder="0"></div>
+            <div><label>Paid on</label><input type="date" id="fePaidOn"></div>
+            <div><label>Note (optional)</label><input id="feNotes" placeholder="e.g. pay by UPI or cash"></div>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="feBatch" style="width:auto;margin:0;"> Also add this fee for everyone in this student's batch (new entries only; their paid amount starts at 0)</label>
+          <button class="action" id="feBtn" onclick="saveEntry('fees')">Add Fee</button>
+          <div id="feStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
           <h3>✅ Pre &amp; Post Session Tasks</h3>
           <div class="row3">
             <div><label>Task title</label><input id="tkTitle" placeholder="e.g. Read Chapter 4"></div>
@@ -517,6 +535,22 @@
     // older scores stored "subject / test name" in one box: keep them under General, shown by their old label
     const scoreSubject = d => d.testName === undefined ? 'General' : subjectOf(d);
     const scoreLabel = d => d.testName === undefined ? d.subject : d.testName;
+    /* ---------- Fees ---------- */
+    const inr = n => Number(n || 0).toLocaleString('en-IN');
+    const todayStr = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+    const daysUntil = due => due ? Math.round((new Date(due + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000) : null;
+    function feeInfo(f) {
+      const amount = Number(f.amount) || 0, paid = Number(f.paidAmount) || 0;
+      const balance = Math.max(amount - paid, 0);
+      const days = daysUntil(f.dueDate);
+      let state;
+      if (balance <= 0) state = 'Paid';
+      else if (days !== null && days < 0) state = 'Overdue';
+      else if (days !== null && days <= 7) state = 'Due soon';
+      else state = paid > 0 ? 'Partly paid' : 'Pending';
+      return { amount, paid, balance, days, state };
+    }
+
     const catOf = d => (d.category || '').trim() || 'Other';
     const kindRank = d => d.kind === 'Post-session' ? 1 : 0;
     const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
@@ -664,6 +698,35 @@
           }
         },
         summary: d => ({ title: scoreLabel(d), meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
+      },
+      fees: {
+        noun: 'fee', col: 'fees', btn: 'feBtn', msg: 'feStatus_msg', list: 'feList',
+        fields: { title: 'feTitle', amount: 'feAmount', dueDate: 'feDue', paidAmount: 'fePaid', paidDate: 'fePaidOn', notes: 'feNotes' },
+        keep: [], batchBox: 'feBatch',
+        batchTransform: r => ({ ...r, paidAmount: 0, paidDate: '' }),   // copies for other students start unpaid
+        sort: (x, y) => {
+          const a = feeInfo(x), b = feeInfo(y);
+          if ((a.balance > 0) !== (b.balance > 0)) return a.balance > 0 ? -1 : 1;   // unpaid first
+          const dx = x.dueDate || '9999', dy = y.dueDate || '9999';
+          return a.balance > 0 ? dx.localeCompare(dy) : dy.localeCompare(dx);
+        },
+        build: v => {
+          const amount = Number(v.amount), paid = v.paidAmount === '' ? 0 : Number(v.paidAmount);
+          if (!v.title || !(amount > 0) || !v.dueDate) return 'Fee name, amount and deadline are required.';
+          if (!(paid >= 0) || paid > amount) return 'Amount paid must be between 0 and the amount to pay.';
+          return { title: v.title, amount, dueDate: v.dueDate, paidAmount: paid, paidDate: v.paidDate, notes: v.notes };
+        },
+        onLoad: rows => renderFeeSummary(rows),
+        extra: r => feeInfo(r).balance > 0 ? [{
+          label: 'Mark paid',
+          run: async () => { await db.collection('students').doc(selectedUid).collection('fees').doc(r.id).update({ paidAmount: Number(r.amount) || 0, paidDate: todayStr() }); }
+        }] : [],
+        summary: d => {
+          const f = feeInfo(d);
+          return { title: `${d.title} — ₹${inr(f.amount)}`,
+                   meta: [`Pay by ${d.dueDate || '—'}`, f.paid ? `Paid ₹${inr(f.paid)}${d.paidDate ? ' on ' + d.paidDate : ''}` : '',
+                          f.balance ? `Balance ₹${inr(f.balance)}` : '', f.state, d.notes].filter(Boolean).join(' · ') };
+        }
       },
       tasks: {
         noun: 'task', col: 'tasks', btn: 'tkBtn', msg: 'tkStatus_msg', list: 'tkList',
@@ -813,6 +876,35 @@
       } catch (e) { box.textContent = 'Could not load suggestions: ' + friendlyError(e); }
     }
 
+    function renderFeeSummary(rows) {
+      const box = document.getElementById('feeSummary');
+      box.textContent = '';
+      if (!rows.length) { box.style.display = 'none'; return; }
+      let total = 0, paid = 0, balance = 0, overdue = 0, next = null;
+      rows.forEach(r => {
+        const f = feeInfo(r);
+        total += f.amount; paid += Math.min(f.paid, f.amount); balance += f.balance;
+        if (f.balance > 0) {
+          if (f.state === 'Overdue') overdue++;
+          if (r.dueDate && (!next || r.dueDate < next.dueDate)) next = r;
+        }
+      });
+      const big = document.createElement('div');
+      big.className = 'att-big';
+      big.textContent = '₹' + inr(balance);
+      const small = document.createElement('small');
+      small.textContent = `balance to pay · total ₹${inr(total)} · paid ₹${inr(paid)}`;
+      big.appendChild(small);
+      const chips = document.createElement('div');
+      chips.className = 'att-chips';
+      const chip = t => { const c = document.createElement('span'); c.className = 'att-chip'; c.textContent = t; chips.appendChild(c); };
+      if (balance <= 0) chip('All paid');
+      if (overdue) chip(`${overdue} overdue`);
+      if (next) chip('Next deadline: ' + next.dueDate);
+      box.append(big, chips);
+      box.style.display = 'block';
+    }
+
     function toggleMode(p) {
       const isText = document.getElementById(p + 'Type').value === 'text';
       document.getElementById(p + 'LinkWrap').style.display = isText ? 'none' : '';
@@ -933,7 +1025,7 @@
       let wb = db.batch(), n = 0, total = 0;
       for (const st of snap.docs) {
         if (st.id === selectedUid) continue;
-        wb.set(st.ref.collection(s.col).doc(), res);
+        wb.set(st.ref.collection(s.col).doc(), s.batchTransform ? s.batchTransform(res) : res);
         total++;
         if (++n === 400) { await wb.commit(); wb = db.batch(); n = 0; }
       }
@@ -990,6 +1082,17 @@
       delBtn.className = 'mini danger';
       delBtn.textContent = 'Delete';
       delBtn.onclick = () => deleteEntry(key, r.id);
+      const extras = SECTIONS[key].extra ? SECTIONS[key].extra(r) : [];
+      extras.forEach(x => {
+        const b = document.createElement('button');
+        b.className = 'mini';
+        b.textContent = x.label;
+        b.onclick = async () => {
+          try { await x.run(); showMsg(SECTIONS[key].msg, 'Updated.', true); await loadList(key); }
+          catch (e) { showMsg(SECTIONS[key].msg, 'Error: ' + friendlyError(e), false); }
+        };
+        actions.append(b);
+      });
       actions.append(editBtn, delBtn);
       item.append(text, actions);
       return item;
