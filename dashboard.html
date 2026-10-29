@@ -93,6 +93,11 @@
   .sg-mine .sg-item { padding:0.45rem 0; border-top:1px solid var(--border); display:flex; justify-content:space-between; gap:1rem; }
   .sg-mine .sg-item span:first-child { white-space:pre-wrap; }
   .sg-mine .sg-item span:last-child { color:var(--muted); white-space:nowrap; }
+  .fee-banner { border-radius:10px; padding:0.9rem 1.1rem; margin-bottom:1.2rem; font-size:0.9rem; font-weight:600; cursor:pointer; border:1px solid; }
+  .fee-banner small { display:block; font-weight:400; margin-top:0.25rem; }
+  .fee-overdue { background:#fef2f2; color:#b91c1c; border-color:#fecaca; }
+  .fee-soon { background:#fffbeb; color:#92400e; border-color:#fde68a; }
+  .fee-info { background:var(--blue-light); color:var(--blue); border-color:#c7d7ff; }
 </style>
 </head>
 <body>
@@ -108,11 +113,18 @@
     <main>
       <div id="skillBadgeWrap"></div>
 
+      <div id="feeBanner" class="fee-banner" style="display:none;" role="button" tabindex="0"></div>
+
       <div class="grid" id="statsGrid">
         <div class="stat-card" id="attCard"><div class="stat-num" id="attendancePct">—</div><div class="stat-lbl">Attendance this term</div><div class="att-breakdown" id="attBreakdown"></div></div>
         <div class="stat-card" id="sessCard"><div class="stat-num" id="sessionCount">—</div><div class="stat-lbl">Sessions recorded</div></div>
         <div class="stat-card"><div class="stat-num" id="avgScorePct">—</div><div class="stat-lbl">Average score</div></div>
         <div class="stat-card"><div class="stat-num" id="avgRating">—</div><div class="stat-lbl">Average session rating</div></div>
+      </div>
+
+      <div class="panel" id="feesPanel">
+        <h3>💰 Fees</h3>
+        <div id="feesList"></div>
       </div>
 
       <div class="panel" id="attendancePanel">
@@ -500,6 +512,59 @@
     }
     document.getElementById('sgBtn').addEventListener('click', submitSuggestion);
 
+    /* ---------- Fees ---------- */
+    const inr = n => Number(n || 0).toLocaleString('en-IN');
+    const todayStr = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+    const daysUntil = due => due ? Math.round((new Date(due + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000) : null;
+    function feeInfo(f) {
+      const amount = Number(f.amount) || 0, paid = Number(f.paidAmount) || 0;
+      const balance = Math.max(amount - paid, 0);
+      const days = daysUntil(f.dueDate);
+      let state;
+      if (balance <= 0) state = 'Paid';
+      else if (days !== null && days < 0) state = 'Overdue';
+      else if (days !== null && days <= 7) state = 'Due soon';
+      else state = paid > 0 ? 'Partly paid' : 'Pending';
+      return { amount, paid, balance, days, state };
+    }
+    const fmtDate = s => s ? new Date(s + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+    function whenText(days) {
+      if (days === null) return '';
+      if (days < 0) return `${-days} day${days === -1 ? '' : 's'} ago`;
+      if (days === 0) return 'today';
+      if (days === 1) return 'tomorrow';
+      return `in ${days} days`;
+    }
+    function buildFeeRow(f, i) {
+      const row = document.createElement('div');
+      row.className = 'row';
+      const left = document.createElement('div');
+      left.className = 'rl';
+      const st = document.createElement('strong');
+      st.textContent = f.title || 'Fee';
+      left.appendChild(st);
+      const line = document.createElement('div');
+      line.className = 'att-note';
+      line.textContent = [`Total ₹${inr(i.amount)}`, i.paid ? `Paid ₹${inr(i.paid)}${f.paidDate ? ' on ' + fmtDate(f.paidDate) : ''}` : '', `Pay by ${fmtDate(f.dueDate)}`].filter(Boolean).join(' · ');
+      left.appendChild(line);
+      if (f.notes) {
+        const n = document.createElement('div');
+        n.className = 'att-note';
+        n.textContent = f.notes;
+        left.appendChild(n);
+      }
+      const right = document.createElement('div');
+      right.className = 'rr';
+      right.style.whiteSpace = 'nowrap';
+      right.textContent = i.balance > 0 ? `₹${inr(i.balance)} to pay` : '';   // paid rows show just the Paid tag
+      const chip = document.createElement('div');
+      chip.className = 'chip ' + ({ 'Paid': 'chip-ok', 'Overdue': 'chip-bad', 'Due soon': 'chip-mid' }[i.state] || 'chip-na');
+      chip.textContent = i.state;
+      right.appendChild(chip);
+      row.append(left, right);
+      return row;
+    }
+
     // Collapsible sections: closed by default, tap a heading to open/close
     function setPanelOpen(panel, open) {
       panel.classList.toggle('open', open);
@@ -869,6 +934,54 @@
       } catch (e) {
         document.getElementById('activitiesList').innerHTML = '<div class="empty">Activities could not be loaded right now.</div>';
       }
+      // Fees (reminder banner + list)
+      try {
+        const feSnap = await db.collection('students').doc(uid).collection('fees').get();
+        const feList = document.getElementById('feesList');
+        const items = [];
+        feSnap.forEach(doc => { const f = doc.data(); items.push({ f, i: feeInfo(f) }); });
+        const unpaid = items.filter(x => x.i.balance > 0).sort((x, y) => String(x.f.dueDate || '9999').localeCompare(String(y.f.dueDate || '9999')));
+        const paidItems = items.filter(x => x.i.balance <= 0).sort((x, y) => String(y.f.dueDate || '').localeCompare(String(x.f.dueDate || '')));
+        setBadge('feesList', unpaid.length);
+        feList.innerHTML = items.length ? '' : '<div class="empty">No fees to show.</div>';
+        unpaid.forEach(x => feList.appendChild(buildFeeRow(x.f, x.i)));
+        if (paidItems.length) {
+          const det = document.createElement('details');
+          det.className = 'mat-group';
+          const sum = document.createElement('summary');
+          sum.textContent = `Paid (${paidItems.length})`;
+          det.appendChild(sum);
+          paidItems.forEach(x => det.appendChild(buildFeeRow(x.f, x.i)));
+          feList.appendChild(det);
+        }
+        const banner = document.getElementById('feeBanner');
+        if (unpaid.length) {
+          const t = unpaid[0];   // most urgent: overdue first, then the earliest deadline
+          const amt = '₹' + inr(t.i.balance);
+          const when = whenText(t.i.days);
+          let cls, text;
+          if (t.i.state === 'Overdue') { cls = 'fee-overdue'; text = `⚠️ Fee overdue: ${amt} was due on ${fmtDate(t.f.dueDate)} (${when})`; }
+          else if (t.i.state === 'Due soon') { cls = 'fee-soon'; text = `⏰ Fee due soon: pay ${amt} by ${fmtDate(t.f.dueDate)} (${when})`; }
+          else { cls = 'fee-info'; text = `💰 Next fee: pay ${amt} by ${fmtDate(t.f.dueDate)}${when ? ' (' + when + ')' : ''}`; }
+          banner.className = 'fee-banner ' + cls;
+          banner.textContent = text;
+          const more = document.createElement('small');
+          const totalBal = unpaid.reduce((n, x) => n + x.i.balance, 0);
+          more.textContent = unpaid.length > 1 ? `Total balance: ₹${inr(totalBal)} across ${unpaid.length} fees. Tap for details.` : 'Tap for details.';
+          banner.appendChild(more);
+          banner.style.display = 'block';
+          const openFees = () => {
+            const panel = document.getElementById('feesPanel');
+            setPanelOpen(panel, true);
+            panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+          };
+          banner.onclick = openFees;
+          banner.onkeydown = e => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openFees(); } };
+        }
+      } catch (e) {
+        document.getElementById('feesList').innerHTML = '<div class="empty">Fees could not be loaded right now.</div>';
+      }
+
       await loadMySuggestions(uid);
 
       document.getElementById('loadingMsg').style.display = 'none';
