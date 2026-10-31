@@ -502,7 +502,7 @@
     async function deleteStudent() {
       if (!selectedUid) return;
       const label = document.getElementById('studentSelect').selectedOptions[0].textContent;
-      if (!confirm(`Delete "${label}" and ALL of their entries (links, steps, attendance, feedback, materials, scores, assessments)?\n\nThis cannot be undone.\n\nNote: their login in Firebase Authentication is NOT removed — delete it separately in Firebase Console.`)) return;
+      if (!confirm(`Delete "${label}" and ALL of their entries (links, steps, attendance, feedback, materials, scores, assessments, tasks, activities, fees, suggestions)?\n\nThis cannot be undone.\n\nNote: their login in Firebase Authentication is NOT removed — delete it separately in Firebase Console.`)) return;
       try {
         const ref = db.collection('students').doc(selectedUid);
         for (const c of SUB_COLLECTIONS) {
@@ -522,7 +522,7 @@
     }
 
     /* ================= Add / edit / delete for every per-student entry ================= */
-    const SUB_COLLECTIONS = ['links','projectSteps','attendance','feedback','materials','scores','assessments'];
+    const SUB_COLLECTIONS = ['links','projectSteps','attendance','feedback','materials','scores','assessments','tasks','activities','fees','suggestions'];
     const editing = {};   // section key -> id of the entry being edited (or null)
     const cache = {};     // section key -> { id: data }
 
@@ -551,6 +551,8 @@
       return { amount, paid, balance, days, state };
     }
 
+    // attendance rows are matched to a task by session date + subject (blank and "General" count as the same)
+    const normSubj = s => { const v = (s || '').trim().toLowerCase(); return v === 'general' ? '' : v; };
     const catOf = d => (d.category || '').trim() || 'Other';
     const kindRank = d => d.kind === 'Post-session' ? 1 : 0;
     const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
@@ -653,6 +655,20 @@
           document.getElementById('attPost').value = d.postTask || 'Not assigned';
         },
         onLoad: rows => renderAttSummary(rows),
+        merge: async (col, res) => {
+          if (!res.date) return false;
+          const snap = await col.where('date', '==', res.date).get();
+          const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(res.subject));
+          if (!hit) return false;
+          const old = hit.data();
+          await hit.ref.set({
+            ...res,
+            preTask: res.preTask === 'Not assigned' ? (old.preTask || 'Not assigned') : res.preTask,
+            postTask: res.postTask === 'Not assigned' ? (old.postTask || 'Not assigned') : res.postTask,
+            notes: res.notes || old.notes || ''
+          });
+          return true;
+        },
         groupOf: d => monthOf(d.date, 'No date'),
         summary: d => {
           const p = attEntryPercent(d);
@@ -732,6 +748,37 @@
         noun: 'task', col: 'tasks', btn: 'tkBtn', msg: 'tkStatus_msg', list: 'tkList',
         fields: { title: 'tkTitle', subject: 'tkSubject', kind: 'tkKind', sessionDate: 'tkDate', type: 'tkType', link: 'tkLink', content: 'tkText' },
         keep: ['subject', 'kind', 'sessionDate', 'type'], modePrefix: 'tk', batchBox: 'tkBatch',
+        preserve: ['done', 'doneDate'],
+        extra: r => [{
+          label: r.done ? 'Undo done' : 'Mark done',
+          run: async () => {
+            const stu = db.collection('students').doc(selectedUid);
+            const nowDone = !r.done;
+            await stu.collection('tasks').doc(r.id).update({ done: nowDone, doneDate: nowDone ? todayStr() : '' });
+            if (!r.sessionDate) return nowDone ? 'Marked done. This task has no session date, so attendance was not changed.' : 'Marked as not done.';
+            const isPost = r.kind === 'Post-session';
+            const field = isPost ? 'postTask' : 'preTask';
+            const value = nowDone ? 'Completed' : 'Not done';
+            const attCol = stu.collection('attendance');
+            const snap = await attCol.where('date', '==', r.sessionDate).get();
+            const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(r.subject));
+            let msg;
+            if (hit) {
+              await hit.ref.update({ [field]: value });
+              msg = nowDone ? 'Marked done and attendance updated.' : 'Marked as not done and attendance updated.';
+            } else if (nowDone) {
+              await attCol.add({
+                date: r.sessionDate, subject: normSubj(r.subject) ? r.subject.trim() : '',
+                preTask: isPost ? 'Not assigned' : value, session: '', postTask: isPost ? value : 'Not assigned', status: '', notes: ''
+              });
+              msg = `Marked done. A new attendance entry was created for ${r.sessionDate} — set the session (Present/Absent) there.`;
+            } else {
+              msg = 'Marked as not done.';
+            }
+            await loadList('attendance');
+            return msg;
+          }
+        }],
         sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || kindRank(x) - kindRank(y) || String(y.sessionDate || '').localeCompare(String(x.sessionDate || '')),
         groupOf: d => [subjectOf(d), d.kind === 'Post-session' ? 'Post-session' : 'Pre-session'],   // subject, then pre/post
         build: v => {
@@ -750,7 +797,7 @@
         },
         summary: d => {
           const isText = d.type === 'text' || (!d.link && d.content);
-          return { title: d.title, meta: `${d.sessionDate || 'no date'} · ` + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
+          return { title: d.title, meta: `${d.sessionDate || 'no date'} · ` + (d.done ? '✓ Done' + (d.doneDate ? ' on ' + d.doneDate : '') + ' · ' : '') + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
         }
       },
       activities: {
@@ -1000,11 +1047,18 @@
       const wasEditing = editing[key];
       try {
         const col = db.collection('students').doc(selectedUid).collection(s.col);
-        if (wasEditing) await col.doc(wasEditing).set(res);
-        else await col.add(res);
+        let merged = false;
+        if (wasEditing) {
+          const old = (cache[key] || {})[wasEditing] || {};
+          (s.preserve || []).forEach(k => { if (old[k] !== undefined) res[k] = old[k]; });   // e.g. a task stays "done" after an edit
+          await col.doc(wasEditing).set(res);
+        } else if (s.merge) {
+          merged = await s.merge(col, res);
+          if (!merged) await col.add(res);
+        } else await col.add(res);
         let extra = 0;
         if (!wasEditing && s.batchBox && document.getElementById(s.batchBox).checked) extra = await addToBatch(s, res);
-        showMsg(s.msg, wasEditing ? 'Changes saved.' : (extra ? `Added for ${extra + 1} students.` : 'Added.'), true);
+        showMsg(s.msg, wasEditing ? 'Changes saved.' : merged ? 'Updated the existing entry for this date and subject.' : (extra ? `Added for ${extra + 1} students.` : 'Added.'), true);
         if (s.groupOf) {
           const g = s.groupOf(res), path = Array.isArray(g) ? g : [g];
           const set = (openGroups[key] = openGroups[key] || new Set());
@@ -1088,7 +1142,7 @@
         b.className = 'mini';
         b.textContent = x.label;
         b.onclick = async () => {
-          try { await x.run(); showMsg(SECTIONS[key].msg, 'Updated.', true); await loadList(key); }
+          try { const m = await x.run(); showMsg(SECTIONS[key].msg, m || 'Updated.', true); await loadList(key); }
           catch (e) { showMsg(SECTIONS[key].msg, 'Error: ' + friendlyError(e), false); }
         };
         actions.append(b);
