@@ -281,7 +281,7 @@
       right.className = 'rr ' + cls;
       const hasTask = (d.preTask && d.preTask !== 'Not assigned') || (d.postTask && d.postTask !== 'Not assigned');
       const p = attEntryPercent(d);
-      right.textContent = session + (hasTask && p !== null ? ` · ${p}%` : '');
+      right.textContent = [session || 'Session pending', hasTask && p !== null ? p + '%' : ''].filter(Boolean).join(' · ');
       row.append(left, right);
       return row;
     }
@@ -679,7 +679,7 @@
         const sum = summarizeAttendance(entries);
         document.getElementById('attendancePct').textContent = sum.overall === null ? '—' : sum.overall + '%';
         document.getElementById('attBreakdown').textContent = sum.breakdown;
-        document.getElementById('sessionCount').textContent = entries.length;
+        document.getElementById('sessionCount').textContent = entries.filter(e => e.session || e.status).length;
       }
 
       // Scores / Performance (grouped by subject, then month)
@@ -896,7 +896,17 @@
             const isum = document.createElement('summary');
             isum.textContent = `${kind} (${items.length})`;
             inner.appendChild(isum);
-            items.forEach(t => inner.appendChild(buildContentRow(t, t.sessionDate ? `(${t.sessionDate})` : '', 'task')));
+            items.forEach(t => {
+              const row = buildContentRow(t, t.sessionDate ? `(${t.sessionDate})` : '', 'task');
+              if (t.done) {
+                const chip = document.createElement('span');
+                chip.className = 'chip chip-ok';
+                chip.style.marginLeft = '0.4rem';
+                chip.textContent = '✓ Done';
+                row.querySelector('.rl').appendChild(chip);
+              }
+              inner.appendChild(row);
+            });
             outer.appendChild(inner);
           });
           tkList.appendChild(outer);
