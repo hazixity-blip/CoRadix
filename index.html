@@ -9,7 +9,7 @@
   <!-- PWA -->
   <link rel="manifest" href="manifest.json" />
   <meta name="theme-color" content="#0057ff" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
+  <link rel="apple-touch-icon" href="icon-192.png" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-title" content="CoRadix" />
@@ -711,6 +711,7 @@
     <li><a href="#about-wrapper">About</a></li>
     <li><a href="#contact">Contact</a></li>
     <li><a href="login.html">Student Login</a></li>
+    <li><a href="#" id="installBtn" class="nav-cta" style="display:none;justify-content:center;align-items:center;gap:.4rem;">📲 Install App</a></li>
     <li> <a href="inq.html" class="btn">Book Enquiry</a> </li>
   </ul>
   <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
@@ -1459,5 +1460,22 @@
   }
 </script>
 <script src="pwa.js"></script>
+<script>
+  // Install button on the home page: hide if already installed, explain on iPhone
+  (function () {
+    var btn = document.getElementById('installBtn');
+    if (!btn) return;
+    btn.addEventListener('click', function (e) { e.preventDefault(); });
+    var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || navigator.standalone === true;
+    if (standalone) { btn.parentNode.style.display = 'none'; return; }
+    var isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+    if (isIOS) {
+      btn.style.display = 'flex';
+      btn.addEventListener('click', function () {
+        alert('To install on iPhone:\n1. Open this site in Safari\n2. Tap the Share button\n3. Tap "Add to Home Screen"');
+      });
+    }
+  })();
+</script>
 </body>
 </html>
