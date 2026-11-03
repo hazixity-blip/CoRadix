@@ -53,7 +53,7 @@
       messaging.onMessage(payload => {
         const d = (payload && payload.data) || {};
         reg.showNotification(d.title || 'CoRadix Academy', {
-          body: d.body || '', icon: 'icons/icon-192.png', badge: 'icons/icon-192.png',
+          body: d.body || '', icon: 'icon-192.png', badge: 'icon-192.png',
           tag: d.tag || undefined, data: { link: d.link || 'dashboard.html' }
         });
       });
