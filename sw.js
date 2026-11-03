@@ -1,5 +1,5 @@
 // Bump this number whenever you change cached files, so students get the update.
-const VERSION = 'v2';
+const VERSION = 'v3';
 const CACHE = 'coradix-' + VERSION;
 const SCOPE = self.registration.scope;
 
@@ -58,6 +58,38 @@ self.addEventListener('fetch', event => {
         return res;
       }).catch(() => cached);
       return cached || network;
+    })
+  );
+});
+
+// ---------- Push notifications ----------
+// Messages are sent "data-only" from the Cloud Function, so we build the notification here.
+self.addEventListener('push', event => {
+  let d = {};
+  try {
+    const payload = event.data ? event.data.json() : {};
+    d = payload.data || payload || {};
+  } catch (e) {}
+  event.waitUntil(
+    self.registration.showNotification(d.title || 'CoRadix Academy', {
+      body: d.body || '',
+      icon: 'icon-192.png',
+      badge: 'icon-192.png',
+      tag: d.tag || undefined,
+      data: { link: d.link || 'dashboard.html' }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.link) || 'dashboard.html', SCOPE).href;
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then(list => {
+      for (const c of list) {
+        if (c.url.startsWith(SCOPE) && 'focus' in c) { c.navigate(target); return c.focus(); }
+      }
+      return clients.openWindow(target);
     })
   );
 });
