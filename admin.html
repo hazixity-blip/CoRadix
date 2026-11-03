@@ -117,6 +117,26 @@
       </div>
 
       <div class="panel">
+        <h3>🔔 Send a Notification</h3>
+        <div class="row2">
+          <div><label>Send to</label>
+            <select id="ntAudience" onchange="document.getElementById('ntBatch').style.display = this.value==='batch' ? 'block' : 'none'">
+              <option value="all">All students</option>
+              <option value="student">Only the student selected below</option>
+              <option value="batch">A batch (type exact batch name)</option>
+            </select>
+            <input id="ntBatch" placeholder="e.g. Batch A - Class 10" style="display:none;margin-top:0.4rem;">
+          </div>
+          <div><label>Title</label><input id="ntTitle" maxlength="60" placeholder="e.g. Fee reminder"></div>
+        </div>
+        <label>Message</label>
+        <textarea id="ntBody" rows="3" maxlength="200" placeholder="e.g. October fees are due tomorrow."></textarea>
+        <button class="action" id="ntBtn" onclick="sendNotif()">Send notification</button>
+        <div id="ntStatus_msg" class="status-msg"></div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-top:0.5rem;">New tasks, feedback and assessments, and fee reminders (3 days before, on the due date, 1 day overdue) are sent automatically.</p>
+      </div>
+
+      <div class="panel">
         <h3>Select Student to Update</h3>
         <select id="studentSelect" onchange="onStudentChange()">
           <option value="">— Select a student —</option>
@@ -352,6 +372,7 @@
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-functions-compat.js"></script>
   <script src="firebase-config.js"></script>
   <script>
     let selectedUid = null;
@@ -378,6 +399,37 @@
       el.className = 'status-msg ' + (ok ? 'status-ok' : 'status-err');
       el.style.display = 'block';
       setTimeout(() => el.style.display = 'none', 3000);
+    }
+
+
+    async function sendNotif() {
+      const aud = document.getElementById('ntAudience').value;
+      const title = document.getElementById('ntTitle').value.trim();
+      const body = document.getElementById('ntBody').value.trim();
+      if (!title || !body) { showMsg('ntStatus_msg', 'Title and message are required.', false); return; }
+      const payload = { title, body, link: 'dashboard.html' };
+      try {
+        if (aud === 'all') payload.audience = 'all';
+        else if (aud === 'student') {
+          if (!selectedUid) { showMsg('ntStatus_msg', 'Select a student first (panel below).', false); return; }
+          payload.uids = [selectedUid];
+        } else {
+          const b = document.getElementById('ntBatch').value.trim();
+          if (!b) { showMsg('ntStatus_msg', 'Type the batch name.', false); return; }
+          const snap = await db.collection('students').where('batchName', '==', b).get();
+          if (snap.empty) { showMsg('ntStatus_msg', 'No students found in that batch.', false); return; }
+          payload.uids = snap.docs.map(d => d.id);
+        }
+        const btn = document.getElementById('ntBtn'); btn.disabled = true;
+        const r = await firebase.app().functions('asia-south2').httpsCallable('sendNotification')(payload);
+        btn.disabled = false;
+        const d = r.data;
+        showMsg('ntStatus_msg', d.devices ? `Sent to ${d.sent} device(s)` + (d.failed ? `, ${d.failed} failed.` : '.') : 'No devices registered yet — students must tap "Turn on" first.', !!d.sent);
+        if (d.sent) { document.getElementById('ntTitle').value = ''; document.getElementById('ntBody').value = ''; }
+      } catch (e) {
+        document.getElementById('ntBtn').disabled = false;
+        showMsg('ntStatus_msg', 'Error: ' + (e.message || e), false);
+      }
     }
 
     async function createStudent() {
