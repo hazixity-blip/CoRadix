@@ -1,1463 +1,1239 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CoRadix Academy — Learn Differently</title>
-  <link rel="icon" type="image/jpeg" href="Favicon.jpeg" />
-
-  <!-- PWA -->
-  <link rel="manifest" href="manifest.json" />
-  <meta name="theme-color" content="#0057ff" />
-  <link rel="apple-touch-icon" href="icons/icon-192.png" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-title" content="CoRadix" />
-
-  <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
-  <style>
-    :root {
-      --ink:        #1c1c1e;
-      --grey:       #3a3a3c;
-      --muted:      #6b7280;
-      --border:     #e5e7eb;
-      --bg:         #ffffff;
-      --bg-soft:    #f5f7fa;
-      --blue:       #0057ff;
-      --blue-light: #e8efff;
-      --blue-mid:   #3b82f6;
-      --summer:     #ff6b2b;
-      --summer-light: #fff1eb;
-      --ease: cubic-bezier(0.16, 1, 0.3, 1);
-      --fs-display: clamp(2.6rem, 6vw, 5.2rem);
-      --fs-h2: clamp(1.8rem, 3.5vw, 2.8rem);
-      --fs-body: 1rem;
-      --fs-small: 0.875rem;
-    }
-
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
-    html { scroll-behavior: smooth; }
-    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--ink); overflow-x: hidden; line-height: 1.6; }
-
-    /* ── ANNOUNCEMENT BANNER ── */
-    .announcement-banner {
-      background: linear-gradient(90deg, #ff6b2b 0%, #ff8c42 40%, #0057ff 100%);
-      color: #fff;
-      text-align: center;
-      padding: 0.6rem 4vw;
-      font-size: 0.82rem;
-      font-weight: 600;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-      position: relative;
-      z-index: 300;
-    }
-    .announcement-banner span { opacity: 0.8; }
-    .banner-sep { opacity: 0.4; }
-    .banner-btn {
-      background: rgba(255,255,255,0.22);
-      border: 1.5px solid rgba(255,255,255,0.5);
-      color: #fff;
-      padding: 0.25rem 0.85rem;
-      border-radius: 20px;
-      font-size: 0.75rem;
-      font-weight: 700;
-      text-decoration: none;
-      transition: background 0.2s;
-      white-space: nowrap;
-    }
-    .banner-btn:hover { background: rgba(255,255,255,0.35); }
-    .banner-close {
-      position: absolute;
-      right: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      background: none;
-      border: none;
-      color: rgba(255,255,255,0.7);
-      font-size: 1rem;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0.2rem;
-    }
-    .banner-close:hover { color: #fff; }
-
-    /* ── NAV ── */
-    nav {
-      position: absolute; z-index: 200;
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 0 4vw; height: 64px;
-      background: rgba(255,255,255,0.96); backdrop-filter: blur(16px);
-      border-bottom: 1px solid var(--border);
-      transition: top 0.3s;
-    }
-    .nav-logo { display: flex; align-items: center; gap: 10px; text-decoration: none; }
-    .nav-logo img { height: 38px; width: auto; display: block; }
-    .nav-logo-text { font-family: 'Inter', sans-serif; font-weight: 700; font-size: 1.1rem; letter-spacing: -0.02em; color: var(--ink); }
-    .nav-logo-text span { color: var(--blue); }
-    .nav-links { display: flex; align-items: center; gap: 1.8rem; list-style: none; }
-    .nav-links a { font-size: var(--fs-small); font-weight: 500; text-decoration: none; color: var(--muted); letter-spacing: 0.02em; transition: color 0.2s; }
-    .nav-links a:hover { color: var(--ink); }
-    .hamburger-btn {
-      display: none;
-      flex-direction: column;
-      justify-content: center;
-      align-items: center;
-      gap: 5px;
-      width: 40px;
-      height: 40px;
-      background: none;
-      border: none;
-      cursor: pointer;
-      padding: 0;
-      z-index: 250;
-    }
-    .hamburger-btn span {
-      display: block;
-      width: 22px;
-      height: 2px;
-      background: var(--ink);
-      border-radius: 2px;
-      transition: transform 0.25s var(--ease), opacity 0.2s;
-    }
-    .hamburger-btn.open span:nth-child(1) { transform: translateY(7px) rotate(45deg); }
-    .hamburger-btn.open span:nth-child(2) { opacity: 0; }
-    .hamburger-btn.open span:nth-child(3) { transform: translateY(-7px) rotate(-45deg); }
-    .nav-cta { background: var(--blue) !important; color: #fff !important; padding: 0.45rem 1.1rem; border-radius: 6px; font-weight: 600 !important; transition: opacity 0.2s, transform 0.2s !important; }
-    .nav-cta:hover { opacity: 0.88; transform: translateY(-1px); color: #fff !important; }
-
-    /* ── HERO ── */
-    #hero { min-height: 100svh; display: grid; grid-template-columns: 1fr 1fr; align-items: center; padding: 7rem 4vw 4rem; gap: 5rem; position: relative; overflow: hidden; }
-    .hero-glow { position: absolute; pointer-events: none; border-radius: 50%; }
-    .hero-glow:nth-child(1) { width: 50vw; height: 50vw; right: -8vw; top: -8vw; background: radial-gradient(circle, rgba(0,87,255,0.07) 0%, transparent 65%); }
-    .hero-glow:nth-child(2) { width: 30vw; height: 30vw; left: -4vw; bottom: 4vw; background: radial-gradient(circle, rgba(59,130,246,0.05) 0%, transparent 65%); }
-    .hero-text { position: relative; z-index: 1; }
-    .eyebrow { display: inline-flex; align-items: center; gap: 0.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); margin-bottom: 1.4rem; opacity: 0; animation: fadeUp 0.7s var(--ease) 0.1s forwards; }
-    .eyebrow::before { content:''; width:1.5rem; height:2px; background:var(--blue); }
-    .eyebrow.summer-eye { color: var(--summer); }
-    .eyebrow.summer-eye::before { background: var(--summer); }
-    h1.display { font-family: 'DM Serif Display', serif; font-size: var(--fs-display); font-weight: 400; line-height: 1.08; letter-spacing: -0.02em; color: var(--ink); margin-bottom: 1.4rem; opacity: 0; animation: fadeUp 0.8s var(--ease) 0.2s forwards; }
-    h1.display em { font-style: italic; color: var(--blue); }
-    .hero-desc { font-size: 1.05rem; color: var(--muted); line-height: 1.75; max-width: 46ch; margin-bottom: 2.4rem; opacity: 0; animation: fadeUp 0.8s var(--ease) 0.32s forwards; }
-    .hero-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; opacity: 0; animation: fadeUp 0.8s var(--ease) 0.42s forwards; }
-    .btn { display: inline-flex; align-items: center; gap: 0.4rem; font-family: 'Inter', sans-serif; font-weight: 600; font-size: 0.9rem; padding: 0.75rem 1.6rem; border-radius: 6px; text-decoration: none; transition: all 0.2s; }
-    .btn-blue { background: var(--blue); color: #fff; }
-    .btn-blue:hover { background: #0047d6; transform: translateY(-1px); }
-    .btn-summer { background: var(--summer); color: #fff; }
-    .btn-summer:hover { background: #e85a1f; transform: translateY(-1px); }
-    .btn-outline { border: 1.5px solid var(--border); color: var(--ink); background: transparent; }
-    .btn-outline:hover { border-color: var(--ink); background: var(--bg-soft); }
-    .hero-visual { position: relative; z-index: 1; display: flex; flex-direction: column; gap: 1rem; opacity: 0; animation: fadeIn 1s var(--ease) 0.5s forwards; }
-    .m-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 1.3rem 1.5rem; display: flex; align-items: flex-start; gap: 1rem; transition: box-shadow 0.25s, transform 0.25s; }
-    .m-card:hover { box-shadow: 0 6px 24px rgba(0,87,255,0.1); transform: translateY(-2px); }
-    .m-icon { width: 2.6rem; height: 2.6rem; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 1.1rem; flex-shrink: 0; }
-    .ic-m { background: rgba(0,87,255,0.09); } .ic-u { background: rgba(59,130,246,0.09); } .ic-p { background: rgba(0,87,255,0.06); }
-    .m-label { font-weight: 700; font-size: 0.9rem; margin-bottom: 0.2rem; }
-    .m-desc { font-size: 0.82rem; color: var(--muted); line-height: 1.5; }
-    .hero-badge { position: absolute; bottom: -0.6rem; right: 0.5rem; background: var(--ink); color: #fff; font-size: 0.75rem; font-weight: 600; padding: 0.35rem 0.9rem; border-radius: 20px; }
-
-    /* ── SUMMER HERO STRIP ── */
-    .summer-strip {
-      background: linear-gradient(135deg, #fff8f4 0%, #fff1eb 50%, #e8efff 100%);
-      border: 1px solid #ffd4b8;
-      border-radius: 12px;
-      padding: 1.2rem 1.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1rem;
-      flex-wrap: wrap;
-      margin-top: 0.5rem;
-    }
-    .summer-strip-left { display: flex; align-items: center; gap: 0.8rem; }
-    .summer-strip-icon { font-size: 1.6rem; }
-    .summer-strip-left h4 { font-size: 0.9rem; font-weight: 700; color: var(--summer); margin-bottom: 0.1rem; }
-    .summer-strip-left p { font-size: 0.78rem; color: var(--muted); }
-    .summer-strip .btn-summer { font-size: 0.78rem; padding: 0.5rem 1.1rem; white-space: nowrap; }
-
-    /* ── SHARED ── */
-    .divider { width:100%; height:1px; background: var(--border); }
-    .section-inner { max-width: 1080px; margin: 0 auto; padding: 5.5rem 4vw; }
-    .s-eye { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--blue); display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.8rem; }
-    .s-eye::before { content:''; width:1.2rem; height:2px; background:var(--blue); }
-    h2.s-title { font-family: 'DM Serif Display', serif; font-size: var(--fs-h2); font-weight: 400; line-height: 1.15; letter-spacing: -0.02em; margin-bottom: 0.75rem; }
-    h2.s-title em { font-style: italic; color: var(--blue); }
-    .s-sub { font-size: 1rem; color: var(--muted); line-height: 1.7; max-width: 52ch; margin-bottom: 3rem; }
-
-    /* ── METHOD ── */
-    #method { background: var(--bg-soft); }
-    .method-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 1.5rem; }
-    .m-big-card { background: var(--bg); border: 1px solid var(--border); border-radius: 10px; padding: 2rem 1.8rem; transition: box-shadow 0.25s, transform 0.25s; }
-    .m-big-card:hover { box-shadow: 0 8px 32px rgba(0,87,255,0.08); transform: translateY(-3px); }
-    .m-num { font-family: 'DM Serif Display', serif; font-size: 2.8rem; font-weight: 400; line-height: 1; margin-bottom: 1rem; opacity: 0.15; color: var(--blue); }
-    .m-big-card h3 { font-size: 1.05rem; font-weight: 700; margin-bottom: 0.6rem; }
-    .m-big-card p { font-size: var(--fs-small); color: var(--muted); line-height: 1.7; }
-    .tag-row { display: flex; flex-wrap: wrap; gap: 0.4rem; margin-top: 1.2rem; }
-    .tag { font-size: 0.72rem; font-weight: 600; padding: 0.2rem 0.65rem; border-radius: 20px; background: var(--blue-light); color: var(--blue); }
-
-    /* ── HOW TO JOIN ── */
-    #procedure { background: var(--bg); }
-    .steps-wrapper { position: relative; margin-top: 1rem; }
-    .steps-wrapper::before { content:''; position:absolute; left:1.65rem; top:2.4rem; bottom:2.4rem; width:2px; background:linear-gradient(to bottom, var(--blue), rgba(0,87,255,0.08)); z-index:0; }
-    .step { display:grid; grid-template-columns:3.3rem 1fr; gap:1.5rem; margin-bottom:1.2rem; position:relative; z-index:1; }
-    .step-num { width:3.3rem; height:3.3rem; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:1.1rem; flex-shrink:0; box-shadow:0 0 0 4px var(--bg); }
-    .step-num.optional { background:var(--bg); border:2px solid var(--border); color:var(--muted); box-shadow:0 0 0 4px var(--bg); font-family:'Inter',sans-serif; font-weight:700; }
-    .step-body { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:1.4rem 1.6rem; transition:border-color 0.2s, box-shadow 0.2s; }
-    .step-body:hover { border-color:var(--blue); box-shadow:0 4px 20px rgba(0,87,255,0.07); }
-    .step-head { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:0.5rem; margin-bottom:0.5rem; }
-    .step-title { font-size:0.95rem; font-weight:700; color:var(--ink); }
-    .step-badge { font-size:0.7rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:0.2rem 0.65rem; border-radius:20px; }
-    .badge-free  { background:#dcfce7; color:#166534; }
-    .badge-paid  { background:var(--blue-light); color:var(--blue); }
-    .badge-opt   { background:var(--bg-soft); color:var(--muted); border:1px solid var(--border); }
-    .badge-final { background:var(--ink); color:#fff; }
-    .step-body p { font-size:0.88rem; color:var(--muted); line-height:1.7; margin-bottom:0.6rem; }
-    .step-body p:last-child { margin-bottom:0; }
-    .step-detail { display:flex; flex-wrap:wrap; gap:0.5rem; margin-top:0.8rem; }
-    .sd-pill { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.75rem; font-weight:600; padding:0.25rem 0.7rem; border-radius:20px; background:var(--bg-soft); border:1px solid var(--border); color:var(--grey); }
-    .sd-pill.blue { background:var(--blue-light); border-color:rgba(0,87,255,0.2); color:var(--blue); }
-    .step-split { display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-top:0.9rem; }
-    .split-card { background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:1rem 1.1rem; }
-    .split-card h5 { font-size:0.82rem; font-weight:700; margin-bottom:0.35rem; color:var(--ink); }
-    .split-card p { font-size:0.78rem; color:var(--muted); line-height:1.6; margin:0; }
-    .split-card .sc-tag { display:inline-block; font-size:0.68rem; font-weight:700; padding:0.15rem 0.5rem; border-radius:4px; margin-bottom:0.4rem; }
-    .tag-found { background:var(--blue-light); color:var(--blue); }
-    .tag-adv   { background:var(--ink); color:#fff; }
-    .outcome-row { display:grid; grid-template-columns:1fr 1fr; gap:0.75rem; margin-top:0.9rem; }
-    .outcome-card { border-radius:8px; padding:0.9rem 1rem; font-size:0.8rem; line-height:1.6; }
-    .oc-pass    { background:#f0fdf4; border:1px solid #bbf7d0; color:#166534; }
-    .oc-support { background:#fff8f0; border:1px solid #fde68a; color:#92400e; }
-    .outcome-card strong { display:block; font-size:0.78rem; font-weight:700; margin-bottom:0.3rem; }
-    .step-divider-label { display:flex; align-items:center; gap:1rem; margin:0.5rem 0 1.2rem 4.8rem; font-size:0.75rem; font-weight:600; color:var(--muted); letter-spacing:0.05em; text-transform:uppercase; }
-    .step-divider-label::before, .step-divider-label::after { content:''; flex:1; height:1px; background:var(--border); }
-
-    /* ── INQUIRY FORM MODAL ── */
-    .inq-overlay {
-      display: none;
-      position: fixed;
-      inset: 0;
-      background: rgba(0,0,0,0.55);
-      backdrop-filter: blur(4px);
-      z-index: 1000;
-      align-items: center;
-      justify-content: center;
-      padding: 1rem;
-    }
-    .inq-overlay.active { display: flex; }
-    .inq-modal {
-      background: var(--bg);
-      border-radius: 14px;
-      width: 100%;
-      max-width: 560px;
-      max-height: 92vh;
-      overflow-y: auto;
-      box-shadow: 0 24px 80px rgba(0,0,0,0.2);
-      animation: fadeUp 0.4s var(--ease) forwards;
-    }
-    .inq-header {
-      padding: 1.8rem 2rem 1.2rem;
-      border-bottom: 1px solid var(--border);
-      display: flex;
-      align-items: flex-start;
-      justify-content: space-between;
-      gap: 1rem;
-    }
-    .inq-header h3 { font-family: 'DM Serif Display', serif; font-size: 1.4rem; font-weight: 400; margin-bottom: 0.2rem; }
-    .inq-header p { font-size: 0.82rem; color: var(--muted); }
-    .inq-close { background: none; border: none; font-size: 1.4rem; cursor: pointer; color: var(--muted); line-height: 1; padding: 0.1rem; flex-shrink: 0; }
-    .inq-close:hover { color: var(--ink); }
-    .inq-body { padding: 1.6rem 2rem 2rem; }
-    .inq-free-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: #dcfce7;
-      color: #166534;
-      font-size: 0.75rem;
-      font-weight: 700;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      margin-bottom: 1.2rem;
-    }
-    .inq-field { margin-bottom: 1.1rem; }
-    .inq-field label { display: block; font-size: 0.78rem; font-weight: 700; color: var(--grey); margin-bottom: 0.35rem; letter-spacing: 0.03em; }
-    .inq-field label span { color: var(--blue); }
-    .inq-field input,
-    .inq-field select,
-    .inq-field textarea {
-      width: 100%;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.88rem;
-      color: var(--ink);
-      background: var(--bg);
-      border: 1.5px solid var(--border);
-      border-radius: 7px;
-      padding: 0.65rem 0.9rem;
-      outline: none;
-      transition: border-color 0.2s, box-shadow 0.2s;
-      appearance: none;
-    }
-    .inq-field input:focus,
-    .inq-field select:focus,
-    .inq-field textarea:focus {
-      border-color: var(--blue);
-      box-shadow: 0 0 0 3px rgba(0,87,255,0.1);
-    }
-    .inq-field textarea { resize: vertical; min-height: 80px; }
-    .inq-row { display: grid; grid-template-columns: 1fr 1fr; gap: 0.9rem; }
-    .inq-submit {
-      width: 100%;
-      background: var(--blue);
-      color: #fff;
-      border: none;
-      border-radius: 7px;
-      padding: 0.85rem 1.5rem;
-      font-family: 'Inter', sans-serif;
-      font-size: 0.95rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: background 0.2s, transform 0.2s;
-      margin-top: 0.5rem;
-    }
-    .inq-submit:hover { background: #0047d6; transform: translateY(-1px); }
-    .inq-note { font-size: 0.75rem; color: var(--muted); text-align: center; margin-top: 0.75rem; }
-    .inq-note a { color: var(--blue); font-weight: 600; }
-
-    /* ── COURSES ── */
-    #courses .section-inner { padding-bottom: 4rem; }
-    .courses-block { margin-bottom: 1.5rem; }
-    .courses-toggle { width:100%; display:flex; align-items:center; justify-content:space-between; background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:1.3rem 1.6rem; cursor:pointer; transition:border-color 0.2s, background 0.2s; font-family:'Inter',sans-serif; }
-    .courses-toggle:hover { border-color:var(--blue); background:var(--blue-light); }
-    .courses-toggle.open { border-color:var(--blue); border-bottom-left-radius:0; border-bottom-right-radius:0; background:var(--blue-light); }
-    .courses-toggle.summer-toggle:hover { border-color:var(--summer); background:var(--summer-light); }
-    .courses-toggle.summer-toggle.open { border-color:var(--summer); background:var(--summer-light); }
-    .ct-left { display:flex; align-items:center; gap:1rem; }
-    .ct-icon { font-size:1.4rem; }
-    .ct-title { font-size:1rem; font-weight:700; color:var(--ink); margin-bottom:0.1rem; }
-    .ct-sub { font-size:var(--fs-small); color:var(--muted); }
-    .ct-arrow { width:2rem; height:2rem; border-radius:50%; background:var(--blue-light); color:var(--blue); display:flex; align-items:center; justify-content:center; font-size:1rem; transition:transform 0.3s var(--ease), background 0.2s; flex-shrink:0; }
-    .courses-toggle.open .ct-arrow { transform:rotate(180deg); background:var(--blue); color:#fff; }
-    .summer-toggle .ct-arrow { background: var(--summer-light); color: var(--summer); }
-    .summer-toggle.open .ct-arrow { background: var(--summer); color: #fff; }
-    .courses-panel { max-height:0; overflow:hidden; border:1px solid var(--blue); border-top:none; border-bottom-left-radius:10px; border-bottom-right-radius:10px; background:#fff; transition:max-height 0.45s var(--ease); }
-    .courses-panel.open { max-height:3000px; }
-    .summer-panel { border-color: var(--summer); }
-    .panel-inner { padding:2rem 1.6rem; }
-    .course-cards { display:grid; grid-template-columns:repeat(2,1fr); gap:1.2rem; margin-bottom:2rem; }
-    .course-card { border:1px solid var(--border); border-radius:8px; padding:1.5rem; transition:border-color 0.2s, box-shadow 0.2s; }
-    .course-card:hover { border-color:var(--blue); box-shadow:0 4px 16px rgba(0,87,255,0.08); }
-    .cc-badge { display:inline-block; font-size:0.7rem; font-weight:700; letter-spacing:0.08em; text-transform:uppercase; background:var(--blue-light); color:var(--blue); padding:0.2rem 0.65rem; border-radius:4px; margin-bottom:0.7rem; }
-    .cc-badge.adv { background:var(--ink); color:#fff; }
-    .course-card h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.3rem; }
-    .course-card .cc-range { font-size:0.8rem; color:var(--blue); font-weight:600; margin-bottom:0.6rem; }
-    .course-card p { font-size:0.82rem; color:var(--muted); line-height:1.6; margin-bottom:0.8rem; }
-    .subjects-list { display:flex; flex-wrap:wrap; gap:0.35rem; }
-    .subj-tag { font-size:0.7rem; font-weight:500; padding:0.18rem 0.55rem; border-radius:4px; border:1px solid var(--border); color:var(--grey); background:var(--bg-soft); }
-    .community-note { background:var(--blue-light); border-radius:8px; padding:1.1rem 1.4rem; display:flex; align-items:flex-start; gap:0.75rem; margin-top:0.5rem; }
-    .community-note .cn-icon { font-size:1.2rem; flex-shrink:0; margin-top:0.1rem; }
-    .community-note p { font-size:var(--fs-small); color:var(--grey); line-height:1.6; }
-    .community-note strong { color:var(--blue); }
-    .side-courses-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; margin-bottom:1.5rem; }
-    .sc-card { border:1px solid var(--border); border-radius:8px; padding:1.2rem; transition:border-color 0.2s, box-shadow 0.2s, transform 0.2s; }
-    .sc-card:hover { border-color:var(--blue); transform:translateY(-2px); box-shadow:0 4px 16px rgba(0,87,255,0.07); }
-    .sc-icon { font-size:1.5rem; margin-bottom:0.6rem; }
-    .sc-card h4 { font-size:0.88rem; font-weight:700; margin-bottom:0.3rem; color:var(--ink); }
-    .sc-card p { font-size:0.78rem; color:var(--muted); line-height:1.5; }
-    .sc-card .sc-who { font-size:0.7rem; font-weight:600; text-transform:uppercase; letter-spacing:0.06em; color:var(--blue); margin-top:0.5rem; }
-    .occasional-note { text-align:center; font-size:var(--fs-small); color:var(--muted); padding:1rem; border:1px dashed var(--border); border-radius:8px; }
-    .occasional-note strong { color:var(--ink); }
-
-    /* ── SKILL COURSES SECTION ── */
-    #summer { background: linear-gradient(135deg, #fff8f4 0%, #fff1eb 60%, #e8efff 100%); }
-    #summer .s-eye { color: var(--summer); }
-    #summer .s-eye::before { background: var(--summer); }
-    #summer h2.s-title em { color: var(--summer); }
-    .summer-label {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: var(--summer);
-      color: #fff;
-      font-size: 0.7rem;
-      font-weight: 700;
-      letter-spacing: 0.08em;
-      text-transform: uppercase;
-      padding: 0.25rem 0.75rem;
-      border-radius: 20px;
-      margin-bottom: 1.5rem;
-    }
-    .summer-project-note {
-      background: #fff;
-      border: 1.5px solid #ffd4b8;
-      border-radius: 10px;
-      padding: 1.2rem 1.5rem;
-      display: flex;
-      align-items: flex-start;
-      gap: 0.8rem;
-      margin-bottom: 2rem;
-    }
-    .summer-project-note .spn-icon { font-size: 1.2rem; flex-shrink: 0; margin-top: 0.1rem; }
-    .summer-project-note p { font-size: 0.84rem; color: var(--grey); line-height: 1.65; }
-    .summer-project-note strong { color: var(--summer); }
-    .summer-courses-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1.1rem; margin-bottom: 2rem; }
-    .summer-course-card {
-      background: #fff;
-      border: 1.5px solid #ffd4b8;
-      border-radius: 10px;
-      padding: 1.4rem 1.3rem;
-      transition: border-color 0.2s, box-shadow 0.2s, transform 0.2s;
-    }
-    .summer-course-card:hover {
-      border-color: var(--summer);
-      box-shadow: 0 6px 24px rgba(255,107,43,0.12);
-      transform: translateY(-2px);
-    }
-    .sc-summer-icon { font-size: 1.6rem; margin-bottom: 0.65rem; }
-    .sc-summer-badge {
-      display: inline-block;
-      font-size: 0.65rem;
-      font-weight: 700;
-      letter-spacing: 0.07em;
-      text-transform: uppercase;
-      padding: 0.15rem 0.55rem;
-      border-radius: 4px;
-      background: var(--summer-light);
-      color: var(--summer);
-      margin-bottom: 0.45rem;
-    }
-    .sc-summer-badge.tech { background: #e8efff; color: var(--blue); }
-    .sc-summer-badge.creative { background: #f0fdf4; color: #166534; }
-    .summer-course-card h4 { font-size: 0.9rem; font-weight: 700; margin-bottom: 0.3rem; color: var(--ink); }
-    .summer-course-card p { font-size: 0.78rem; color: var(--muted); line-height: 1.55; margin-bottom: 0.5rem; }
-    .summer-course-card .sc-duration {
-      font-size: 0.7rem;
-      font-weight: 600;
-      color: var(--muted);
-      display: flex;
-      align-items: center;
-      gap: 0.3rem;
-    }
-    .summer-enroll-box {
-      background: var(--ink);
-      border-radius: 12px;
-      padding: 2rem 2.5rem;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      gap: 1.5rem;
-      flex-wrap: wrap;
-    }
-    /* ── SKILL COURSE PRICING ── */
-    .pricing-note { background:#fff; border:1.5px solid #ffd4b8; border-radius:10px; padding:1.1rem 1.4rem; margin-bottom:1.5rem; font-size:0.84rem; color:var(--grey); line-height:1.6; }
-    .pricing-note strong { color: var(--summer); }
-    .pricing-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.2rem; margin-bottom:2rem; }
-    .price-card { background:#fff; border:1.5px solid #ffd4b8; border-radius:12px; padding:1.6rem 1.4rem; text-align:center; position:relative; }
-    .price-card.featured { border-color:var(--summer); box-shadow:0 8px 28px rgba(255,107,43,0.12); }
-    .price-card .pc-badge { position:absolute; top:-0.7rem; left:50%; transform:translateX(-50%); background:var(--summer); color:#fff; font-size:0.65rem; font-weight:700; letter-spacing:0.06em; text-transform:uppercase; padding:0.25rem 0.8rem; border-radius:20px; white-space:nowrap; }
-    .price-card h4 { font-size:0.95rem; font-weight:700; margin-bottom:0.2rem; color:var(--ink); }
-    .price-card .pc-sessions { font-size:0.75rem; color:var(--muted); margin-bottom:1rem; }
-    .price-card .pc-true { font-size:0.9rem; color:var(--muted); text-decoration:line-through; }
-    .price-card .pc-founding { font-family:'DM Serif Display',serif; font-size:2.1rem; color:var(--summer); line-height:1.2; }
-    .price-card .pc-label { font-size:0.7rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--muted); margin-top:0.3rem; }
-    .seb-left h3 { font-family: 'DM Serif Display', serif; font-size: 1.3rem; font-weight: 400; color: #fff; margin-bottom: 0.3rem; }
-    .seb-left h3 em { font-style: italic; color: #fb923c; }
-    .seb-left p { font-size: 0.82rem; color: rgba(255,255,255,0.5); }
-    .seb-actions { display: flex; gap: 0.75rem; flex-wrap: wrap; }
-
-    /* ── WEBINAR / DISCOUNT SECTION ── */
-    #webinar { background: var(--ink); position: relative; overflow: hidden; }
-    #webinar::before { content:''; position:absolute; top:-20%; right:-5%; width:45%; height:80%; background: radial-gradient(ellipse, rgba(255,107,43,0.18) 0%, transparent 70%); pointer-events:none; }
-    #webinar::after { content:''; position:absolute; bottom:-20%; left:-5%; width:35%; height:70%; background: radial-gradient(ellipse, rgba(0,87,255,0.15) 0%, transparent 70%); pointer-events:none; }
-    #webinar .s-eye { color: #fb923c; position: relative; }
-    #webinar .s-eye::before { background: #fb923c; }
-    #webinar h2.s-title { color: #fff; position: relative; }
-    #webinar h2.s-title em { color: #fb923c; }
-    #webinar .s-sub { color: rgba(255,255,255,0.55); position: relative; }
-    .webinar-card {
-      background: rgba(255,255,255,0.05);
-      border: 1px solid rgba(255,255,255,0.12);
-      border-radius: 14px;
-      padding: 2.5rem;
-      position: relative;
-      display: grid;
-      grid-template-columns: 1.3fr 1fr;
-      gap: 2.5rem;
-      align-items: center;
-    }
-    .webinar-left .wb-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.4rem;
-      background: rgba(251,146,60,0.15);
-      color: #fb923c;
-      font-size: 0.72rem;
-      font-weight: 700;
-      letter-spacing: 0.06em;
-      text-transform: uppercase;
-      padding: 0.3rem 0.8rem;
-      border-radius: 20px;
-      margin-bottom: 1rem;
-    }
-    .webinar-left h3 { font-family: 'DM Serif Display', serif; font-size: 1.7rem; font-weight: 400; color: #fff; margin-bottom: 0.7rem; line-height: 1.25; }
-    .webinar-left h3 em { font-style: italic; color: #fb923c; }
-    .webinar-left p { font-size: 0.9rem; color: rgba(255,255,255,0.55); line-height: 1.7; margin-bottom: 1rem; }
-    .webinar-meta { display: flex; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
-    .wb-meta-item { display: flex; align-items: center; gap: 0.5rem; font-size: 0.82rem; color: rgba(255,255,255,0.7); }
-    .webinar-topics { display: flex; flex-direction: column; gap: 0.5rem; margin-bottom: 1rem; }
-    .wb-topic { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.85rem; color: rgba(255,255,255,0.75); line-height: 1.5; }
-    .wb-topic .wb-check { color: #4ade80; flex-shrink: 0; }
-    .webinar-right {
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.1);
-      border-radius: 10px;
-      padding: 1.6rem;
-    }
-    .wb-offer-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase; color: rgba(255,255,255,0.4); margin-bottom: 0.9rem; }
-    .wb-tier { display: flex; align-items: center; justify-content: space-between; padding: 0.8rem 0; border-bottom: 1px solid rgba(255,255,255,0.08); }
-    .wb-tier:last-of-type { border-bottom: none; }
-    .wb-tier-label { font-size: 0.82rem; color: rgba(255,255,255,0.65); }
-    .wb-tier-value { font-family: 'DM Serif Display', serif; font-size: 1.3rem; color: #fb923c; }
-    .wb-tier-value.dim { color: rgba(255,255,255,0.4); font-size: 1.1rem; }
-    .wb-cta { width: 100%; margin-top: 1.2rem; text-align: center; justify-content: center; }
-    .wb-fineprint { font-size: 0.7rem; color: rgba(255,255,255,0.3); text-align: center; margin-top: 0.8rem; line-height: 1.5; }
-
-    /* ── MATERIALS PROTECTION ── */
-    #materials { background: var(--bg-soft); }
-    .materials-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:start; }
-    .mat-intro p { font-size:0.9rem; color:var(--muted); line-height:1.75; margin-bottom:1.2rem; }
-    .mat-rules { display:flex; flex-direction:column; gap:0.75rem; }
-    .mat-rule { display:flex; align-items:flex-start; gap:0.9rem; padding:1rem 1.1rem; background:var(--bg); border:1px solid var(--border); border-radius:8px; transition:border-color 0.2s; }
-    .mat-rule:hover { border-color:var(--blue); }
-    .mr-icon { font-size:1.1rem; flex-shrink:0; margin-top:0.05rem; }
-    .mr-text h4 { font-size:0.85rem; font-weight:700; color:var(--ink); margin-bottom:0.2rem; }
-    .mr-text p { font-size:0.8rem; color:var(--muted); line-height:1.6; margin:0; }
-    .mat-access-card { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:2rem; box-shadow:0 2px 12px rgba(0,0,0,0.04); }
-    .mac-head { display:flex; align-items:center; gap:0.75rem; margin-bottom:1.2rem; }
-    .mac-icon { width:2.8rem; height:2.8rem; border-radius:8px; background:var(--blue-light); display:flex; align-items:center; justify-content:center; font-size:1.2rem; flex-shrink:0; }
-    .mac-head h3 { font-size:1rem; font-weight:700; }
-    .mac-head p { font-size:0.78rem; color:var(--muted); }
-    .mac-steps { display:flex; flex-direction:column; gap:0.6rem; margin-bottom:1.2rem; }
-    .mac-step { display:flex; align-items:flex-start; gap:0.75rem; font-size:0.82rem; color:var(--grey); line-height:1.6; }
-    .mac-step-num { width:1.4rem; height:1.4rem; border-radius:50%; background:var(--blue); color:#fff; display:flex; align-items:center; justify-content:center; font-size:0.65rem; font-weight:700; flex-shrink:0; margin-top:0.1rem; }
-    .mac-note { background:var(--blue-light); border-radius:8px; padding:0.85rem 1rem; font-size:0.8rem; color:var(--grey); line-height:1.6; }
-    .mac-note strong { color:var(--blue); }
-    .watermark-note { display:flex; align-items:flex-start; gap:0.75rem; padding:1rem 1.1rem; background:#fff8f0; border:1px solid #fde68a; border-radius:8px; margin-top:1rem; font-size:0.82rem; color:#92400e; line-height:1.6; }
-    .watermark-note .wn-icon { flex-shrink:0; font-size:1rem; margin-top:0.1rem; }
-
-    /* ── WHY ── */
-    #why { background: var(--ink); }
-    #why .s-eye { color: #60a5fa; } #why .s-eye::before { background: #60a5fa; }
-    #why h2.s-title { color: #fff; } #why h2.s-title em { color: #60a5fa; }
-    #why .s-sub { color: rgba(255,255,255,0.5); }
-    .why-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:1.2rem; }
-    .why-item { background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.07); border-radius:10px; padding:1.8rem; transition:background 0.2s; }
-    .why-item:hover { background:rgba(255,255,255,0.07); }
-    .why-icon { font-size:1.5rem; margin-bottom:0.8rem; }
-    .why-item h3 { font-size:0.95rem; font-weight:700; color:#fff; margin-bottom:0.4rem; }
-    .why-item p { font-size:var(--fs-small); color:rgba(255,255,255,0.45); line-height:1.7; }
-
-    /* ── ABOUT ── */
-    #about-wrapper { display:grid; grid-template-columns:1fr 1fr; position:relative; z-index:1; }
-    .about-text-wrap { padding:5.5rem 3rem 5.5rem 4vw; max-width:560px; }
-    .about-visual-wrap { padding:5.5rem 4vw 5.5rem 3rem; }
-    .about-quote { border-left:3px solid var(--blue); padding-left:1.2rem; margin:1.5rem 0; }
-    .about-quote p { font-family:'DM Serif Display',serif; font-style:italic; font-size:1.1rem; color:var(--ink); line-height:1.6; }
-    .about-card { background:var(--bg); border:1px solid var(--border); border-radius:12px; padding:2.2rem; box-shadow:0 4px 24px rgba(0,0,0,0.05); }
-    .about-avatar { width:4.5rem; height:4.5rem; border-radius:50%; background:linear-gradient(135deg, var(--blue), var(--blue-mid)); display:flex; align-items:center; justify-content:center; font-family:'DM Serif Display',serif; font-size:1.8rem; color:#fff; margin-bottom:1.2rem; }
-    .about-card h3 { font-size:1.1rem; font-weight:700; margin-bottom:0.15rem; }
-    .about-card .role { font-size:var(--fs-small); color:var(--blue); font-weight:600; margin-bottom:0.9rem; }
-    .about-card p { font-size:var(--fs-small); color:var(--muted); line-height:1.7; }
-    .about-links { display:flex; gap:0.75rem; flex-wrap:wrap; margin-top:1.2rem; }
-    .about-link { display:inline-flex; align-items:center; gap:0.35rem; font-size:0.78rem; font-weight:600; padding:0.35rem 0.85rem; border-radius:6px; text-decoration:none; transition:all 0.2s; }
-    .al-portfolio { background:var(--blue); color:#fff; } .al-portfolio:hover { background:#0047d6; }
-    .al-insta { background:var(--bg-soft); border:1px solid var(--border); color:var(--ink); } .al-insta:hover { border-color:var(--blue); color:var(--blue); }
-    .about-stats { display:grid; grid-template-columns:1fr 1fr; gap:0.8rem; margin-top:1.4rem; }
-    .stat { background:var(--bg-soft); border-radius:8px; padding:0.9rem; text-align:center; }
-    .stat .num { font-family:'DM Serif Display',serif; font-size:1.6rem; color:var(--ink); line-height:1; }
-    .stat .lbl { font-size:0.7rem; color:var(--muted); margin-top:0.2rem; }
-
-    /* ── TESTIMONIALS ── */
-    #proof { background: var(--bg-soft); }
-    .proof-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:1.5rem; }
-    .proof-card { background:var(--bg); border:1px solid var(--border); border-radius:10px; padding:1.8rem; transition:transform 0.25s, box-shadow 0.25s; }
-    .proof-card:hover { transform:translateY(-3px); box-shadow:0 8px 28px rgba(0,87,255,0.08); }
-    .stars { color:#f59e0b; font-size:0.85rem; margin-bottom:0.9rem; }
-    .proof-text { font-size:var(--fs-small); color:var(--muted); line-height:1.7; margin-bottom:1.4rem; font-style:italic; }
-    .proof-author { display:flex; align-items:center; gap:0.7rem; }
-    .proof-av { width:2.2rem; height:2.2rem; border-radius:50%; background:linear-gradient(135deg, var(--blue), var(--blue-mid)); display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.8rem; color:#fff; }
-    .proof-name { font-size:var(--fs-small); font-weight:600; }
-    .proof-sub { font-size:0.75rem; color:var(--muted); }
-
-    /* ── CONTACT ── */
-    #contact { background:var(--bg); }
-    .contact-grid { display:grid; grid-template-columns:1fr 1fr; gap:3rem; align-items:start; }
-    .contact-info p { font-size:var(--fs-small); color:var(--muted); line-height:1.7; margin-bottom:1.5rem; }
-    .contact-items { display:flex; flex-direction:column; gap:0.9rem; }
-    .contact-item { display:flex; align-items:center; gap:0.9rem; padding:0.9rem 1.1rem; border-radius:8px; border:1px solid var(--border); background:var(--bg-soft); text-decoration:none; transition:border-color 0.2s, background 0.2s; }
-    .contact-item:hover { border-color:var(--blue); background:var(--blue-light); }
-    .ci-icon { font-size:1.2rem; flex-shrink:0; }
-    .ci-label { font-size:0.75rem; font-weight:600; color:var(--blue); letter-spacing:0.05em; text-transform:uppercase; }
-    .ci-value { font-size:var(--fs-small); color:var(--ink); font-weight:500; }
-    .contact-map-placeholder { background:var(--bg-soft); border:1px solid var(--border); border-radius:10px; padding:2.5rem 2rem; text-align:center; }
-    .contact-map-placeholder .map-icon { font-size:2.5rem; margin-bottom:1rem; }
-    .contact-map-placeholder h4 { font-size:1rem; font-weight:700; margin-bottom:0.4rem; }
-    .contact-map-placeholder p { font-size:var(--fs-small); color:var(--muted); }
-
-    /* ── CTA ── */
-    #cta { background:var(--bg-soft); }
-    .cta-box { background:var(--ink); border-radius:14px; padding:4.5rem 3rem; text-align:center; position:relative; overflow:hidden; }
-    .cta-box::before { content:''; position:absolute; top:-30%; left:50%; transform:translateX(-50%); width:60%; height:60%; background:radial-gradient(ellipse, rgba(0,87,255,0.2) 0%, transparent 70%); pointer-events:none; }
-    .cta-box h2 { font-family:'DM Serif Display',serif; font-size:clamp(1.8rem,3.5vw,2.8rem); font-weight:400; color:#fff; margin-bottom:0.8rem; position:relative; }
-    .cta-box h2 em { font-style:italic; color:#60a5fa; }
-    .cta-box p { color:rgba(255,255,255,0.5); font-size:1rem; margin-bottom:2rem; position:relative; }
-    .cta-note { margin-top:1rem; font-size:0.8rem; color:rgba(255,255,255,0.3); position:relative; }
-    .cta-actions { display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap; }
-
-    /* ── FOOTER ── */
-    footer { padding:2rem 4vw; display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:1rem; border-top:1px solid var(--border); }
-    .footer-logo { display:flex; align-items:center; gap:8px; text-decoration:none; }
-    .footer-logo img { height:28px; width:auto; }
-    .footer-links { display:flex; gap:1.5rem; list-style:none; flex-wrap:wrap; }
-    .footer-links a { font-size:0.8rem; color:var(--muted); text-decoration:none; transition:color 0.2s; }
-    .footer-links a:hover { color:var(--ink); }
-    .footer-copy { font-size:0.75rem; color:var(--muted); }
-
-    /* ── ANIMATIONS ── */
-    @keyframes fadeUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
-    @keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-    .reveal { opacity:0; transform:translateY(24px); transition:opacity 0.7s var(--ease), transform 0.7s var(--ease); }
-    .reveal.visible { opacity:1; transform:translateY(0); }
-
-    /* ── RESPONSIVE ── */
-    @media (max-width: 900px) {
-      #hero { grid-template-columns:1fr; padding-top:6rem; gap:2.5rem; }
-      .method-grid { grid-template-columns:1fr; }
-      .why-grid { grid-template-columns:1fr; }
-      #about-wrapper { grid-template-columns:1fr; }
-      .about-text-wrap { padding:3rem 4vw 0; max-width:100%; }
-      .about-visual-wrap { padding:2rem 4vw 3.5rem; }
-      .proof-grid { grid-template-columns:1fr; }
-      .side-courses-grid { grid-template-columns:repeat(2,1fr); }
-      .contact-grid { grid-template-columns:1fr; }
-      .nav-links {
-        display: none;
-        position: absolute;
-        top: 100%;
-        left: 0;
-        right: 0;
-        flex-direction: column;
-        align-items: stretch;
-        gap: 0;
-        background: #fff;
-        border-bottom: 1px solid var(--border);
-        box-shadow: 0 12px 24px rgba(0,0,0,0.08);
-        padding: 0.5rem 0;
-      }
-      .nav-links.open { display: flex; }
-      .nav-links li { width: 100%; }
-      .nav-links a { display: block; padding: 0.9rem 5vw; border-bottom: 1px solid var(--border); }
-      .nav-links li:last-child a { border-bottom: none; }
-      .nav-links a.btn { margin: 0.6rem 5vw; text-align: center; }
-      .hamburger-btn { display: flex; }
-      .course-cards { grid-template-columns:1fr; }
-      .materials-grid { grid-template-columns:1fr; }
-      .step-split { grid-template-columns:1fr; }
-      .outcome-row { grid-template-columns:1fr; }
-      .summer-courses-grid { grid-template-columns:repeat(2,1fr); }
-      .pricing-grid { grid-template-columns:1fr; }
-      .inq-row { grid-template-columns:1fr; }
-      .webinar-card { grid-template-columns:1fr; }
-    }
-    @media (max-width: 600px) {
-      .hero-actions { flex-direction:column; }
-      .cta-box { padding:3rem 1.5rem; }
-      .side-courses-grid { grid-template-columns:1fr; }
-      .about-stats { grid-template-columns:1fr; }
-      .summer-courses-grid { grid-template-columns:1fr; }
-      .summer-enroll-box { flex-direction:column; text-align:center; }
-      .announcement-banner { font-size:0.75rem; gap:0.75rem; }
-    }
-  </style>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Admin — CoRadix Academy</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=DM+Serif+Display:ital@0;1&display=swap" rel="stylesheet" />
+<style>
+  :root { --ink:#1c1c1e; --muted:#6b7280; --border:#e5e7eb; --blue:#0057ff; --blue-light:#e8efff; --bg-soft:#f5f7fa; }
+  * { box-sizing:border-box; margin:0; padding:0; }
+  body { font-family:'Inter',sans-serif; background:var(--bg-soft); color:var(--ink); min-height:100vh; }
+  header { background:#fff; border-bottom:1px solid var(--border); padding:1rem 1.5rem; display:flex; align-items:center; justify-content:space-between; }
+  header h2 { font-family:'DM Serif Display',serif; font-weight:400; font-size:1.2rem; }
+  #logoutBtn { background:none; border:1px solid var(--border); border-radius:6px; padding:0.45rem 0.9rem; font-size:0.8rem; font-weight:600; cursor:pointer; }
+  #logoutBtn:hover { border-color:var(--blue); color:var(--blue); }
+  main { max-width:1000px; margin:0 auto; padding:2rem 1.5rem 4rem; }
+  .panel { background:#fff; border:1px solid var(--border); border-radius:10px; padding:1.4rem 1.6rem; margin-bottom:1.2rem; }
+  .panel h3 { font-size:0.95rem; font-weight:700; margin-bottom:0.9rem; }
+  label { display:block; font-size:0.75rem; font-weight:700; color:#3a3a3c; margin-bottom:0.3rem; }
+  input, select, textarea {
+    width:100%; font-family:'Inter',sans-serif; font-size:0.85rem; border:1.5px solid var(--border);
+    border-radius:6px; padding:0.6rem 0.8rem; margin-bottom:0.8rem; outline:none;
+  }
+  input:focus, select:focus, textarea:focus { border-color:var(--blue); }
+  .row2 { display:grid; grid-template-columns:1fr 1fr; gap:1rem; }
+  button.action { background:var(--blue); color:#fff; border:none; border-radius:7px; padding:0.65rem 1.2rem; font-weight:700; font-size:0.85rem; cursor:pointer; }
+  button.action:hover { background:#0047d6; }
+  #studentSelect { margin-bottom:1.4rem; }
+  .status-msg { font-size:0.8rem; padding:0.5rem 0.7rem; border-radius:6px; margin-bottom:0.8rem; display:none; }
+  .status-ok { background:#f0fdf4; color:#166534; }
+  .status-err { background:#fef2f2; color:#b91c1c; }
+  .new-student-row { display:grid; grid-template-columns:1fr 1fr 1fr 1fr auto; gap:0.6rem; align-items:end; }
+  table { width:100%; border-collapse:collapse; font-size:0.82rem; }
+  th, td { text-align:left; padding:0.5rem 0.4rem; border-bottom:1px solid var(--border); }
+  #loadingMsg { text-align:center; padding:4rem 1rem; color:var(--muted); }
+  button.ghost { background:#fff; color:var(--ink); border:1px solid var(--border); margin-left:0.5rem; }
+  button.ghost:hover { background:var(--bg-soft); }
+  .panel.editing { border-color:var(--blue); box-shadow:0 0 0 3px var(--blue-light); }
+  .entries-title { font-size:0.72rem; font-weight:700; color:var(--muted); text-transform:uppercase; letter-spacing:0.04em; margin:1.2rem 0 0.3rem; padding-top:1rem; border-top:1px solid var(--border); }
+  .entry { display:flex; justify-content:space-between; align-items:center; gap:1rem; padding:0.55rem 0; border-bottom:1px solid var(--border); font-size:0.82rem; }
+  .entry:last-child { border-bottom:none; }
+  .entry-text { min-width:0; display:flex; flex-direction:column; gap:0.15rem; }
+  .entry-text span { color:var(--muted); overflow-wrap:anywhere; }
+  .entry-actions { display:flex; gap:0.4rem; flex-shrink:0; }
+  .mini { background:#fff; border:1px solid var(--border); border-radius:6px; padding:0.3rem 0.7rem; font-size:0.75rem; font-weight:600; cursor:pointer; font-family:inherit; }
+  .mini:hover { border-color:var(--blue); color:var(--blue); }
+  .mini.danger:hover { border-color:#b91c1c; color:#b91c1c; }
+  .empty-note { color:var(--muted); font-size:0.8rem; padding:0.3rem 0; }
+  .student-actions { display:none; gap:0.6rem; flex-wrap:wrap; }
+  textarea.md { font-family:ui-monospace,Menlo,Consolas,monospace; }
+  .row3 { display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+  @media (max-width:640px) { .row3 { grid-template-columns:1fr; } }
+  .att-summary { display:none; background:var(--bg-soft); border:1px solid var(--border); border-radius:8px; padding:0.8rem 1rem; margin-bottom:1rem; }
+  .att-big { font-size:1.7rem; font-weight:700; line-height:1.1; }
+  .att-big small { font-size:0.75rem; font-weight:500; color:var(--muted); margin-left:0.4rem; }
+  .att-chips { display:flex; gap:0.5rem; flex-wrap:wrap; margin-top:0.6rem; }
+  .att-chip { background:#fff; border:1px solid var(--border); border-radius:999px; padding:0.2rem 0.7rem; font-size:0.75rem; }
+  .att-note { font-size:0.72rem; color:var(--muted); margin-top:0.5rem; }
+  .panel-toggle { cursor:pointer; display:flex; align-items:center; gap:0.5rem; margin-bottom:0.9rem; }
+  .panel-toggle::before { content:'▸'; color:var(--muted); font-size:0.8rem; display:inline-block; transition:transform 0.15s; }
+  .panel.open .panel-toggle::before { transform:rotate(90deg); }
+  .panel.collapsed .panel-toggle { margin-bottom:0; }
+  .panel.collapsed .panel-body { display:none; }
+  .count-badge { margin-left:auto; background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; font-size:0.72rem; font-weight:600; color:var(--muted); padding:0.1rem 0.65rem; }
+  .count-badge:empty { display:none; }
+  details.group { border:1px solid var(--border); border-radius:8px; margin:0.5rem 0; }
+  details.group > summary { cursor:pointer; padding:0.55rem 0.8rem; font-size:0.82rem; font-weight:600; background:var(--bg-soft); border-radius:8px; }
+  details.group[open] > summary { border-bottom:1px solid var(--border); border-radius:8px 8px 0 0; }
+  details.group > .entry { padding:0.55rem 0.8rem; }
+  details.group details.group { margin:0.5rem 0.8rem; }
+</style>
 </head>
 <body>
+  <div id="loadingMsg">Checking admin access…</div>
+  <div id="appRoot" style="display:none;">
+    <header>
+      <h2>CoRadix Admin</h2>
+      <button id="logoutBtn">Log Out</button>
+    </header>
+    <main>
 
-<!-- ANNOUNCEMENT BANNER -->
-<div class="announcement-banner" id="annBanner">
-  <span>🎓 <strong>Free Webinar: The Science of Studying Smarter</strong> — plus a limited-time enrollment discount</span>
-  <span class="banner-sep">|</span>
-  <span>1 Week Free Trial available for all batches</span>
-  <a href="#webinar" class="banner-btn" onclick="closeBanner()">Reserve Your Seat →</a>
-  <a href="inq.html" class="btn">Start Your Free Trial</a>
-</div>
-
-<!-- NAV -->
-<nav id="mainNav">
-  <a class="nav-logo" href="#">
-    <img src="Favicon.jpeg" alt="Favicon" style="height:24px; margin-right:4px;" onerror="this.style.display='none'">
-    <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
-  </a>
-  <ul class="nav-links" id="navLinks">
-    <li><a href="#method">Method</a></li>
-    <li><a href="#procedure">How to Join</a></li>
-    <li><a href="#courses">Courses</a></li>
-    <li><a href="#summer">Skill Courses</a></li>
-    <li><a href="#webinar">Webinar</a></li>
-    <li><a href="#why">Why Us</a></li>
-    <li><a href="#about-wrapper">About</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="login.html">Student Login</a></li>
-    <li> <a href="inq.html" class="btn">Book Enquiry</a> </li>
-  </ul>
-  <button class="hamburger-btn" id="hamburgerBtn" aria-label="Toggle menu" aria-expanded="false">
-    <span></span><span></span><span></span>
-  </button>
-</nav>
-
-<!-- HERO -->
-<section id="hero">
-  <div class="hero-glow"></div>
-  <div class="hero-glow"></div>
-  <div class="hero-text">
-    <p class="eyebrow">Small Batches. Real Results.</p>
-    <p class="eyebrow summer-eye" style="animation-delay:0.15s;">🎓 Free Webinar This Week · <a href="#webinar" style="color:var(--summer);text-decoration:underline;text-underline-offset:3px;">Save your seat →</a></p>
-    <h1 class="display">Learn <em>smarter,</em><br/>not harder.</h1>
-    <p class="hero-desc">CoRadix Academy is a boutique tutoring academy that breaks every subject into exactly what to <strong>memorise</strong>, what to <strong>understand</strong>, and what to <strong>practise</strong> — so nothing slips through.</p>
-    <div class="hero-actions">
-      <a href="inq.html" class="btn">Book Your Free Session NOW</a> 
-      <a href="#webinar" class="btn btn-summer">🎓 Join Free Webinar</a>
-      <a href="#procedure" class="btn btn-outline">How to Join</a>
-    </div>
-    <!-- Webinar strip -->
-    <div class="summer-strip" style="opacity:0;animation:fadeUp 0.8s var(--ease) 0.55s forwards;">
-      <div class="summer-strip-left">
-        <div class="summer-strip-icon">🎓</div>
-        <div>
-          <h4>Free Live Webinar — The Science of Studying Smarter</h4>
-          <p>Learn real techniques in 45 minutes. Stick around and get a special enrollment discount.</p>
+      <div class="panel">
+        <h3>➕ Add a New Student Record</h3>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;">
+          Note: this only creates their <em>data record</em>. Their login (email + password) must still be created once,
+          separately, in Firebase Console → Authentication → Add User. Use the same UID shown there as the Student UID below.
+        </p>
+        <div class="new-student-row">
+          <div><label>Student UID (from Firebase Auth)</label><input id="newUid" placeholder="e.g. aBc123XyZ"></div>
+          <div><label>Name</label><input id="newName" placeholder="Full name"></div>
+          <div><label>Student ID</label><input id="newStudentId" placeholder="CRX-2026-001"></div>
+          <div><label>Batch</label><input id="newBatch" placeholder="e.g. Batch A - Class 10"></div>
+          <div style="display:flex;gap:0.4rem;"><button class="action" id="createBtn" onclick="createStudent()">Create</button><button class="action ghost" id="createCancel" style="display:none;margin-left:0;" onclick="resetStudentForm()">Cancel</button></div>
         </div>
-      </div>
-      <a href="webinar.html" class="btn btn-summer" style="font-size:0.78rem;padding:0.5rem 1.1rem;">Reserve Your Free Seat →</a>
-    </div>
-  </div>
-  <div class="hero-visual">
-    <div class="m-card">
-      <div class="m-icon ic-m">🧠</div>
-      <div><div class="m-label">Memorise</div><div class="m-desc">Key definitions, formulas and facts locked in with smart recall — never second-guessed in an exam.</div></div>
-    </div>
-    <div class="m-card">
-      <div class="m-icon ic-u">💡</div>
-      <div><div class="m-label">Understand</div><div class="m-desc">Concepts broken to their root so students can explain — not just repeat — what they've learned.</div></div>
-    </div>
-    <div class="m-card" style="position:relative; padding-bottom:1.8rem;">
-      <div class="m-icon ic-p">✏️</div>
-      <div><div class="m-label">Practise</div><div class="m-desc">Targeted questions that turn knowledge into exam-ready skill. Quality over quantity.</div></div>
-      <div class="hero-badge">Max 9 students / batch</div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- METHOD -->
-<section id="method">
-  <div class="section-inner">
-    <p class="s-eye reveal">The CoRadix Method</p>
-    <h2 class="s-title reveal">Three pillars.<br/><em>One clear path.</em></h2>
-    <p class="s-sub reveal">Most students study everything the same way. We don't. Every topic is deliberately sorted into three distinct modes so your brain processes it the right way.</p>
-    <div class="method-grid">
-      <div class="m-big-card reveal">
-        <div class="m-num">01</div><h3>Memorise</h3>
-        <p>Dates, definitions, formulas — content that needs to live in long-term memory. We use spaced repetition, mnemonics, and visual anchors to make it stick without cramming.</p>
-        <div class="tag-row"><span class="tag">Spaced Repetition</span><span class="tag">Mnemonics</span><span class="tag">Visual Anchors</span></div>
-      </div>
-      <div class="m-big-card reveal">
-        <div class="m-num">02</div><h3>Understand</h3>
-        <p>Conceptual content needs depth, not drilling. Socratic questioning, analogy-building, and first-principles explanations so students genuinely grasp the "why" behind every topic.</p>
-        <div class="tag-row"><span class="tag">First Principles</span><span class="tag">Analogies</span><span class="tag">Socratic Q&amp;A</span></div>
-      </div>
-      <div class="m-big-card reveal">
-        <div class="m-num">03</div><h3>Practise</h3>
-        <p>Application is learnt by doing — not watching. Targeted, progressive problems that close the gap between understanding and performing under exam pressure.</p>
-        <div class="tag-row"><span class="tag">Targeted Problems</span><span class="tag">Exam Simulation</span><span class="tag">Feedback Loops</span></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- HOW TO JOIN -->
-<section id="procedure">
-  <div class="section-inner">
-    <p class="s-eye reveal">How to Join</p>
-    <h2 class="s-title reveal">From curious to<br/><em>enrolled — step by step.</em></h2>
-    <p class="s-sub reveal">We don't just accept anyone. Every student goes through a simple, transparent process so we know we're the right fit for each other — before a single rupee is committed.</p>
-
-    <div class="steps-wrapper">
-
-      <!-- STEP 1 -->
-      <div class="step reveal">
-        <div class="step-num">1</div>
-        <div class="step-body">
-          <div class="step-head">
-            <span class="step-title">Fill the Inquiry Form</span>
-            <span class="step-badge badge-free">Free</span>
-          </div>
-          <p>Start with our short inquiry form — no commitment, no payment. Tell us about your child, which class they're in, and what you're looking for. We'll review it and reach out within 24 hours.</p>
-          <div class="step-detail">
-            <span class="sd-pill">📋 Short form</span>
-            <span class="sd-pill">⏱ 2 minutes</span>
-            <span class="sd-pill">✉ Response within 24 hrs</span>
-            <span class="sd-pill blue" style="cursor:pointer;" onclick="openInquiry()">🖊 Open Inquiry Form →</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 2 -->
-      <div class="step reveal">
-        <div class="step-num">2</div>
-        <div class="step-body">
-          <div class="step-head">
-            <span class="step-title">Book a Free 30-Min Discovery Session</span>
-            <span class="step-badge badge-free">Free · 30 mins</span>
-          </div>
-          <p>We invite you to a free 30-minute live session with the founder. Ask every question you have about the method, the batch, the schedule, the subjects — anything. No pressure, no pitch. Just an honest conversation to see if CoRadix is the right fit.</p>
-          <div class="step-detail">
-            <span class="sd-pill blue">🎥 Live Zoom call</span>
-            <span class="sd-pill blue">⏱ 30 minutes</span>
-            <span class="sd-pill blue">💬 Parent + student welcome</span>
-          </div>
-        </div>
-      </div>
-
-      <!-- STEP 3 -->
-      <div class="step reveal">
-        <div class="step-num">3</div>
-        <div class="step-body">
-          <div class="step-head">
-            <span class="step-title">Assessment Session</span>
-            <span class="step-badge badge-paid">₹100 · 30 mins</span>
-          </div>
-          <p>If you're happy after the discovery call, the next step is a short paid assessment session — ₹100 for 30 minutes. This includes a brief aptitude test tailored to the student's class level. It helps us understand exactly where the student is so we can place them in the right batch.</p>
-          <p>Two versions of the test:</p>
-          <div class="step-split">
-            <div class="split-card">
-              <span class="sc-tag tag-found">Core Foundation</span>
-              <h5>Classes 1 – 7</h5>
-              <p>Covers reading comprehension, basic numeracy, and logical reasoning. Designed to be comfortable, not intimidating.</p>
-            </div>
-            <div class="split-card">
-              <span class="sc-tag tag-adv">Core Advanced</span>
-              <h5>Classes 8 – 12</h5>
-              <p>Subject-based aptitude covering core concepts in Science / Maths / relevant stream subjects at their current grade level.</p>
-            </div>
-          </div>
-          <div class="outcome-row">
-            <div class="outcome-card oc-pass">
-              <strong>✅ Student is ready</strong>
-              We confirm enrollment, discuss the fee structure, and place them in the next available batch.
-            </div>
-            <div class="outcome-card oc-support">
-              <strong>⚠️ Student needs preparation</strong>
-              We share honest feedback and recommend at least 30 mins of daily home practice before joining. We'd rather set a student up for success than enroll them unprepared.
+        <div class="row2" style="margin-top:0.6rem;">
+          <div>
+            <label>Enrollment Type</label>
+            <div style="display:flex;gap:1.2rem;font-size:0.85rem;padding:0.4rem 0;">
+              <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;"><input type="checkbox" id="newIsAcademic" style="width:auto;margin:0;"> Academic Tuition</label>
+              <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;"><input type="checkbox" id="newIsSkill" style="width:auto;margin:0;"> Skill Course</label>
             </div>
           </div>
         </div>
-      </div>
-
-      <div class="step-divider-label">or, if you're still unsure</div>
-
-      <!-- STEP 4 — OPTIONAL TRIAL -->
-      <div class="step reveal">
-        <div class="step-num optional">~</div>
-        <div class="step-body">
-          <div class="step-head">
-            <span class="step-title">Optional: One-Week Free Trial</span>
-            <span class="step-badge badge-opt">Optional</span>
-          </div>
-          <p>Not ready to commit yet? We offer a <strong>free one-week trial</strong> so your child can experience real CoRadix sessions with no obligation. Attend the sessions, complete the tasks, feel the difference.</p>
-          <p>At the end of the week, if you'd like to continue, simply pay the monthly fee to join officially. If it's not the right fit — no hard feelings, and no cost.</p>
-          <div class="step-detail">
-            <span class="sd-pill">📅 One full week</span>
-            <span class="sd-pill">✅ Full session access</span>
-            <span class="sd-pill">🚫 No payment required</span>
-            <span class="sd-pill blue" style="cursor:pointer;" onclick="openInquiry()">🎯 Claim Free Trial →</span>
+        <div class="row2">
+          <div><label>Skill Name (if Skill Course)</label><input id="newSkillName" placeholder="e.g. Web Development"></div>
+          <div><label>Level (if Skill Course)</label>
+            <select id="newSkillLevel">
+              <option value="">— Select —</option>
+              <option>Beginner</option>
+              <option>Intermediate</option>
+              <option>Advanced</option>
+            </select>
           </div>
         </div>
+        <p style="font-size:0.75rem;color:var(--muted);margin-bottom:0.6rem;">Tip: you can re-run this form for an existing Student UID to update their enrollment type or level later — it won't create a duplicate.</p>
+        <div id="createStatus" class="status-msg"></div>
       </div>
 
-      <!-- STEP 5 -->
-      <div class="step reveal">
-        <div class="step-num">4</div>
-        <div class="step-body">
-          <div class="step-head">
-            <span class="step-title">Enroll &amp; Pay Monthly Fee</span>
-            <span class="step-badge badge-final">You're in</span>
-          </div>
-          <p>Fill in the official enrollment form, review and agree to the Terms &amp; Conditions, and pay the monthly fee before the batch starts. Fees are due at the beginning of each month going forward.</p>
-          <div class="step-detail">
-            <span class="sd-pill blue">📝 <a href="apply.html" style="color:var(--blue);text-decoration:none;font-weight:700;">Enrollment form</a></span>
-            <span class="sd-pill blue">📄 <a href="terms.html" style="color:var(--blue);text-decoration:none;font-weight:700;">Terms &amp; Conditions</a></span>
-            <span class="sd-pill blue">💳 Monthly fee · paid upfront</span>
-          </div>
+      <div class="panel">
+        <h3>Select Student to Update</h3>
+        <select id="studentSelect" onchange="onStudentChange()">
+          <option value="">— Select a student —</option>
+        </select>
+        <div id="studentActions" class="student-actions">
+          <button class="mini" onclick="editStudent()">✏️ Edit student details</button>
+          <button class="mini danger" onclick="deleteStudent()">🗑 Delete student</button>
         </div>
+        <div id="studentStatus_msg" class="status-msg" style="margin-top:0.6rem;"></div>
       </div>
 
-    </div>
-  </div>
-</section>
+      <div id="studentPanels" style="display:none;">
+        <div class="panel">
+          <h3>🔗 Feedback Forms & Links</h3>
+          <div class="row2">
+            <div><label>Title</label><input id="lnTitle" placeholder="e.g. Session Feedback Form"></div>
+            <div><label>Link</label><input id="lnLink" placeholder="https://forms.google.com/..."></div>
+          </div>
+          <button class="action" id="lnBtn" onclick="saveEntry('links')">Add Link</button>
+          <div id="lnStatus_msg" class="status-msg"></div>
+        </div>
 
-<div class="divider"></div>
-
-<!-- COURSES -->
-<section id="courses">
-  <div class="section-inner">
-    <p class="s-eye reveal">What We Offer</p>
-    <h2 class="s-title reveal">Courses for every<br/><em>stage of learning.</em></h2>
-    <p class="s-sub reveal">Whether you're a school student building strong foundations or a college student expanding into new skills — there's a place for you at CoRadix.</p>
-
-    <!-- School Tuition block -->
-    <div class="courses-block reveal">
-      <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
-        <div class="ct-left"><span class="ct-icon">🏫</span><div><div class="ct-title">School Students — Academic Tuition</div><div class="ct-sub">Classes 1–12 · Syllabus-aligned · Subject rooms · Small batches</div></div></div>
-        <span class="ct-arrow">▼</span>
-      </button>
-      <div class="courses-panel">
-        <div class="panel-inner">
-          <div class="course-cards">
-            <div class="course-card">
-              <span class="cc-badge">Core Foundation</span>
-              <h4>Classes 1 – 7</h4><div class="cc-range">Primary &amp; Middle School</div>
-              <p>Building strong conceptual roots early. Literacy, numeracy, and scientific thinking — making sure students never develop gaps that compound later.</p>
-              <div class="subjects-list">
-                <span class="subj-tag">English</span><span class="subj-tag">Mathematics</span><span class="subj-tag">Science</span><span class="subj-tag">Social Studies</span><span class="subj-tag">Hindi / Regional Language</span><span class="subj-tag">Environmental Studies</span><span class="subj-tag">General Knowledge</span>
-              </div>
-            </div>
-            <div class="course-card">
-              <span class="cc-badge adv">Core Advanced</span>
-              <h4>Classes 8 – 12</h4><div class="cc-range">Secondary &amp; Senior Secondary</div>
-              <p>High-stakes years need high-quality prep. Strategic syllabus completion, exam-pattern mastery, and subject-specific rooms for peer discussion and doubt-clearing.</p>
-              <div class="subjects-list">
-                <span class="subj-tag">Physics</span><span class="subj-tag">Chemistry</span><span class="subj-tag">Biology</span><span class="subj-tag">Mathematics</span><span class="subj-tag">English</span><span class="subj-tag">Computer Science</span><span class="subj-tag">Economics</span><span class="subj-tag">Accountancy</span><span class="subj-tag">Business Studies</span><span class="subj-tag">History</span><span class="subj-tag">Geography</span><span class="subj-tag">Political Science</span>
-              </div>
+        <div class="panel">
+          <h3>🛠️ Project Workflow <span style="font-weight:400;color:var(--muted);font-size:0.78rem;">(Skill Course students)</span></h3>
+          <div class="row2">
+            <div><label>Step Title</label><input id="psTitle" placeholder="e.g. Research & Topic Finalisation"></div>
+            <div><label>Status</label>
+              <select id="psStatus"><option>Not Started</option><option>In Progress</option><option>Complete</option></select>
             </div>
           </div>
-          <div class="community-note">
-            <span class="cn-icon">💬</span>
-            <p><strong>Subject Rooms Included.</strong> Every enrolled student gets access to dedicated subject community rooms — spaces to ask questions, share notes, and stay on track between sessions. Strategic syllabus completion ensures no chapter is left behind.</p>
+          <div class="row2">
+            <div><label>Date</label><input type="date" id="psDate"></div>
+            <div><label>Notes</label><input id="psNotes" placeholder="Optional"></div>
           </div>
+          <button class="action" id="psBtn" onclick="saveEntry('projectSteps')">Add Step</button>
+          <div id="psStatus_msg" class="status-msg"></div>
         </div>
-      </div>
-    </div>
 
-    <!-- Side Courses block -->
-    <div class="courses-block reveal">
-      <button class="courses-toggle" onclick="toggleCourse(this)" aria-expanded="false">
-        <div class="ct-left"><span class="ct-icon">🚀</span><div><div class="ct-title">Side Courses — Skills for the Real World</div><div class="ct-sub">School &amp; College students · Self-paced &amp; live options · Industry-relevant</div></div></div>
-        <span class="ct-arrow">▼</span>
-      </button>
-      <div class="courses-panel">
-        <div class="panel-inner">
-          <div class="side-courses-grid">
-            <div class="sc-card"><div class="sc-icon">🌐</div><h4>Web Development</h4><p>HTML, CSS, and JavaScript fundamentals. Build your first real website — no templates, just code you write and understand.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">🤖</div><h4>Coding Using AI</h4><p>Write, debug, and ship real code with AI as your co-pilot. No prior experience needed — curiosity is enough to start.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">✨</div><h4>Website Creation Using AI</h4><p>Design and deploy beautiful, functional websites using modern AI tools — fast, practical, and portfolio-ready from day one.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">📱</div><h4>App Development Using AI</h4><p>From idea to working app using AI-assisted workflows. Covers UI/UX basics, no-code tools, and AI co-pilots for building fast.</p><div class="sc-who">College / Senior School</div></div>
-            <div class="sc-card"><div class="sc-icon">📣</div><h4>Digital Marketing</h4><p>SEO, social media strategy, content creation, and analytics. Learn to build a real online presence from scratch.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">📸</div><h4>Instagram Marketing</h4><p>Grow a real audience — content strategy, Reels, storytelling, hashtag science, and analytics. Build a brand people follow.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">✍️</div><h4>Content Writing</h4><p>Write blogs, captions, articles, and scripts that people actually read. Covers tone, structure, SEO basics, and AI-assisted editing.</p><div class="sc-who">School &amp; College</div></div>
-            <div class="sc-card"><div class="sc-icon">🔬</div><h4>Molecular Biology</h4><p>DNA, RNA, protein synthesis, and gene regulation — taught with conceptual depth and visual clarity for biology stream students.</p><div class="sc-who">College / Class 11–12</div></div>
-            <div class="sc-card"><div class="sc-icon">🦠</div><h4>Microbiology</h4><p>Bacteria, viruses, fungi, and immune responses. Solid foundations for medical, biotech, and pharmacy aspirants.</p><div class="sc-who">College / Class 11–12</div></div>
-            <div class="sc-card"><div class="sc-icon">🧬</div><h4>Bioinformatics Basics</h4><p>Where biology meets computing. Sequence analysis, databases, and data tools for the modern biology student.</p><div class="sc-who">College</div></div>
-            <div class="sc-card"><div class="sc-icon">🏥</div><h4>Medical Coding</h4><p>ICD-10, CPT fundamentals, and healthcare documentation. A high-demand career skill for biology-stream students.</p><div class="sc-who">College / Senior School</div></div>
+        <div class="panel">
+          <h3>🏆 Certificate & Project Details <span style="font-weight:400;color:var(--muted);font-size:0.78rem;">(Skill Course students)</span></h3>
+          <div class="row2">
+            <div><label>Project Title</label><input id="ctProjectTitle" placeholder="e.g. Building a Weather App"></div>
+            <div><label>Publication Link (Advanced level)</label><input id="ctPubLink" placeholder="https://..."></div>
           </div>
-          <div class="occasional-note">
-            <strong>+ Occasional Courses</strong> — Sam periodically adds new short courses based on emerging trends and student demand. Follow <a href="https://instagram.com/missenlic.sam" target="_blank" style="color:var(--blue);text-decoration:none;font-weight:600;">@missenlic.sam</a> to never miss an announcement.
+          <label>Project Description</label>
+          <textarea id="ctDesc" rows="2" placeholder="Short description of the project"></textarea>
+          <div class="row2">
+            <div><label>Certificate Issued?</label>
+              <select id="ctIssued"><option value="false">Not yet</option><option value="true">Issued</option></select>
+            </div>
+            <div><label>Issue Date</label><input type="date" id="ctDate"></div>
           </div>
+          <label>Certificate Link</label>
+          <input id="ctLink" placeholder="Google Drive link to the certificate">
+          <button class="action" onclick="saveCertificate()">Save Certificate & Project Info</button>
+          <div id="ctStatus_msg" class="status-msg"></div>
         </div>
-      </div>
-    </div>
 
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- SKILL COURSES -->
-<section id="summer">
-  <div class="section-inner">
-    <p class="s-eye reveal" style="color:var(--summer);">
-      <span style="width:1.2rem;height:2px;background:var(--summer);display:inline-block;"></span>
-      Skill Courses
-    </p>
-    <h2 class="s-title reveal">Skills the syllabus<br/><em style="color:var(--summer);">doesn't teach.</em></h2>
-    <p class="s-sub reveal">Short, focused, and genuinely fun courses for school students, running year-round. No textbooks. No exams. Just real skills you'll actually use.</p>
-
-    <div class="summer-project-note reveal">
-      <span class="spn-icon">🔭</span>
-      <p><strong style="color:var(--summer);">Part of a special project.</strong> These courses run as part of CoRadix's student engagement initiative — designed to keep curious minds active and give students a head start on skills the school syllabus doesn't cover. Each course is short, practical, and built around doing. Completion certificates are issued for all participants.</p>
-    </div>
-
-    <div class="summer-courses-grid">
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🌐</div>
-        <span class="sc-summer-badge tech">Tech</span>
-        <h4>Build Your First Website</h4>
-        <p>Learn HTML, CSS, and a touch of JavaScript to build a real, working website from scratch. No drag-and-drop — real code you wrote yourself.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🤖</div>
-        <span class="sc-summer-badge tech">Tech · AI</span>
-        <h4>Coding with AI</h4>
-        <p>Use AI tools to write, understand, and debug actual code. Build mini projects — a quiz app, a calculator, a to-do list — with AI as your co-pilot.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">✨</div>
-        <span class="sc-summer-badge tech">Tech · AI</span>
-        <h4>Build a Website with AI</h4>
-        <p>Design and publish a full website using AI tools — no coding background needed. Portfolio-ready output by the end of the course.</p>
-        <div class="sc-duration">⏱ 1 week · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">📱</div>
-        <span class="sc-summer-badge tech">Tech · AI</span>
-        <h4>Build an App with AI</h4>
-        <p>Go from idea to working app using AI-assisted no-code tools. Learn UI/UX basics and ship something you're proud to show.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">📸</div>
-        <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
-        <h4>Instagram Marketing Bootcamp</h4>
-        <p>Build a real Instagram strategy — content planning, Reels, captions, hashtag science, and how the algorithm actually works.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live + async</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">✍️</div>
-        <span class="sc-summer-badge creative">Creative</span>
-        <h4>Content Writing for the Internet</h4>
-        <p>Blogs, captions, scripts, and threads — write content people actually want to read. Covers structure, tone, SEO basics, and AI-assisted editing.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live + async</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">📖</div>
-        <span class="sc-summer-badge creative">Creative</span>
-        <h4>Novel Writing Workshop</h4>
-        <p>Turn your story ideas into real chapters. World-building, character arcs, plot structure, dialogue, and how to actually finish what you start.</p>
-        <div class="sc-duration">⏱ 3 weeks · Workshop style</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🎬</div>
-        <span class="sc-summer-badge" style="background:#fdf4ff;color:#7c3aed;">Creative</span>
-        <h4>Video Scriptwriting</h4>
-        <p>Write scripts for YouTube, Reels, and short films. Hook writing, pacing, visual storytelling — practical skills for the video-first internet.</p>
-        <div class="sc-duration">⏱ 1 week · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🧠</div>
-        <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
-        <h4>How Your Brain Works</h4>
-        <p>Neuroscience and psychology made fascinating — memory, habits, emotions, and how to hack your own focus. Genuinely useful for every student.</p>
-        <div class="sc-duration">⏱ 1 week · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🧬</div>
-        <span class="sc-summer-badge" style="background:#f0fdf4;color:#166534;">Science</span>
-        <h4>Introduction to Biotechnology</h4>
-        <p>Genes, GMOs, vaccines, CRISPR, and the future of medicine — explained visually. Perfect for curious biology-stream students getting a head start.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">💡</div>
-        <span class="sc-summer-badge tech">Skills</span>
-        <h4>How to Study Smarter</h4>
-        <p>The CoRadix method in a focused course — spaced repetition, active recall, the Feynman technique, and a personal study system you can actually stick to.</p>
-        <div class="sc-duration">⏱ 1 week · Live sessions</div>
-      </div>
-      <div class="summer-course-card reveal">
-        <div class="sc-summer-icon">🗣️</div>
-        <span class="sc-summer-badge creative">Creative</span>
-        <h4>Public Speaking &amp; Debate Basics</h4>
-        <p>Confidence on camera, in class, and in life. Structure arguments, control nerves, and speak so people listen.</p>
-        <div class="sc-duration">⏱ 2 weeks · Live sessions</div>
-      </div>
-    </div>
-
-    <!-- Skill Course Pricing -->
-    <div class="pricing-note reveal">
-      <strong>Founding Batch Pricing.</strong> These are launch prices for our earliest students — as CoRadix grows, prices will move toward the standard rate shown below. Founding batch students keep their rate for the course they enrolled in.
-    </div>
-    <div class="pricing-grid">
-      <div class="price-card reveal">
-        <h4>🔰 Beginner</h4>
-        <div class="pc-sessions">6 live group sessions · 10 days</div>
-        <div class="pc-true">₹1,499</div>
-        <div class="pc-founding">₹350</div>
-        <div class="pc-label">Founding Batch Price</div>
-      </div>
-      <div class="price-card featured reveal">
-        <span class="pc-badge">Most Popular</span>
-        <h4>⚙️ Intermediate</h4>
-        <div class="pc-sessions">8 group + 2 one-on-one sessions · 1 month</div>
-        <div class="pc-true">₹2,999</div>
-        <div class="pc-founding">₹800</div>
-        <div class="pc-label">Founding Batch Price</div>
-      </div>
-      <div class="price-card reveal">
-        <h4>🚀 Advanced</h4>
-        <div class="pc-sessions">~7 group + 10 one-on-one sessions · 2-3 months</div>
-        <div class="pc-true">₹8,999</div>
-        <div class="pc-founding">₹2,500</div>
-        <div class="pc-label">Founding Batch Price</div>
-      </div>
-    </div>
-
-    <!-- Skill Courses Enroll Box -->
-    <div class="summer-enroll-box reveal">
-      <div class="seb-left">
-        <h3>Ready to make this term <em>different?</em></h3>
-        <p>Spots are limited. Pick your course and enroll today — it's free to apply.</p>
-      </div>
-      <div class="seb-actions">
-        <a href="summer.html" class="btn btn-summer">Enroll in a Skill Course →</a>
-        <a href="#" onclick="openInquiry(); return false;" class="btn btn-outline" style="border-color:rgba(255,255,255,0.2);color:#fff;">Ask a Question</a>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- WEBINAR + DISCOUNT -->
-<section id="webinar">
-  <div class="section-inner">
-    <p class="s-eye reveal">Free Live Webinar</p>
-    <h2 class="s-title reveal">Learn the method.<br/><em>Then get rewarded for acting fast.</em></h2>
-    <p class="s-sub reveal">One free session with the founder. Real techniques you can use immediately — and a special enrollment offer for those who join us live.</p>
-
-    <div class="webinar-card reveal">
-      <div class="webinar-left">
-        <div class="wb-badge">🎓 Free · No card required</div>
-        <h3>The Science of <em>Studying Smarter</em></h3>
-        <p>A live 45-minute session with Sam, founder of CoRadix, breaking down the exact techniques behind the M · U · P method — the same ones used in every CoRadix batch.</p>
-        <div class="webinar-meta">
-          <div class="wb-meta-item">📅 Date &amp; time announced on registration</div>
-          <div class="wb-meta-item">🎥 Live on Zoom</div>
-          <div class="wb-meta-item">👨‍👩‍👧 Parents &amp; students both welcome</div>
-        </div>
-        <div class="webinar-topics">
-          <div class="wb-topic"><span class="wb-check">✓</span> How to know what to memorise vs. understand vs. practise</div>
-          <div class="wb-topic"><span class="wb-check">✓</span> Active recall &amp; spaced repetition — how to actually use them</div>
-          <div class="wb-topic"><span class="wb-check">✓</span> The biggest study mistake most students don't know they're making</div>
-          <div class="wb-topic"><span class="wb-check">✓</span> Live Q&amp;A — bring your own study struggles</div>
-        </div>
-        <a href="webinar.html" class="btn btn-summer">Reserve Your Free Seat →</a>
-      </div>
-      <div class="webinar-right">
-        <div class="wb-offer-label">Enrollment Offer — Live Attendees Only</div>
-        <div class="wb-tier">
-          <span class="wb-tier-label">Enroll within 30 mins of webinar ending</span>
-          <span class="wb-tier-value">30% off</span>
-        </div>
-        <div class="wb-tier">
-          <span class="wb-tier-label">Enroll within 48 hours</span>
-          <span class="wb-tier-value">15% off</span>
-        </div>
-        <div class="wb-tier">
-          <span class="wb-tier-label">Standard enrollment</span>
-          <span class="wb-tier-value dim">Free trial only</span>
-        </div>
-        <a href="webinar.html" class="btn btn-blue wb-cta">Register Free →</a>
-        <p class="wb-fineprint">Discount applies to first month's fee only. Available exclusively to students who attend the live webinar — offer isn't available for those who watch a recording.</p>
-      </div>
-    </div>
-
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- MATERIALS PROTECTION -->
-<section id="materials">
-  <div class="section-inner">
-    <p class="s-eye reveal">Materials &amp; Access Policy</p>
-    <h2 class="s-title reveal">Your materials are<br/><em>yours — protect them.</em></h2>
-    <p class="s-sub reveal">Every resource we share is created exclusively for enrolled students. Here's how we keep materials secure, and what that means for you.</p>
-
-    <div class="materials-grid">
-      <div class="mat-intro reveal">
-        <p>All notes, worksheets, recordings, and resources shared through CoRadix Academy are the intellectual property of CoRadix Academy. They are licensed for the personal, non-commercial use of the enrolled student only.</p>
-        <div class="mat-rules">
-          <div class="mat-rule">
-            <span class="mr-icon">🚫</span>
-            <div class="mr-text"><h4>No Sharing or Forwarding</h4><p>Materials must not be shared with anyone outside the enrolled student — not friends, not other students, not online groups.</p></div>
+        <div class="panel">
+          <h3>📋 Attendance</h3>
+          <div id="attSummary" class="att-summary"></div>
+          <div class="row3">
+            <div><label>Date</label><input type="date" id="attDate"></div>
+            <div><label>Subject of the session</label><input id="attSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>Notes (optional)</label><input id="attNotes" placeholder="e.g. joined 10 min late"></div>
           </div>
-          <div class="mat-rule">
-            <span class="mr-icon">📵</span>
-            <div class="mr-text"><h4>No Screenshots of Session Content</h4><p>Screenshots or screen-recordings of live sessions, shared screens, or whiteboards are strictly prohibited without written permission.</p></div>
+          <div class="row3">
+            <div><label>Pre-session task</label>
+              <select id="attPre"><option>Completed</option><option>Partial</option><option>Not done</option><option selected>Not assigned</option></select>
+            </div>
+            <div><label>Session</label>
+              <select id="attSession"><option>Present</option><option>Late</option><option>Absent</option><option>Excused</option></select>
+            </div>
+            <div><label>Post-session task</label>
+              <select id="attPost"><option>Completed</option><option>Partial</option><option>Not done</option><option selected>Not assigned</option></select>
+            </div>
           </div>
-          <div class="mat-rule">
-            <span class="mr-icon">⬇️</span>
-            <div class="mr-text"><h4>No Downloading or Redistribution</h4><p>Files shared via Google Drive are view-only. Downloading, printing for distribution, or re-uploading anywhere is not permitted.</p></div>
+          <button class="action" id="attBtn" onclick="saveEntry('attendance')">Add Attendance</button>
+          <div id="attStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>💰 Fees</h3>
+          <div id="feeSummary" class="att-summary"></div>
+          <div class="row3">
+            <div><label>Fee for</label><input id="feTitle" placeholder="e.g. Term 1 fee"></div>
+            <div><label>Amount to pay (₹)</label><input type="number" id="feAmount" min="0" placeholder="e.g. 5000"></div>
+            <div><label>Pay by (deadline)</label><input type="date" id="feDue"></div>
           </div>
-          <div class="mat-rule">
-            <span class="mr-icon">⚖️</span>
-            <div class="mr-text"><h4>Legal Consequences Apply</h4><p>Redistribution of CoRadix materials is a violation of the Terms &amp; Conditions and may be pursued legally. <a href="terms.html" style="color:var(--blue);font-weight:600;">Read the full T&amp;C →</a></p></div>
+          <div class="row3">
+            <div><label>Amount paid so far (₹)</label><input type="number" id="fePaid" min="0" placeholder="0"></div>
+            <div><label>Paid on</label><input type="date" id="fePaidOn"></div>
+            <div><label>Note (optional)</label><input id="feNotes" placeholder="e.g. pay by UPI or cash"></div>
           </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="feBatch" style="width:auto;margin:0;"> Also add this fee for everyone in this student's batch (new entries only; their paid amount starts at 0)</label>
+          <button class="action" id="feBtn" onclick="saveEntry('fees')">Add Fee</button>
+          <div id="feStatus_msg" class="status-msg"></div>
         </div>
-        <div class="watermark-note">
-          <span class="wn-icon">🔖</span>
-          <span><strong>All materials are watermarked.</strong> Every document and resource is stamped with the student's name and ID. If a file is found circulating, we will know exactly where it came from.</span>
+
+        <div class="panel">
+          <h3>✅ Pre &amp; Post Session Tasks</h3>
+          <div class="row3">
+            <div><label>Task title</label><input id="tkTitle" placeholder="e.g. Read Chapter 4"></div>
+            <div><label>Subject</label><input id="tkSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>When</label>
+              <select id="tkKind"><option>Pre-session</option><option>Post-session</option></select>
+            </div>
+          </div>
+          <div class="row2">
+            <div><label>Session date</label><input type="date" id="tkDate"></div>
+            <div></div>
+          </div>
+          <label>Format</label>
+          <select id="tkType" onchange="toggleMode('tk')">
+            <option value="link">Link (Google Drive, website, online game)</option>
+            <option value="text">Type or paste text (plain text or Markdown)</option>
+          </select>
+          <div id="tkLinkWrap">
+            <label>Link</label>
+            <input id="tkLink" placeholder="https://...">
+          </div>
+          <div id="tkTextWrap" style="display:none;">
+            <label>Text (plain text or Markdown)</label>
+            <textarea id="tkText" class="md" rows="8" placeholder="Write or paste it here..."></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="tkBatch" style="width:auto;margin:0;"> Also add this for everyone in this student's batch (new entries only)</label>
+          <button class="action" id="tkBtn" onclick="saveEntry('tasks')">Add Task</button>
+          <div id="tkStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>🎮 Activities &amp; Games</h3>
+          <div class="row2">
+            <div><label>Activity title</label><input id="acTitle" placeholder="e.g. Science Word Hunt"></div>
+            <div><label>Category</label><input id="acCategory" list="categoryList" placeholder="e.g. Word game"></div>
+          </div>
+          <datalist id="categoryList"></datalist>
+          <label>Format</label>
+          <select id="acType" onchange="toggleMode('ac')">
+            <option value="link">Link (Google Drive, website, online game)</option>
+            <option value="text">Type or paste text (plain text or Markdown)</option>
+          </select>
+          <div id="acLinkWrap">
+            <label>Link</label>
+            <input id="acLink" placeholder="https://...">
+          </div>
+          <div id="acTextWrap" style="display:none;">
+            <label>Text (plain text or Markdown)</label>
+            <textarea id="acText" class="md" rows="8" placeholder="Write or paste it here..."></textarea>
+          </div>
+          <label style="display:flex;align-items:center;gap:0.4rem;font-weight:400;margin-top:0.8rem;"><input type="checkbox" id="acBatch" style="width:auto;margin:0;"> Also add this for everyone in this student's batch (new entries only)</label>
+          <button class="action" id="acBtn" onclick="saveEntry('activities')">Add Activity</button>
+          <div id="acStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>💡 Activity Suggestions <span style="font-weight:400;color:var(--muted);font-size:0.75rem;">(sent by this student)</span></h3>
+          <div id="sgAdminList"></div>
+        </div>
+
+        <div class="panel">
+          <h3>💬 Feedback</h3>
+          <div class="row2">
+            <div><label>Subject</label><input id="fbSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>Date</label><input type="date" id="fbDate"></div>
+          </div>
+          <label>Note</label>
+          <textarea id="fbNote" rows="2" placeholder="Feedback note"></textarea>
+          <button class="action" id="fbBtn" onclick="saveEntry('feedback')">Add Feedback</button>
+          <div id="fbStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📚 Course Materials</h3>
+          <div class="row2">
+            <div><label>Subject</label><input id="matSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>Title</label><input id="matTitle" placeholder="e.g. Chapter 4 Notes"></div>
+          </div>
+          <label>Google Drive Link (view-only)</label>
+          <input id="matLink" placeholder="https://drive.google.com/...">
+          <datalist id="subjectList"></datalist>
+          <button class="action" id="matBtn" onclick="saveEntry('materials')">Add Material</button>
+          <div id="matStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📈 Performance Scores</h3>
+          <div class="row3">
+            <div><label>Subject</label><input id="scSubject" list="subjectList" placeholder="e.g. Physics"></div>
+            <div><label>Test / Topic</label><input id="scTest" placeholder="e.g. Unit Test 2"></div>
+            <div><label>Date</label><input type="date" id="scDate"></div>
+          </div>
+          <div class="row2">
+            <div><label>Score Obtained</label><input type="number" id="scScore" placeholder="e.g. 42"></div>
+            <div><label>Out Of</label><input type="number" id="scMax" placeholder="e.g. 50"></div>
+          </div>
+          <label>Session Rating (1–10, optional — effort, focus, participation)</label>
+          <input type="number" id="scRating" min="1" max="10" placeholder="e.g. 8">
+          <label>Notes (optional)</label>
+          <textarea id="scNotes" rows="2" placeholder="Any short context for this score"></textarea>
+          <button class="action" id="scBtn" onclick="saveEntry('scores')">Add Score</button>
+          <div id="scStatus_msg" class="status-msg"></div>
+        </div>
+
+        <div class="panel">
+          <h3>📝 Assessments</h3>
+          <div class="row3">
+            <div><label>Title</label><input id="asTitle" placeholder="e.g. Unit Test 1"></div>
+            <div><label>Subject</label><input id="asSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
+            <div><label>Due Date</label><input type="date" id="asDue"></div>
+          </div>
+          <label>Assessment Type</label>
+          <select id="asType" onchange="toggleAssessmentMode()">
+            <option value="link">Link (Google Form, PDF, any URL)</option>
+            <option value="text">Paste question text (plain text or Markdown)</option>
+          </select>
+          <div id="asLinkWrap">
+            <label>Link</label>
+            <input id="asLink" placeholder="https://forms.google.com/...">
+          </div>
+          <div id="asTextWrap" style="display:none;">
+            <label>Question text (plain text or Markdown)</label>
+            <textarea id="asText" class="md" rows="10" placeholder="Paste the questions here...&#10;&#10;**1.** What is ...&#10;**2.** Explain ..."></textarea>
+          </div>
+          <button class="action" id="asBtn" onclick="saveEntry('assessments')">Add Assessment</button>
+          <div id="asStatus_msg" class="status-msg"></div>
         </div>
       </div>
 
-      <div class="mat-access-card reveal">
-        <div class="mac-head">
-          <div class="mac-icon">🔐</div>
-          <div><h3>How Material Access Works</h3><p>Secure, simple, and personal</p></div>
-        </div>
-        <div class="mac-steps">
-          <div class="mac-step"><div class="mac-step-num">1</div>Once enrolled, every student is assigned a unique <strong>Student ID</strong> (e.g. CRX-2026-001).</div>
-          <div class="mac-step"><div class="mac-step-num">2</div>A private Google Drive folder is created for your child and shared <strong>only with your registered email address</strong>.</div>
-          <div class="mac-step"><div class="mac-step-num">3</div>Access is <strong>view-only by default</strong> — files cannot be downloaded or copied directly from the Drive.</div>
-          <div class="mac-step"><div class="mac-step-num">4</div>When a student leaves the academy, <strong>access is revoked immediately</strong> with one click.</div>
-          <div class="mac-step"><div class="mac-step-num">5</div>If you ever lose access or change your email, contact us at <a href="mailto: corad.helpdesk@gmail.com" style="color:var(--blue);font-weight:600;">corad.helpdesk@gmail.com</a> to update your details.</div>
-        </div>
-        <div class="mac-note">
-          <strong>Your Student ID</strong> is your reference for everything — sessions, materials, tasks, and communications. Keep it safe. You'll receive it by email upon enrollment confirmation.
-        </div>
-      </div>
-    </div>
+    </main>
   </div>
-</section>
 
-<div class="divider"></div>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore-compat.js"></script>
+  <script src="firebase-config.js"></script>
+  <script>
+    let selectedUid = null;
 
-<!-- WHY -->
-<section id="why">
-  <div class="section-inner">
-    <p class="s-eye reveal">Why CoRadix</p>
-    <h2 class="s-title reveal">Built different.<br/><em>On purpose.</em></h2>
-    <p class="s-sub reveal">We're not a mass coaching centre. We're a small, intentional academy where every student gets full attention — not a seat in a crowd.</p>
-    <div class="why-grid">
-      <div class="why-item reveal"><div class="why-icon">👥</div><h3>Max 9 Students Per Batch</h3><p>Capped at nine — because that's what real attention demands. Every question gets answered. Every student gets seen.</p></div>
-      <div class="why-item reveal"><div class="why-icon">🎯</div><h3>Method-Driven, Not Syllabus-Driven</h3><p>We cover the syllabus — but the way we do it builds independent thinkers, not exam machines. Results follow real learning.</p></div>
-      <div class="why-item reveal"><div class="why-icon">📊</div><h3>Progress Students Can See</h3><p>Students and parents get regular clarity on exactly what's been memorised, understood, and what needs more practice.</p></div>
-      <div class="why-item reveal"><div class="why-icon">🌱</div><h3>Confidence as the Real Outcome</h3><p>Students leave CoRadix knowing <em>how</em> to study. That skill follows them into every exam, every year.</p></div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- ABOUT -->
-<div id="about-wrapper">
-  <div class="about-text-wrap">
-    <p class="s-eye reveal">Behind CoRadix</p>
-    <h2 class="s-title reveal">A tutor who<br/><em>thinks differently.</em></h2>
-    <p style="font-size:1rem;color:var(--muted);line-height:1.75;margin-bottom:1rem;" class="reveal">CoRadix was founded by Sam — a biotech and psychology student who realised most students struggle not because they lack intelligence, but because no one ever showed them <em>how</em> to learn.</p>
-    <div class="about-quote reveal"><p>"I built the method I wish someone had handed me in school. Every student deserves to know what to memorise, what to understand, and what to practise — and to feel the difference."</p></div>
-    <p style="font-size:1rem;color:var(--muted);line-height:1.75;" class="reveal">The academy stays small by design. Every batch is capped, every student is tracked, and no one falls through the cracks.</p>
-  </div>
-  <div class="about-visual-wrap reveal">
-    <div class="about-card">
-      <div class="about-avatar">S</div>
-      <h3>Sam (Shamreen)</h3>
-      <p class="role">Founder · CoRadix Academy</p>
-      <p>Biotech researcher and psychology student. Believes the gap between struggling and thriving in school is almost always a <em>method</em> problem — not an intelligence problem. Also runs Brainzpire, an innovation startup with projects in diagnostics, agri-tech, and food safety.</p>
-      <div class="about-links">
-        <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="about-link al-portfolio">🌐 Portfolio</a>
-        <a href="https://instagram.com/missenlic.sam" target="_blank" class="about-link al-insta">📷 @missenlic.sam</a>
-      </div>
-      <div class="about-stats">
-        <div class="stat"><div class="num">9</div><div class="lbl">Max students / batch</div></div>
-        <div class="stat"><div class="num">3</div><div class="lbl">Learning pillars</div></div>
-        <div class="stat" style="grid-column:1/-1;"><div class="num" style="font-size:1.3rem;">M · U · P</div><div class="lbl">Memorise · Understand · Practise</div></div>
-      </div>
-    </div>
-  </div>
-</div>
-
-<div class="divider"></div>
-
-<!-- TESTIMONIALS -->
-<section id="proof">
-  <div class="section-inner">
-    <p class="s-eye reveal">What Parents &amp; Students Say</p>
-    <h2 class="s-title reveal">Real words.<br/><em>Real results.</em></h2>
-    <div class="proof-grid">
-      <div class="proof-card reveal">
-        <div class="stars">★★★★★</div>
-        <p class="proof-text">"My daughter was struggling with Chemistry for two years. After one month at CoRadix, she could finally explain why reactions happen — not just memorise equations. Her confidence completely changed."</p>
-        <div class="proof-author"><div class="proof-av">P</div><div><div class="proof-name">Priya R.</div><div class="proof-sub">Parent, Class 11 student</div></div></div>
-      </div>
-      <div class="proof-card reveal">
-        <div class="stars">★★★★★</div>
-        <p class="proof-text">"I never knew there was a difference between what I needed to memorise vs understand. Once I got that, studying became so much less stressful. My marks went up — but the relief was bigger."</p>
-        <div class="proof-author"><div class="proof-av">A</div><div><div class="proof-name">Aryan M.</div><div class="proof-sub">Student, Class 10</div></div></div>
-      </div>
-      <div class="proof-card reveal">
-        <div class="stars">★★★★★</div>
-        <p class="proof-text">"The small batch size was what convinced me. He's not lost in a crowd — he's asked questions, pushed to think, and held accountable but kindly. That balance is rare."</p>
-        <div class="proof-author"><div class="proof-av">F</div><div><div class="proof-name">Fatima K.</div><div class="proof-sub">Parent, Class 9 student</div></div></div>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- CONTACT -->
-<section id="contact">
-  <div class="section-inner">
-    <p class="s-eye reveal">Get in Touch</p>
-    <h2 class="s-title reveal">We'd love to<br/><em>hear from you.</em></h2>
-    <div class="contact-grid">
-      <div class="contact-info reveal">
-        <p>Have questions about a batch, a course, or just want to know if CoRadix is the right fit? Reach out — we respond to every message personally.</p>
-        <div class="contact-items">
-          <a href="mailto:corad.helpdesk@gmail.com" class="contact-item">
-            <span class="ci-icon">📧</span>
-            <div><div class="ci-label">Academy Email</div><div class="ci-value">corad.helpdesk@gmail.com</div></div>
-          </a>
-          <a href="mailto:samrn.noor@gmail.com" class="contact-item">
-            <span class="ci-icon">👤</span>
-            <div><div class="ci-label">Founder — Sam</div><div class="ci-value">samrn.noor@gmail.com</div></div>
-          </a>
-          <a href="https://instagram.com/missenlic.sam" target="_blank" class="contact-item">
-            <span class="ci-icon">📷</span>
-            <div><div class="ci-label">Instagram</div><div class="ci-value">@missenlic.sam</div></div>
-          </a>
-          <a href="https://hazixity-blip.github.io/Personal-portfolio/" target="_blank" class="contact-item">
-            <span class="ci-icon">🌐</span>
-            <div><div class="ci-label">Founder Portfolio</div><div class="ci-value">missenlic.sam — Portfolio</div></div>
-          </a>
-        </div>
-      </div>
-      <div class="contact-map-placeholder reveal">
-        <div class="map-icon">📍</div>
-        <h4>Online-First Academy</h4>
-        <p>CoRadix operates fully online, so students across India can access the same quality of teaching. All sessions are live and interactive — no recordings, no passive watching.</p>
-        <br/>
-        <p style="color:var(--blue);font-weight:600;font-size:var(--fs-small);">Based in Tamil Nadu</p>
-      </div>
-    </div>
-  </div>
-</section>
-
-<div class="divider"></div>
-
-<!-- CTA -->
-<section id="cta">
-  <div class="section-inner">
-    <div class="cta-box reveal">
-      <h2>Ready to learn the<br/><em>right way?</em></h2>
-      <p>Seats in every batch are limited to nine. Once full, the next opening is the next batch. Don't wait.</p>
-      <div class="cta-actions">
-        <a href="apply.html" class="btn btn-blue" style="font-size:1rem;padding:0.85rem 2rem;">Apply for the Next Batch →</a>
-        <a href="webinar.html" class="btn btn-summer" style="font-size:1rem;padding:0.85rem 2rem;">🎓 Join the Free Webinar →</a>
-      </div>
-      <p class="cta-note">Batches fill quickly. Enquire early to secure a spot.</p>
-    </div>
-  </div>
-</section>
-
-<!-- FOOTER -->
-<footer>
-  <a class="footer-logo" href="#">
-    <img src="Favicon.jpeg" alt="Favicon" style="height:24px;margin-right:4px;" onerror="this.style.display='none'">
-    <img src="Logo.jpeg" alt="CoRadix Logo" onerror="this.style.display='none'">
-  </a>
-  <ul class="footer-links">
-    <li><a href="#method">Method</a></li>
-    <li><a href="#procedure">How to Join</a></li>
-    <li><a href="#courses">Courses</a></li>
-    <li><a href="#summer">Skill Courses</a></li>
-    <li><a href="#webinar">Webinar</a></li>
-    <li><a href="#why">Why Us</a></li>
-    <li><a href="#about-wrapper">About</a></li>
-    <li><a href="#contact">Contact</a></li>
-    <li><a href="terms.html">Terms</a></li>
-    <li><a href="apply.html">Enroll</a></li>
-    <li><a href="webinar.html">Webinar Signup</a></li>
-    <li><a href="login.html">Student Login</a></li>
-  </ul>
-  <p class="footer-copy">© 2026 CoRadix Academy. All rights reserved.</p>
-</footer>
-
-<script>
-  /* ── Banner offset for nav ── */
-  function updateNavTop() {
-    const banner = document.getElementById('annBanner');
-    const nav = document.getElementById('mainNav');
-    if (banner && banner.style.display !== 'none') {
-      nav.style.top = banner.offsetHeight + 'px';
-    } else {
-      nav.style.top = '0';
-    }
-  }
-  updateNavTop();
-  window.addEventListener('resize', updateNavTop);
-
-  function closeBanner() {
-    const b = document.getElementById('annBanner');
-    b.style.display = 'none';
-    document.getElementById('mainNav').style.top = '0';
-  }
-
-  /* ── Mobile hamburger menu ── */
-  const hamburgerBtn = document.getElementById('hamburgerBtn');
-  const navLinks = document.getElementById('navLinks');
-  hamburgerBtn.addEventListener('click', () => {
-    const isOpen = navLinks.classList.toggle('open');
-    hamburgerBtn.classList.toggle('open', isOpen);
-    hamburgerBtn.setAttribute('aria-expanded', isOpen ? 'true' : 'false');
-  });
-  // Close the menu after tapping any link inside it
-  navLinks.querySelectorAll('a').forEach(link => {
-    link.addEventListener('click', () => {
-      navLinks.classList.remove('open');
-      hamburgerBtn.classList.remove('open');
-      hamburgerBtn.setAttribute('aria-expanded', 'false');
-    });
-  });
-
-  /* ── Scroll reveal ── */
-  const reveals = document.querySelectorAll('.reveal');
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach((entry, i) => {
-      if (entry.isIntersecting) {
-        setTimeout(() => entry.target.classList.add('visible'), i * 70);
-        observer.unobserve(entry.target);
+    auth.onAuthStateChanged(async (user) => {
+      if (!user) { window.location.href = 'login.html'; return; }
+      const adminDoc = await db.collection('admins').doc(user.uid).get();
+      if (!adminDoc.exists) {
+        document.getElementById('loadingMsg').textContent = 'You do not have admin access.';
+        return;
       }
+      document.getElementById('loadingMsg').style.display = 'none';
+      document.getElementById('appRoot').style.display = 'block';
+      await loadStudentList();
     });
-  }, { threshold: 0.08 });
-  reveals.forEach(el => observer.observe(el));
 
-  /* ── Course panel toggle ── */
-  function toggleCourse(btn) {
-    const panel = btn.nextElementSibling;
-    const isOpen = btn.classList.contains('open');
-    document.querySelectorAll('.courses-toggle.open').forEach(b => {
-      b.classList.remove('open');
-      b.nextElementSibling.classList.remove('open');
-      b.setAttribute('aria-expanded','false');
+    document.getElementById('logoutBtn').addEventListener('click', () => {
+      auth.signOut().then(() => window.location.href = 'login.html');
     });
-    if (!isOpen) {
-      btn.classList.add('open');
-      panel.classList.add('open');
-      btn.setAttribute('aria-expanded','true');
+
+    function showMsg(id, text, ok) {
+      const el = document.getElementById(id);
+      el.textContent = text;
+      el.className = 'status-msg ' + (ok ? 'status-ok' : 'status-err');
+      el.style.display = 'block';
+      setTimeout(() => el.style.display = 'none', 3000);
     }
-  }
-</script>
-<script src="pwa.js"></script>
+
+    async function createStudent() {
+      const uid = document.getElementById('newUid').value.trim();
+      const name = document.getElementById('newName').value.trim();
+      const studentId = document.getElementById('newStudentId').value.trim();
+      const batchName = document.getElementById('newBatch').value.trim();
+      const isAcademic = document.getElementById('newIsAcademic').checked;
+      const isSkill = document.getElementById('newIsSkill').checked;
+      const skillName = document.getElementById('newSkillName').value.trim();
+      const skillLevel = document.getElementById('newSkillLevel').value;
+      if (!uid || !name) { showMsg('createStatus', 'UID and Name are required.', false); return; }
+      try {
+        await db.collection('students').doc(uid).set({
+          name, studentId, batchName,
+          programs: { academic: isAcademic, skill: isSkill },
+          skillInfo: isSkill ? { skillName, level: skillLevel } : null
+        }, { merge: true });
+        showMsg('createStatus', 'Student record saved.', true);
+        resetStudentForm();
+        await loadStudentList();
+      } catch (e) {
+        showMsg('createStatus', 'Error: ' + e.message, false);
+      }
+    }
+
+    async function saveCertificate() {
+      if (!selectedUid) return;
+      const projectTitle = document.getElementById('ctProjectTitle').value.trim();
+      const publicationLink = document.getElementById('ctPubLink').value.trim();
+      const description = document.getElementById('ctDesc').value.trim();
+      const issued = document.getElementById('ctIssued').value === 'true';
+      const issueDate = document.getElementById('ctDate').value;
+      const certificateLink = document.getElementById('ctLink').value.trim();
+      try {
+        await db.collection('students').doc(selectedUid).set({
+          certificate: { projectTitle, publicationLink, description, issued, issueDate, certificateLink }
+        }, { merge: true });
+        showMsg('ctStatus_msg', 'Saved.', true);
+      } catch (e) { showMsg('ctStatus_msg', 'Error: ' + e.message, false); }
+    }
+
+
+    /* ================= Student list / selection ================= */
+    async function loadStudentList() {
+      const sel = document.getElementById('studentSelect');
+      const prev = sel.value;
+      const snap = await db.collection('students').get();
+      sel.innerHTML = '<option value="">— Select a student —</option>';
+      snap.forEach(doc => {
+        const d = doc.data();
+        const opt = document.createElement('option');
+        opt.value = doc.id;
+        opt.textContent = `${d.name || '(no name)'} — ${d.studentId || ''} — ${d.batchName || ''}`;
+        sel.appendChild(opt);
+      });
+      if (prev && [...sel.options].some(o => o.value === prev)) sel.value = prev;
+    }
+
+    async function onStudentChange() {
+      selectedUid = document.getElementById('studentSelect').value;
+      document.getElementById('studentPanels').style.display = selectedUid ? 'block' : 'none';
+      document.getElementById('studentActions').style.display = selectedUid ? 'flex' : 'none';
+      for (const key of Object.keys(SECTIONS)) { endEdit(key); clearForm(key, false); if (SECTIONS[key].onLoad) SECTIONS[key].onLoad([]); }
+      Object.keys(cache).forEach(k => delete cache[k]);
+      Object.keys(openGroups).forEach(k => delete openGroups[k]);
+      refreshSubjects();
+      document.getElementById('sgAdminList').textContent = '';
+      document.querySelectorAll('#studentPanels .count-badge').forEach(b => { b.textContent = ''; });
+      collapseAllPanels();
+      if (!selectedUid) return;
+      const uid = selectedUid;
+      Object.keys(SECTIONS).forEach(k => loadList(k));
+      loadSuggestions();
+      const doc = await db.collection('students').doc(uid).get();
+      if (uid !== selectedUid) return;
+      const d = doc.data() || {};
+      const cert = d.certificate || {};
+      document.getElementById('ctProjectTitle').value = cert.projectTitle || '';
+      document.getElementById('ctPubLink').value = cert.publicationLink || '';
+      document.getElementById('ctDesc').value = cert.description || '';
+      document.getElementById('ctIssued').value = cert.issued ? 'true' : 'false';
+      document.getElementById('ctDate').value = cert.issueDate || '';
+      document.getElementById('ctLink').value = cert.certificateLink || '';
+    }
+
+    /* ================= Edit / delete a whole student ================= */
+    function resetStudentForm() {
+      ['newUid','newName','newStudentId','newBatch','newSkillName','newSkillLevel'].forEach(id => {
+        document.getElementById(id).value = '';
+      });
+      document.getElementById('newUid').readOnly = false;
+      document.getElementById('newIsAcademic').checked = false;
+      document.getElementById('newIsSkill').checked = false;
+      document.getElementById('createBtn').textContent = 'Create';
+      document.getElementById('createCancel').style.display = 'none';
+    }
+
+    async function editStudent() {
+      if (!selectedUid) return;
+      try {
+        const doc = await db.collection('students').doc(selectedUid).get();
+        const d = doc.data() || {};
+        const p = d.programs || {};
+        const sk = d.skillInfo || {};
+        document.getElementById('newUid').value = selectedUid;
+        document.getElementById('newUid').readOnly = true;
+        document.getElementById('newName').value = d.name || '';
+        document.getElementById('newStudentId').value = d.studentId || '';
+        document.getElementById('newBatch').value = d.batchName || '';
+        document.getElementById('newIsAcademic').checked = !!p.academic;
+        document.getElementById('newIsSkill').checked = !!p.skill;
+        document.getElementById('newSkillName').value = sk.skillName || '';
+        document.getElementById('newSkillLevel').value = sk.level || '';
+        document.getElementById('createBtn').textContent = 'Save Changes';
+        document.getElementById('createCancel').style.display = '';
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+        showMsg('createStatus', 'Editing this student — change the fields and press Save Changes.', true);
+      } catch (e) { showMsg('studentStatus_msg', 'Error: ' + friendlyError(e), false); }
+    }
+
+    async function deleteStudent() {
+      if (!selectedUid) return;
+      const label = document.getElementById('studentSelect').selectedOptions[0].textContent;
+      if (!confirm(`Delete "${label}" and ALL of their entries (links, steps, attendance, feedback, materials, scores, assessments, tasks, activities, fees, suggestions)?\n\nThis cannot be undone.\n\nNote: their login in Firebase Authentication is NOT removed — delete it separately in Firebase Console.`)) return;
+      try {
+        const ref = db.collection('students').doc(selectedUid);
+        for (const c of SUB_COLLECTIONS) {
+          const snap = await ref.collection(c).get();
+          let batch = db.batch(), n = 0;
+          for (const d of snap.docs) {
+            batch.delete(d.ref);
+            if (++n === 400) { await batch.commit(); batch = db.batch(); n = 0; }
+          }
+          if (n) await batch.commit();
+        }
+        await ref.delete();
+        await loadStudentList();
+        await onStudentChange();
+        showMsg('studentStatus_msg', 'Student deleted.', true);
+      } catch (e) { showMsg('studentStatus_msg', 'Error: ' + friendlyError(e), false); }
+    }
+
+    /* ================= Add / edit / delete for every per-student entry ================= */
+    const SUB_COLLECTIONS = ['links','projectSteps','attendance','feedback','materials','scores','assessments','tasks','activities','fees','suggestions'];
+    const editing = {};   // section key -> id of the entry being edited (or null)
+    const cache = {};     // section key -> { id: data }
+
+    const badLink = (u) => /^\s*(javascript|data|vbscript):/i.test(u);
+    const clip = (t, n = 140) => { t = String(t ?? ''); return t.length > n ? t.slice(0, n) + '…' : t; };
+    const byTitle = (a, b) => String(a.title || '').localeCompare(String(b.title || ''));
+    const byDateDesc = (a, b) => String(b.date || '').localeCompare(String(a.date || ''));
+
+    const subjectOf = d => (d.subject || '').trim() || 'General';
+    // older scores stored "subject / test name" in one box: keep them under General, shown by their old label
+    const scoreSubject = d => d.testName === undefined ? 'General' : subjectOf(d);
+    const scoreLabel = d => d.testName === undefined ? d.subject : d.testName;
+    /* ---------- Fees ---------- */
+    const inr = n => Number(n || 0).toLocaleString('en-IN');
+    const todayStr = () => { const t = new Date(); return t.getFullYear() + '-' + String(t.getMonth() + 1).padStart(2, '0') + '-' + String(t.getDate()).padStart(2, '0'); };
+    const daysUntil = due => due ? Math.round((new Date(due + 'T00:00:00') - new Date(todayStr() + 'T00:00:00')) / 86400000) : null;
+    function feeInfo(f) {
+      const amount = Number(f.amount) || 0, paid = Number(f.paidAmount) || 0;
+      const balance = Math.max(amount - paid, 0);
+      const days = daysUntil(f.dueDate);
+      let state;
+      if (balance <= 0) state = 'Paid';
+      else if (days !== null && days < 0) state = 'Overdue';
+      else if (days !== null && days <= 7) state = 'Due soon';
+      else state = paid > 0 ? 'Partly paid' : 'Pending';
+      return { amount, paid, balance, days, state };
+    }
+
+    // attendance rows are matched to a task by session date + subject (blank and "General" count as the same)
+    const normSubj = s => { const v = (s || '').trim().toLowerCase(); return v === 'general' ? '' : v; };
+    const catOf = d => (d.category || '').trim() || 'Other';
+    const kindRank = d => d.kind === 'Post-session' ? 1 : 0;
+    const monthOf = (dateStr, empty) => dateStr ? new Date(dateStr + 'T00:00:00').toLocaleString('en', { month: 'long', year: 'numeric' }) : empty;
+    const openGroups = {};   // section key -> Set of group names left open
+
+    function friendlyError(e) {
+      if (e && e.code === 'permission-denied') {
+        return e.message + ' (Your Firestore security rules may only allow "create" — admins also need "update" and "delete" on these paths.)';
+      }
+      return e.message;
+    }
+
+    /* ---------- Attendance scoring ----------
+       Each attendance entry has up to 3 parts: pre-session task, the session itself, post-session task.
+       Entry % = (sum of weight x points for counted parts) / (sum of weights of counted parts).
+       "Not assigned" tasks and "Excused" sessions are NOT counted (they neither help nor hurt).
+       Older entries (only Present/Absent) still work: they count as a session only.
+       Change the numbers below to change how the percentage is calculated. */
+    const ATT_WEIGHTS = { pre: 25, session: 50, post: 25 };
+    const ATT_POINTS = {
+      task:    { 'Completed': 1, 'Partial': 0.5, 'Not done': 0 },
+      session: { 'Present': 1, 'Late': 0.75, 'Absent': 0 }
+    };
+    function attComponents(d) {
+      return [
+        ['pre',     ATT_POINTS.task[d.preTask]],
+        ['session', ATT_POINTS.session[d.session || d.status]],
+        ['post',    ATT_POINTS.task[d.postTask]]
+      ];
+    }
+    function attEntryPercent(d) {
+      let e = 0, p = 0;
+      for (const [k, pts] of attComponents(d)) { if (pts === undefined) continue; e += pts * ATT_WEIGHTS[k]; p += ATT_WEIGHTS[k]; }
+      return p ? (e / p) * 100 : null;
+    }
+    function renderAttSummary(rows) {
+      const box = document.getElementById('attSummary');
+      box.textContent = '';
+      if (!rows.length) { box.style.display = 'none'; return; }
+      let earned = 0, possible = 0;
+      const comp = { pre: { e: 0, n: 0 }, session: { e: 0, n: 0 }, post: { e: 0, n: 0 } };
+      for (const d of rows) {
+        for (const [k, pts] of attComponents(d)) {
+          if (pts === undefined) continue;
+          earned += pts * ATT_WEIGHTS[k]; possible += ATT_WEIGHTS[k];
+          comp[k].e += pts; comp[k].n++;
+        }
+      }
+      const pct = (e, n) => n ? Math.round((e / n) * 100) + '%' : '—';
+      const big = document.createElement('div');
+      big.className = 'att-big';
+      big.textContent = possible ? Math.round((earned / possible) * 100) + '%' : '—';
+      const small = document.createElement('small');
+      small.textContent = `overall attendance · ${rows.length} ${rows.length === 1 ? 'entry' : 'entries'}`;
+      big.appendChild(small);
+      const chips = document.createElement('div');
+      chips.className = 'att-chips';
+      [['Pre-session tasks', comp.pre], ['Sessions', comp.session], ['Post-session tasks', comp.post]].forEach(([label, c]) => {
+        const chip = document.createElement('span');
+        chip.className = 'att-chip';
+        chip.textContent = `${label}: ${pct(c.e, c.n)}${c.n ? ` (${c.n})` : ''}`;
+        chips.appendChild(chip);
+      });
+      const note = document.createElement('div');
+      note.className = 'att-note';
+      note.textContent = `Weights: pre-session ${ATT_WEIGHTS.pre}% · session ${ATT_WEIGHTS.session}% · post-session ${ATT_WEIGHTS.post}%. Not-assigned tasks and excused sessions are left out.`;
+      box.append(big, chips, note);
+      box.style.display = 'block';
+    }
+
+    // fields: { dataKey: 'domElementId' }   keep: fields left filled after a successful *add*
+    const SECTIONS = {
+      links: {
+        noun: 'link', col: 'links', btn: 'lnBtn', msg: 'lnStatus_msg', list: 'lnList',
+        fields: { title: 'lnTitle', link: 'lnLink' }, keep: [], sort: byTitle,
+        build: v => {
+          if (!v.title || !v.link) return 'Title and link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, link: v.link };
+        },
+        summary: d => ({ title: d.title, meta: d.link })
+      },
+      projectSteps: {
+        noun: 'step', col: 'projectSteps', btn: 'psBtn', msg: 'psStatus_msg', list: 'psList',
+        fields: { title: 'psTitle', status: 'psStatus', date: 'psDate', notes: 'psNotes' },
+        keep: ['status', 'date'], sort: byDateDesc,
+        build: v => v.title ? { title: v.title, status: v.status, date: v.date, notes: v.notes } : 'Step title required.',
+        summary: d => ({ title: d.title, meta: [d.status, d.date, d.notes].filter(Boolean).join(' · ') })
+      },
+      attendance: {
+        noun: 'attendance entry', col: 'attendance', btn: 'attBtn', msg: 'attStatus_msg', list: 'attList',
+        fields: { date: 'attDate', subject: 'attSubject', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
+        keep: ['date', 'subject'], sort: byDateDesc,
+        build: v => v.date ? { date: v.date, subject: v.subject, preTask: v.preTask, session: v.session, postTask: v.postTask,
+                               status: v.session,   // kept so older pages that read "status" still work
+                               notes: v.notes } : 'Pick a date.',
+        afterFill: d => {
+          document.getElementById('attSession').value = d.session || d.status || 'Present';
+          document.getElementById('attPre').value = d.preTask || 'Not assigned';
+          document.getElementById('attPost').value = d.postTask || 'Not assigned';
+        },
+        onLoad: rows => renderAttSummary(rows),
+        merge: async (col, res) => {
+          if (!res.date) return false;
+          const snap = await col.where('date', '==', res.date).get();
+          const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(res.subject));
+          if (!hit) return false;
+          const old = hit.data();
+          await hit.ref.set({
+            ...res,
+            preTask: res.preTask === 'Not assigned' ? (old.preTask || 'Not assigned') : res.preTask,
+            postTask: res.postTask === 'Not assigned' ? (old.postTask || 'Not assigned') : res.postTask,
+            notes: res.notes || old.notes || ''
+          });
+          return true;
+        },
+        groupOf: d => monthOf(d.date, 'No date'),
+        summary: d => {
+          const p = attEntryPercent(d);
+          return { title: (d.subject || '').trim() ? `${d.date} — ${d.subject.trim()}` : d.date,
+                   meta: [`Pre: ${d.preTask || 'Not assigned'}`, `Session: ${d.session || d.status || '—'}`, `Post: ${d.postTask || 'Not assigned'}`,
+                          p === null ? '' : Math.round(p) + '%', d.notes].filter(Boolean).join(' · ') };
+        }
+      },
+      feedback: {
+        noun: 'feedback note', col: 'feedback', btn: 'fbBtn', msg: 'fbStatus_msg', list: 'fbList',
+        fields: { subject: 'fbSubject', date: 'fbDate', note: 'fbNote' }, keep: ['subject', 'date'], sort: byDateDesc,
+        groupOf: d => subjectOf(d),
+        build: v => v.note ? { subject: v.subject, date: v.date, note: v.note } : 'Write a note.',
+        summary: d => ({ title: [d.subject || '(no subject)', d.date].filter(Boolean).join(' — '), meta: clip(d.note) })
+      },
+      materials: {
+        noun: 'material', col: 'materials', btn: 'matBtn', msg: 'matStatus_msg', list: 'matList',
+        fields: { subject: 'matSubject', title: 'matTitle', link: 'matLink' }, keep: ['subject'],
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || byTitle(x, y),
+        groupOf: d => subjectOf(d),
+        build: v => {
+          if (!v.title || !v.link) return 'Title and link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { subject: v.subject || 'General', title: v.title, link: v.link };
+        },
+        summary: d => ({ title: d.title, meta: d.link })
+      },
+      scores: {
+        noun: 'score', col: 'scores', btn: 'scBtn', msg: 'scStatus_msg', list: 'scList',
+        fields: { subject: 'scSubject', testName: 'scTest', date: 'scDate', score: 'scScore', max: 'scMax', rating: 'scRating', notes: 'scNotes' },
+        keep: ['subject', 'date'],
+        sort: (x, y) => scoreSubject(x).localeCompare(scoreSubject(y)) || byDateDesc(x, y),
+        groupOf: d => [scoreSubject(d), monthOf(d.date, 'No date')],   // subject, then month inside it
+        build: v => {
+          if (!v.testName || !v.date || v.score === '' || v.max === '') return 'Test / topic, date, score, and out-of are required.';
+          return { subject: v.subject || 'General', testName: v.testName, date: v.date, score: Number(v.score), max: Number(v.max),
+                   rating: v.rating ? Number(v.rating) : null, notes: v.notes };
+        },
+        afterFill: d => {
+          if (d.testName === undefined) {   // older entry: move its old label into Test / Topic
+            document.getElementById('scSubject').value = '';
+            document.getElementById('scTest').value = d.subject || '';
+          }
+        },
+        summary: d => ({ title: scoreLabel(d), meta: [`${d.score}/${d.max}`, d.date, d.rating ? 'rating ' + d.rating : '', d.notes].filter(Boolean).join(' · ') })
+      },
+      fees: {
+        noun: 'fee', col: 'fees', btn: 'feBtn', msg: 'feStatus_msg', list: 'feList',
+        fields: { title: 'feTitle', amount: 'feAmount', dueDate: 'feDue', paidAmount: 'fePaid', paidDate: 'fePaidOn', notes: 'feNotes' },
+        keep: [], batchBox: 'feBatch',
+        batchTransform: r => ({ ...r, paidAmount: 0, paidDate: '' }),   // copies for other students start unpaid
+        sort: (x, y) => {
+          const a = feeInfo(x), b = feeInfo(y);
+          if ((a.balance > 0) !== (b.balance > 0)) return a.balance > 0 ? -1 : 1;   // unpaid first
+          const dx = x.dueDate || '9999', dy = y.dueDate || '9999';
+          return a.balance > 0 ? dx.localeCompare(dy) : dy.localeCompare(dx);
+        },
+        build: v => {
+          const amount = Number(v.amount), paid = v.paidAmount === '' ? 0 : Number(v.paidAmount);
+          if (!v.title || !(amount > 0) || !v.dueDate) return 'Fee name, amount and deadline are required.';
+          if (!(paid >= 0) || paid > amount) return 'Amount paid must be between 0 and the amount to pay.';
+          return { title: v.title, amount, dueDate: v.dueDate, paidAmount: paid, paidDate: v.paidDate, notes: v.notes };
+        },
+        onLoad: rows => renderFeeSummary(rows),
+        extra: r => feeInfo(r).balance > 0 ? [{
+          label: 'Mark paid',
+          run: async () => { await db.collection('students').doc(selectedUid).collection('fees').doc(r.id).update({ paidAmount: Number(r.amount) || 0, paidDate: todayStr() }); }
+        }] : [],
+        summary: d => {
+          const f = feeInfo(d);
+          return { title: `${d.title} — ₹${inr(f.amount)}`,
+                   meta: [`Pay by ${d.dueDate || '—'}`, f.paid ? `Paid ₹${inr(f.paid)}${d.paidDate ? ' on ' + d.paidDate : ''}` : '',
+                          f.balance ? `Balance ₹${inr(f.balance)}` : '', f.state, d.notes].filter(Boolean).join(' · ') };
+        }
+      },
+      tasks: {
+        noun: 'task', col: 'tasks', btn: 'tkBtn', msg: 'tkStatus_msg', list: 'tkList',
+        fields: { title: 'tkTitle', subject: 'tkSubject', kind: 'tkKind', sessionDate: 'tkDate', type: 'tkType', link: 'tkLink', content: 'tkText' },
+        keep: ['subject', 'kind', 'sessionDate', 'type'], modePrefix: 'tk', batchBox: 'tkBatch',
+        preserve: ['done', 'doneDate'],
+        extra: r => [{
+          label: r.done ? 'Undo done' : 'Mark done',
+          run: async () => {
+            const stu = db.collection('students').doc(selectedUid);
+            const nowDone = !r.done;
+            await stu.collection('tasks').doc(r.id).update({ done: nowDone, doneDate: nowDone ? todayStr() : '' });
+            if (!r.sessionDate) return nowDone ? 'Marked done. This task has no session date, so attendance was not changed.' : 'Marked as not done.';
+            const isPost = r.kind === 'Post-session';
+            const field = isPost ? 'postTask' : 'preTask';
+            const value = nowDone ? 'Completed' : 'Not done';
+            const attCol = stu.collection('attendance');
+            const snap = await attCol.where('date', '==', r.sessionDate).get();
+            const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(r.subject));
+            let msg;
+            if (hit) {
+              await hit.ref.update({ [field]: value });
+              msg = nowDone ? 'Marked done and attendance updated.' : 'Marked as not done and attendance updated.';
+            } else if (nowDone) {
+              await attCol.add({
+                date: r.sessionDate, subject: normSubj(r.subject) ? r.subject.trim() : '',
+                preTask: isPost ? 'Not assigned' : value, session: '', postTask: isPost ? value : 'Not assigned', status: '', notes: ''
+              });
+              msg = `Marked done. A new attendance entry was created for ${r.sessionDate} — set the session (Present/Absent) there.`;
+            } else {
+              msg = 'Marked as not done.';
+            }
+            await loadList('attendance');
+            return msg;
+          }
+        }],
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || kindRank(x) - kindRank(y) || String(y.sessionDate || '').localeCompare(String(x.sessionDate || '')),
+        groupOf: d => [subjectOf(d), d.kind === 'Post-session' ? 'Post-session' : 'Pre-session'],   // subject, then pre/post
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Type or paste the text.';
+            return { title: v.title, subject: v.subject || 'General', kind: v.kind, sessionDate: v.sessionDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, subject: v.subject || 'General', kind: v.kind, sessionDate: v.sessionDate, type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('tkType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleMode('tk');
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title, meta: `${d.sessionDate || 'no date'} · ` + (d.done ? '✓ Done' + (d.doneDate ? ' on ' + d.doneDate : '') + ' · ' : '') + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
+        }
+      },
+      activities: {
+        noun: 'activity', col: 'activities', btn: 'acBtn', msg: 'acStatus_msg', list: 'acList',
+        fields: { title: 'acTitle', category: 'acCategory', type: 'acType', link: 'acLink', content: 'acText' },
+        keep: ['category', 'type'], modePrefix: 'ac', batchBox: 'acBatch',
+        sort: (x, y) => catOf(x).localeCompare(catOf(y)) || byTitle(x, y),
+        groupOf: d => catOf(d),
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Type or paste the text.';
+            return { title: v.title, category: v.category || 'Other', type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, category: v.category || 'Other', type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('acType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleMode('ac');
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title, meta: isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link };
+        }
+      },
+      assessments: {
+        noun: 'assessment', col: 'assessments', btn: 'asBtn', msg: 'asStatus_msg', list: 'asList',
+        fields: { title: 'asTitle', subject: 'asSubject', dueDate: 'asDue', type: 'asType', link: 'asLink', content: 'asText' },
+        keep: ['subject', 'dueDate', 'type'], modePrefix: 'as',
+        sort: (x, y) => subjectOf(x).localeCompare(subjectOf(y)) || String(y.dueDate || '').localeCompare(String(x.dueDate || '')),
+        groupOf: d => subjectOf(d),
+        build: v => {
+          if (!v.title) return 'Title required.';
+          if (v.type === 'text') {
+            if (!v.content) return 'Paste the question text.';
+            return { title: v.title, subject: v.subject || 'General', dueDate: v.dueDate, type: 'text', content: repairCollapsedMarkdown(v.content), link: '' };
+          }
+          if (!v.link) return 'Link required.';
+          if (badLink(v.link)) return 'That link type is not allowed.';
+          return { title: v.title, subject: v.subject || 'General', dueDate: v.dueDate, type: 'link', link: v.link, content: '' };
+        },
+        afterFill: d => {
+          document.getElementById('asType').value = d.type || (d.content && !d.link ? 'text' : 'link');
+          toggleAssessmentMode();
+        },
+        summary: d => {
+          const isText = d.type === 'text' || (!d.link && d.content);
+          return { title: d.title,
+                   meta: `Due ${d.dueDate || '—'} · ` + (isText ? 'Text: ' + clip(String(d.content).replace(/\s+/g, ' '), 90) : d.link) };
+        }
+      }
+    };
+
+    /* If pasted text lost its line breaks (common when copying from some tools), put the
+       Markdown structure back: headings, --- rules and * bullets each go on their own line.
+       Text that already has line breaks is left exactly as typed. */
+    function repairCollapsedMarkdown(t) {
+      t = String(t || '');
+      if (/\n/.test(t)) return t;
+      t = t.replace(/\s+(#{1,6})\s+(?=\S)/g, '\n\n$1 ')
+           .replace(/\s+---+\s+/g, '\n\n---\n\n')
+           .replace(/\s+\*\s+(?=\S)/g, '\n* ');
+      let nested = false, colon = false;
+      return t.split('\n').map(l => {
+        if (!/^\* /.test(l)) { nested = false; colon = false; return l; }
+        if (/^\* \*\*\(/.test(l)) nested = false;      // "* **(a)** ..." starts a new top-level item
+        else if (colon) nested = true;                 // bullets after an item ending in ":" are its sub-points
+        const out = nested ? '    ' + l : l;
+        colon = nested ? false : /:\s*$/.test(l);
+        return out;
+      }).join('\n');
+    }
+
+    async function loadSuggestions() {
+      const uid = selectedUid;
+      const box = document.getElementById('sgAdminList');
+      const badge = box.closest('.panel').querySelector('.count-badge');
+      if (!uid) { box.textContent = ''; return; }
+      try {
+        const snap = await db.collection('students').doc(uid).collection('suggestions').get();
+        if (uid !== selectedUid) return;
+        const rows = snap.docs.map(d => ({ id: d.id, ...d.data() }))
+          .sort((x, y) => ((y.createdAt && y.createdAt.seconds) || 0) - ((x.createdAt && x.createdAt.seconds) || 0));
+        if (badge) badge.textContent = rows.length || '';
+        box.textContent = '';
+        if (!rows.length) {
+          const n = document.createElement('div');
+          n.className = 'empty-note';
+          n.textContent = 'No suggestions yet.';
+          box.appendChild(n);
+          return;
+        }
+        rows.forEach(r => {
+          const item = document.createElement('div');
+          item.className = 'entry';
+          const text = document.createElement('div');
+          text.className = 'entry-text';
+          const t = document.createElement('strong');
+          t.style.whiteSpace = 'pre-wrap';
+          t.style.fontWeight = '500';
+          t.textContent = r.text || '';
+          const m = document.createElement('span');
+          m.textContent = r.createdAt && r.createdAt.toDate ? r.createdAt.toDate().toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' }) : '';
+          text.append(t, m);
+          const actions = document.createElement('div');
+          actions.className = 'entry-actions';
+          const del = document.createElement('button');
+          del.className = 'mini danger';
+          del.textContent = 'Delete';
+          del.onclick = async () => {
+            if (!confirm('Delete this suggestion?')) return;
+            try {
+              await db.collection('students').doc(uid).collection('suggestions').doc(r.id).delete();
+              await loadSuggestions();
+            } catch (e) { box.textContent = 'Error: ' + friendlyError(e); }
+          };
+          actions.appendChild(del);
+          item.append(text, actions);
+          box.appendChild(item);
+        });
+      } catch (e) { box.textContent = 'Could not load suggestions: ' + friendlyError(e); }
+    }
+
+    function renderFeeSummary(rows) {
+      const box = document.getElementById('feeSummary');
+      box.textContent = '';
+      if (!rows.length) { box.style.display = 'none'; return; }
+      let total = 0, paid = 0, balance = 0, overdue = 0, next = null;
+      rows.forEach(r => {
+        const f = feeInfo(r);
+        total += f.amount; paid += Math.min(f.paid, f.amount); balance += f.balance;
+        if (f.balance > 0) {
+          if (f.state === 'Overdue') overdue++;
+          if (r.dueDate && (!next || r.dueDate < next.dueDate)) next = r;
+        }
+      });
+      const big = document.createElement('div');
+      big.className = 'att-big';
+      big.textContent = '₹' + inr(balance);
+      const small = document.createElement('small');
+      small.textContent = `balance to pay · total ₹${inr(total)} · paid ₹${inr(paid)}`;
+      big.appendChild(small);
+      const chips = document.createElement('div');
+      chips.className = 'att-chips';
+      const chip = t => { const c = document.createElement('span'); c.className = 'att-chip'; c.textContent = t; chips.appendChild(c); };
+      if (balance <= 0) chip('All paid');
+      if (overdue) chip(`${overdue} overdue`);
+      if (next) chip('Next deadline: ' + next.dueDate);
+      box.append(big, chips);
+      box.style.display = 'block';
+    }
+
+    function toggleMode(p) {
+      const isText = document.getElementById(p + 'Type').value === 'text';
+      document.getElementById(p + 'LinkWrap').style.display = isText ? 'none' : '';
+      document.getElementById(p + 'TextWrap').style.display = isText ? '' : 'none';
+    }
+    function toggleAssessmentMode() {
+      const isText = document.getElementById('asType').value === 'text';
+      document.getElementById('asLinkWrap').style.display = isText ? 'none' : '';
+      document.getElementById('asTextWrap').style.display = isText ? '' : 'none';
+    }
+
+    function initSections() {
+      for (const [key, s] of Object.entries(SECTIONS)) {
+        const btn = document.getElementById(s.btn);
+        s.addLabel = btn.textContent;
+        const cancel = document.createElement('button');
+        cancel.type = 'button';
+        cancel.className = 'action ghost';
+        cancel.id = s.btn + 'Cancel';
+        cancel.textContent = 'Cancel edit';
+        cancel.style.display = 'none';
+        cancel.onclick = () => cancelEdit(key);
+        btn.after(cancel);
+        const h = document.createElement('h4');
+        h.className = 'entries-title';
+        h.textContent = 'Existing entries';
+        const list = document.createElement('div');
+        list.id = s.list;
+        btn.closest('.panel').append(h, list);
+      }
+    }
+
+    function readFields(s) {
+      const v = {};
+      for (const [k, id] of Object.entries(s.fields)) {
+        const el = document.getElementById(id);
+        // keep line breaks / indentation in pasted text, only trim the ends
+        v[k] = el.tagName === 'TEXTAREA' ? el.value.replace(/\s+$/, '').replace(/^\s*\n/, '') : el.value.trim();
+        if (el.tagName === 'TEXTAREA' && v[k].trim() === '') v[k] = '';
+      }
+      return v;
+    }
+
+    function clearForm(key, keepSome) {
+      const s = SECTIONS[key];
+      for (const [k, id] of Object.entries(s.fields)) {
+        if (keepSome && s.keep.includes(k)) continue;
+        const el = document.getElementById(id);
+        if (el.tagName === 'SELECT') {
+          const def = [...el.options].findIndex(o => o.defaultSelected);
+          el.selectedIndex = def >= 0 ? def : 0;
+        } else el.value = '';
+      }
+      if (s.modePrefix) toggleMode(s.modePrefix);
+      if (s.batchBox) document.getElementById(s.batchBox).checked = false;
+    }
+
+    function endEdit(key) {
+      const s = SECTIONS[key];
+      editing[key] = null;
+      const btn = document.getElementById(s.btn);
+      btn.textContent = s.addLabel;
+      document.getElementById(s.btn + 'Cancel').style.display = 'none';
+      btn.closest('.panel').classList.remove('editing');
+    }
+
+    function cancelEdit(key) { endEdit(key); clearForm(key, false); }
+
+    function startEdit(key, id) {
+      const s = SECTIONS[key];
+      const d = cache[key] && cache[key][id];
+      if (!d) return;
+      editing[key] = id;
+      for (const [k, elId] of Object.entries(s.fields)) {
+        document.getElementById(elId).value = d[k] ?? '';
+      }
+      if (s.batchBox) document.getElementById(s.batchBox).checked = false;
+      if (s.afterFill) s.afterFill(d);
+      const btn = document.getElementById(s.btn);
+      btn.textContent = 'Save Changes';
+      document.getElementById(s.btn + 'Cancel').style.display = '';
+      const panel = btn.closest('.panel');
+      setPanelOpen(panel, true);
+      panel.classList.add('editing');
+      panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    async function saveEntry(key) {
+      if (!selectedUid) return;
+      const s = SECTIONS[key];
+      const res = s.build(readFields(s));
+      if (typeof res === 'string') { showMsg(s.msg, res, false); return; }
+      const wasEditing = editing[key];
+      try {
+        const col = db.collection('students').doc(selectedUid).collection(s.col);
+        let merged = false;
+        if (wasEditing) {
+          const old = (cache[key] || {})[wasEditing] || {};
+          (s.preserve || []).forEach(k => { if (old[k] !== undefined) res[k] = old[k]; });   // e.g. a task stays "done" after an edit
+          await col.doc(wasEditing).set(res);
+        } else if (s.merge) {
+          merged = await s.merge(col, res);
+          if (!merged) await col.add(res);
+        } else await col.add(res);
+        let extra = 0;
+        if (!wasEditing && s.batchBox && document.getElementById(s.batchBox).checked) extra = await addToBatch(s, res);
+        showMsg(s.msg, wasEditing ? 'Changes saved.' : merged ? 'Updated the existing entry for this date and subject.' : (extra ? `Added for ${extra + 1} students.` : 'Added.'), true);
+        if (s.groupOf) {
+          const g = s.groupOf(res), path = Array.isArray(g) ? g : [g];
+          const set = (openGroups[key] = openGroups[key] || new Set());
+          path.forEach((_, i) => set.add(path.slice(0, i + 1).join(' › ')));
+        }
+        endEdit(key);
+        clearForm(key, !wasEditing);
+        await loadList(key);
+      } catch (e) { showMsg(s.msg, 'Error: ' + friendlyError(e), false); }
+    }
+
+    // copy a new entry to every other student in the same batch
+    async function addToBatch(s, res) {
+      const me = await db.collection('students').doc(selectedUid).get();
+      const batchName = (me.data() || {}).batchName;
+      if (!batchName) throw new Error("This student has no batch name, so there is no batch to add to.");
+      const snap = await db.collection('students').where('batchName', '==', batchName).get();
+      let wb = db.batch(), n = 0, total = 0;
+      for (const st of snap.docs) {
+        if (st.id === selectedUid) continue;
+        wb.set(st.ref.collection(s.col).doc(), s.batchTransform ? s.batchTransform(res) : res);
+        total++;
+        if (++n === 400) { await wb.commit(); wb = db.batch(); n = 0; }
+      }
+      if (n) await wb.commit();
+      return total;
+    }
+
+    async function deleteEntry(key, id) {
+      const s = SECTIONS[key];
+      if (!confirm(`Delete this ${s.noun}? This cannot be undone.`)) return;
+      try {
+        await db.collection('students').doc(selectedUid).collection(s.col).doc(id).delete();
+        if (editing[key] === id) cancelEdit(key);
+        showMsg(s.msg, 'Deleted.', true);
+        await loadList(key);
+      } catch (e) { showMsg(s.msg, 'Error: ' + friendlyError(e), false); }
+    }
+
+    async function loadList(key) {
+      const uid = selectedUid;
+      const s = SECTIONS[key];
+      const box = document.getElementById(s.list);
+      if (!uid) { box.textContent = ''; return; }
+      try {
+        const snap = await db.collection('students').doc(uid).collection(s.col).get();
+        if (uid !== selectedUid) return;   // student changed while loading
+        const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).sort(s.sort);
+        cache[key] = {};
+        rows.forEach(r => { cache[key][r.id] = r; });
+        if (s.onLoad) s.onLoad(rows);
+        refreshSubjects();
+        renderList(key, rows);
+      } catch (e) { box.textContent = 'Could not load entries: ' + friendlyError(e); }
+    }
+
+    function buildEntry(key, r) {
+      const { title, meta } = SECTIONS[key].summary(r);
+      const item = document.createElement('div');
+      item.className = 'entry';
+      const text = document.createElement('div');
+      text.className = 'entry-text';
+      const t = document.createElement('strong');
+      t.textContent = title || '(untitled)';
+      const m = document.createElement('span');
+      m.textContent = meta || '';
+      text.append(t, m);
+      const actions = document.createElement('div');
+      actions.className = 'entry-actions';
+      const editBtn = document.createElement('button');
+      editBtn.className = 'mini';
+      editBtn.textContent = 'Edit';
+      editBtn.onclick = () => startEdit(key, r.id);
+      const delBtn = document.createElement('button');
+      delBtn.className = 'mini danger';
+      delBtn.textContent = 'Delete';
+      delBtn.onclick = () => deleteEntry(key, r.id);
+      const extras = SECTIONS[key].extra ? SECTIONS[key].extra(r) : [];
+      extras.forEach(x => {
+        const b = document.createElement('button');
+        b.className = 'mini';
+        b.textContent = x.label;
+        b.onclick = async () => {
+          try { const m = await x.run(); showMsg(SECTIONS[key].msg, m || 'Updated.', true); await loadList(key); }
+          catch (e) { showMsg(SECTIONS[key].msg, 'Error: ' + friendlyError(e), false); }
+        };
+        actions.append(b);
+      });
+      actions.append(editBtn, delBtn);
+      item.append(text, actions);
+      return item;
+    }
+
+    function renderList(key, rows) {
+      const s = SECTIONS[key];
+      const box = document.getElementById(s.list);
+      box.textContent = '';
+      const badge = box.closest('.panel').querySelector('.count-badge');
+      if (badge) badge.textContent = rows.length || '';
+      if (!rows.length) {
+        const n = document.createElement('div');
+        n.className = 'empty-note';
+        n.textContent = 'No entries yet.';
+        box.appendChild(n);
+        return;
+      }
+      if (!s.groupOf) { rows.forEach(r => box.appendChild(buildEntry(key, r))); return; }
+      // grouped (subject, month, or subject then month): every group is closed until opened
+      const pathOf = d => { const g = s.groupOf(d); return Array.isArray(g) ? g : [g]; };
+      const open = openGroups[key] = openGroups[key] || new Set();
+      const addGroups = (container, items, depth, prefix) => {
+        const groups = new Map();
+        items.forEach(r => { const g = pathOf(r)[depth]; if (!groups.has(g)) groups.set(g, []); groups.get(g).push(r); });
+        groups.forEach((list, g) => {
+          const id = prefix + g;
+          const det = document.createElement('details');
+          det.className = 'group';
+          det.open = open.has(id);
+          det.addEventListener('toggle', () => { if (det.open) open.add(id); else open.delete(id); });
+          const sum = document.createElement('summary');
+          sum.textContent = `${g} (${list.length})`;
+          det.appendChild(sum);
+          if (depth + 1 < pathOf(list[0]).length) addGroups(det, list, depth + 1, id + ' › ');
+          else list.forEach(r => det.appendChild(buildEntry(key, r)));
+          container.appendChild(det);
+        });
+      };
+      addGroups(box, rows, 0, '');
+    }
+
+    // subject suggestions (typing a subject offers the ones already used for this student)
+    function refreshSubjects() {
+      const subjects = new Set(), cats = new Set(['Word hunt', 'Crossword', 'Puzzle', 'Quiz', 'Riddles', 'Memory game', 'Drawing', 'Other']);
+      ['materials', 'feedback', 'assessments', 'scores', 'tasks', 'attendance'].forEach(k => Object.values(cache[k] || {}).forEach(d => {
+        if (k === 'scores') subjects.add(scoreSubject(d));
+        else if (k === 'attendance') { if ((d.subject || '').trim()) subjects.add(d.subject.trim()); }
+        else subjects.add(subjectOf(d));
+      }));
+      Object.values(cache.activities || {}).forEach(d => cats.add(catOf(d)));
+      const fill = (id, set) => {
+        const dl = document.getElementById(id);
+        dl.textContent = '';
+        [...set].sort((x, y) => x.localeCompare(y)).forEach(v => { const o = document.createElement('option'); o.value = v; dl.appendChild(o); });
+      };
+      fill('subjectList', subjects);
+      fill('categoryList', cats);
+    }
+
+    // collapsible sections: closed by default, click a heading to open/close
+    function setPanelOpen(panel, open) {
+      panel.classList.toggle('open', open);
+      panel.classList.toggle('collapsed', !open);
+    }
+    function collapseAllPanels() {
+      document.querySelectorAll('#studentPanels > .panel').forEach(p => setPanelOpen(p, false));
+    }
+    function initCollapsiblePanels() {
+      document.querySelectorAll('#studentPanels > .panel').forEach(panel => {
+        const h = panel.querySelector('h3');
+        if (!h) return;
+        const body = document.createElement('div');
+        body.className = 'panel-body';
+        while (h.nextSibling) body.appendChild(h.nextSibling);
+        panel.appendChild(body);
+        h.classList.add('panel-toggle');
+        const badge = document.createElement('span');
+        badge.className = 'count-badge';
+        h.appendChild(badge);
+        h.addEventListener('click', () => setPanelOpen(panel, panel.classList.contains('collapsed')));
+        setPanelOpen(panel, false);
+      });
+    }
+
+    initSections();
+    initCollapsiblePanels();
+  </script>
 </body>
 </html>
