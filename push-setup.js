@@ -11,7 +11,7 @@
   }
   add('link', { rel: 'manifest', href: 'manifest.json' });
   add('meta', { name: 'theme-color', content: '#0057ff' });
-  add('link', { rel: 'apple-touch-icon', href: 'icons/icon-192.png' });
+  add('link', { rel: 'apple-touch-icon', href: 'icon-192.png' });
   add('meta', { name: 'apple-mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'mobile-web-app-capable', content: 'yes' });
   add('meta', { name: 'apple-mobile-web-app-title', content: 'CoRadix' });
