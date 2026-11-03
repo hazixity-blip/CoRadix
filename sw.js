@@ -1,12 +1,12 @@
 // Bump this number whenever you change cached files, so students get the update.
-const VERSION = 'v1';
+const VERSION = 'v2';
 const CACHE = 'coradix-' + VERSION;
 const SCOPE = self.registration.scope;
 
 const PRECACHE = [
   './', 'index.html', 'login.html', 'offline.html', 'manifest.json',
   'Favicon.jpeg', 'Logo.jpeg',
-  'icons/icon-192.png', 'icons/icon-512.png'
+  'icon-192.png', 'icon-512.png'
 ];
 
 self.addEventListener('install', event => {
