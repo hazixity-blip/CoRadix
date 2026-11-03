@@ -1,11 +1,11 @@
 {
+  "id": "./login.html",
   "name": "CoRadix Academy",
   "short_name": "CoRadix",
   "description": "CoRadix Academy student portal",
   "start_url": "./login.html",
   "scope": "./",
   "display": "standalone",
-  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#0057ff",
   "icons": [
