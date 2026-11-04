@@ -127,6 +127,16 @@
         <div id="feesList"></div>
       </div>
 
+      <div class="panel" id="bookPanel">
+        <h3>📅 Book a Class</h3>
+        <div id="slotsList"></div>
+      </div>
+
+      <div class="panel" id="mySessionsPanel">
+        <h3>🎥 My Sessions</h3>
+        <div id="mySessionsList"></div>
+      </div>
+
       <div class="panel" id="attendancePanel">
         <h3>📋 Attendance</h3>
         <div id="attendanceList"></div>
@@ -598,6 +608,64 @@
     }
     initCollapsiblePanels();
 
+    /* ---------- Book a class ---------- */
+    const $b = id => document.getElementById(id);
+    async function loadBooking(uid) {
+      try {
+        const [sl, se] = await Promise.all([
+          db.collection('availability').where('bookedBy', '==', null).get(),
+          db.collection('students').doc(uid).collection('sessions').get()
+        ]);
+        const today = todayStr();
+        const slots = [];
+        sl.forEach(x => { const v = x.data(); if (v.date >= today) slots.push({ id: x.id, ...v }); });
+        slots.sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start));
+        setBadge('slotsList', slots.length);
+        const box = $b('slotsList');
+        box.innerHTML = slots.length ? '' : '<div class="empty">No open slots right now. Please check again later.</div>';
+        slots.forEach(s => {
+          const row = document.createElement('div'); row.className = 'row';
+          const l = document.createElement('span'); l.className = 'rl'; l.textContent = `${fmtDate(s.date)} · ${s.start}–${s.end}`;
+          const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'mat-link'; btn.textContent = 'Request →';
+          btn.onclick = () => bookSlot(s);
+          row.append(l, btn); box.appendChild(row);
+        });
+        const rows = [];
+        se.forEach(x => rows.push(x.data()));
+        rows.sort((x, y) => (y.date + y.start).localeCompare(x.date + x.start));
+        setBadge('mySessionsList', rows.length);
+        const sb = $b('mySessionsList');
+        sb.innerHTML = rows.length ? '' : '<div class="empty">No sessions yet.</div>';
+        rows.forEach(r => {
+          const row = document.createElement('div'); row.className = 'row';
+          const l = document.createElement('span'); l.className = 'rl';
+          l.textContent = `${fmtDate(r.date)} · ${r.start}–${r.end}` + (r.subject ? ' · ' + r.subject : '');
+          row.appendChild(l);
+          if (r.status === 'confirmed' && r.meetLink && /^https?:\/\//i.test(r.meetLink)) {
+            const a = document.createElement('a'); a.className = 'mat-link'; a.href = r.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join →';
+            row.appendChild(a);
+          } else {
+            const c = document.createElement('span');
+            c.className = 'chip ' + (r.status === 'declined' ? 'chip-bad' : 'chip-mid');
+            c.textContent = r.status === 'declined' ? 'Declined' : 'Waiting for confirmation';
+            row.appendChild(c);
+          }
+          sb.appendChild(row);
+        });
+      } catch (e) { $b('slotsList').innerHTML = '<div class="empty">Classes could not be loaded right now.</div>'; }
+    }
+    async function bookSlot(s) {
+      if (!confirm(`Request ${fmtDate(s.date)}, ${s.start}–${s.end}?`)) return;
+      try {
+        const ref = db.collection('students').doc(currentUid).collection('sessions').doc();
+        const b = db.batch();
+        b.update(db.collection('availability').doc(s.id), { bookedBy: currentUid, bookedByName: currentStudentName, sessionId: ref.id, status: 'requested' });
+        b.set(ref, { slotId: s.id, date: s.date, start: s.start, end: s.end, status: 'requested', studentName: currentStudentName, createdAt: firebase.firestore.FieldValue.serverTimestamp() });
+        await b.commit();
+      } catch (e) { alert('Sorry, that slot was just taken or could not be booked. Please pick another.'); }
+      await loadBooking(currentUid);
+    }
+
     async function loadDashboard(uid) {
       const studentDoc = await db.collection('students').doc(uid).get();
       if (!studentDoc.exists) {
@@ -992,6 +1060,7 @@
         document.getElementById('feesList').innerHTML = '<div class="empty">Fees could not be loaded right now.</div>';
       }
 
+      await loadBooking(uid);
       await loadMySuggestions(uid);
 
       document.getElementById('loadingMsg').style.display = 'none';
