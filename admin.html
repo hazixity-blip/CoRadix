@@ -137,6 +137,19 @@
       </div>
 
       <div class="panel">
+        <h3>📅 Class Slots</h3>
+        <p style="font-size:0.78rem;color:var(--muted);margin-bottom:0.8rem;">Add the times you are free. Students pick a slot, then you confirm it here with the subject and Google Meet link.</p>
+        <div class="row3">
+          <div><label>Date</label><input type="date" id="slDate"></div>
+          <div><label>From</label><input type="time" id="slStart"></div>
+          <div><label>To</label><input type="time" id="slEnd"></div>
+        </div>
+        <button class="action" onclick="addSlot()">Add Slot</button>
+        <div id="slMsg" class="status-msg"></div>
+        <div id="slList" style="margin-top:1rem;"></div>
+      </div>
+
+      <div class="panel">
         <h3>Select Student to Update</h3>
         <select id="studentSelect" onchange="onStudentChange()">
           <option value="">— Select a student —</option>
@@ -574,7 +587,7 @@
     }
 
     /* ================= Add / edit / delete for every per-student entry ================= */
-    const SUB_COLLECTIONS = ['links','projectSteps','attendance','feedback','materials','scores','assessments','tasks','activities','fees','suggestions'];
+    const SUB_COLLECTIONS = ['sessions','links','projectSteps','attendance','feedback','materials','scores','assessments','tasks','activities','fees','suggestions'];
     const editing = {};   // section key -> id of the entry being edited (or null)
     const cache = {};     // section key -> { id: data }
 
@@ -1287,5 +1300,65 @@
     initSections();
     initCollapsiblePanels();
   </script>
+<script>
+/* ===== Class slots: add, confirm, decline ===== */
+const $s = id => document.getElementById(id);
+async function addSlot() {
+  const date = $s('slDate').value, start = $s('slStart').value, end = $s('slEnd').value;
+  if (!date || !start || !end) { showMsg('slMsg', 'Pick a date, From and To.', false); return; }
+  if (end <= start) { showMsg('slMsg', 'The end time must be after the start time.', false); return; }
+  try {
+    await db.collection('availability').add({ date, start, end, bookedBy: null, bookedByName: '', sessionId: '', status: 'open' });
+    showMsg('slMsg', 'Slot added.', true);
+    await loadSlots();
+  } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
+}
+async function loadSlots() {
+  const box = $s('slList');
+  try {
+    const snap = await db.collection('availability').get();
+    const today = todayStr();
+    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(x => x.date >= today)
+      .sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start));
+    box.textContent = '';
+    if (!rows.length) { box.innerHTML = '<div class="empty-note">No upcoming slots yet.</div>'; return; }
+    rows.forEach(s => {
+      const item = document.createElement('div'); item.className = 'entry';
+      const text = document.createElement('div'); text.className = 'entry-text';
+      const t = document.createElement('strong'); t.textContent = `${s.date} · ${s.start}–${s.end}`;
+      const m = document.createElement('span');
+      m.textContent = s.status === 'open' ? 'Open' : s.status === 'requested' ? `Requested by ${s.bookedByName || 'a student'}` : `Confirmed: ${s.bookedByName || ''} · ${s.subject || ''}`;
+      text.append(t, m);
+      const act = document.createElement('div'); act.className = 'entry-actions';
+      const btn = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'mini ' + cls; b.textContent = label; b.onclick = fn; act.appendChild(b); };
+      if (s.status === 'requested') btn('Confirm', '', () => confirmSlot(s));
+      if (s.status !== 'open') btn('Free slot', 'danger', () => freeSlot(s));
+      if (s.status === 'open') btn('Delete', 'danger', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); loadSlots(); } });
+      item.append(text, act); box.appendChild(item);
+    });
+  } catch (e) { box.textContent = 'Could not load slots: ' + friendlyError(e); }
+}
+async function confirmSlot(s) {
+  const subject = (prompt('Session subject?') || '').trim(); if (!subject) return;
+  const link = (prompt('Google Meet link (starts with https://)') || '').trim();
+  if (!/^https?:\/\//i.test(link)) { alert('Please enter a link that starts with https://'); return; }
+  try {
+    const b = db.batch();
+    b.update(db.collection('availability').doc(s.id), { status: 'confirmed', subject });
+    b.update(db.collection('students').doc(s.bookedBy).collection('sessions').doc(s.sessionId), { status: 'confirmed', subject, meetLink: link });
+    await b.commit(); showMsg('slMsg', 'Confirmed.', true); loadSlots();
+  } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
+}
+async function freeSlot(s) {
+  if (!confirm('Free this slot? The student will see the request as declined.')) return;
+  try {
+    const b = db.batch();
+    b.update(db.collection('students').doc(s.bookedBy).collection('sessions').doc(s.sessionId), { status: 'declined' });
+    b.update(db.collection('availability').doc(s.id), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '' });
+    await b.commit(); showMsg('slMsg', 'Slot is open again.', true); loadSlots();
+  } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
+}
+auth.onAuthStateChanged(u => { if (u) setTimeout(loadSlots, 1500); });
+</script>
 </body>
 </html>
