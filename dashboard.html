@@ -631,7 +631,7 @@
           row.append(l, btn); box.appendChild(row);
         });
         const rows = [];
-        se.forEach(x => rows.push(x.data()));
+        se.forEach(x => rows.push({ id: x.id, ...x.data() }));
         rows.sort((x, y) => (y.date + y.start).localeCompare(x.date + x.start));
         setBadge('mySessionsList', rows.length);
         const sb = $b('mySessionsList');
@@ -646,13 +646,28 @@
             row.appendChild(a);
           } else {
             const c = document.createElement('span');
-            c.className = 'chip ' + (r.status === 'declined' ? 'chip-bad' : 'chip-mid');
-            c.textContent = r.status === 'declined' ? 'Declined' : 'Waiting for confirmation';
+            c.className = 'chip ' + (r.status === 'declined' ? 'chip-bad' : r.status === 'postponed' ? 'chip-na' : 'chip-mid');
+            c.textContent = r.status === 'declined' ? 'Declined' : r.status === 'postponed' ? 'Postponed' : 'Waiting for confirmation';
             row.appendChild(c);
+          }
+          if ((r.status === 'requested' || r.status === 'confirmed') && new Date(r.date + 'T' + r.start) > new Date()) {
+            const pb = document.createElement('button'); pb.type = 'button'; pb.className = 'mat-link'; pb.style.marginLeft = '0.8rem'; pb.textContent = 'Postpone';
+            pb.onclick = () => postponeSession(r);
+            row.appendChild(pb);
           }
           sb.appendChild(row);
         });
       } catch (e) { $b('slotsList').innerHTML = '<div class="empty">Classes could not be loaded right now.</div>'; }
+    }
+    async function postponeSession(r) {
+      if (!confirm('Postpone this class? Your current slot will be released, and you can then pick a new one under "Book a Class".')) return;
+      try {
+        const b = db.batch();
+        b.update(db.collection('students').doc(currentUid).collection('sessions').doc(r.id), { status: 'postponed' });
+        b.update(db.collection('availability').doc(r.slotId), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '' });
+        await b.commit();
+      } catch (e) { alert('Sorry, this could not be postponed. Please try again.'); }
+      await loadBooking(currentUid);
     }
     async function bookSlot(s) {
       if (!confirm(`Request ${fmtDate(s.date)}, ${s.start}–${s.end}?`)) return;
