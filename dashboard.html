@@ -128,13 +128,8 @@
       </div>
 
       <div class="panel" id="bookPanel">
-        <h3>📅 Book a Class</h3>
+        <h3>📅 My Schedule &amp; Booking</h3>
         <div id="slotsList"></div>
-      </div>
-
-      <div class="panel" id="mySessionsPanel">
-        <h3>🎥 My Sessions</h3>
-        <div id="mySessionsList"></div>
       </div>
 
       <div class="panel" id="attendancePanel">
@@ -269,7 +264,7 @@
       const left = document.createElement('div');
       left.className = 'rl';
       const subjName = (d.subject || '').trim();
-      left.textContent = (d.date || '') + (subjName ? ' · ' + subjName : '');
+      left.textContent = (d.date || '') + (d.time ? ' ' + d.time : '') + (subjName ? ' · ' + subjName : '');
       const chips = document.createElement('div');
       const addChip = (label, value) => {
         const c = document.createElement('span');
@@ -610,6 +605,9 @@
 
     /* ---------- Book a class ---------- */
     const $b = id => document.getElementById(id);
+    let bkWeek = null, bkData = { slots: [], mine: [] };
+    const isoD = x => x.getFullYear() + '-' + String(x.getMonth() + 1).padStart(2, '0') + '-' + String(x.getDate()).padStart(2, '0');
+    const monOf = x => { const y = new Date(x.getFullYear(), x.getMonth(), x.getDate()); y.setDate(y.getDate() - ((y.getDay() + 6) % 7)); return y; };
     async function loadBooking(uid) {
       try {
         const [sl, se] = await Promise.all([
@@ -617,47 +615,54 @@
           db.collection('students').doc(uid).collection('sessions').get()
         ]);
         const today = todayStr();
-        const slots = [];
-        sl.forEach(x => { const v = x.data(); if (v.date >= today) slots.push({ id: x.id, ...v }); });
-        slots.sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start));
-        setBadge('slotsList', slots.length);
-        const box = $b('slotsList');
-        box.innerHTML = slots.length ? '' : '<div class="empty">No open slots right now. Please check again later.</div>';
-        slots.forEach(s => {
-          const row = document.createElement('div'); row.className = 'row';
-          const l = document.createElement('span'); l.className = 'rl'; l.textContent = `${fmtDate(s.date)} · ${s.start}–${s.end}`;
-          const btn = document.createElement('button'); btn.type = 'button'; btn.className = 'mat-link'; btn.textContent = 'Request →';
-          btn.onclick = () => bookSlot(s);
-          row.append(l, btn); box.appendChild(row);
-        });
-        const rows = [];
-        se.forEach(x => rows.push({ id: x.id, ...x.data() }));
-        rows.sort((x, y) => (y.date + y.start).localeCompare(x.date + x.start));
-        setBadge('mySessionsList', rows.length);
-        const sb = $b('mySessionsList');
-        sb.innerHTML = rows.length ? '' : '<div class="empty">No sessions yet.</div>';
-        rows.forEach(r => {
-          const row = document.createElement('div'); row.className = 'row';
-          const l = document.createElement('span'); l.className = 'rl';
-          l.textContent = `${fmtDate(r.date)} · ${r.start}–${r.end}` + (r.subject ? ' · ' + r.subject : '');
-          row.appendChild(l);
-          if (r.status === 'confirmed' && r.meetLink && /^https?:\/\//i.test(r.meetLink)) {
-            const a = document.createElement('a'); a.className = 'mat-link'; a.href = r.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join →';
-            row.appendChild(a);
-          } else {
-            const c = document.createElement('span');
-            c.className = 'chip ' + (r.status === 'declined' ? 'chip-bad' : r.status === 'postponed' ? 'chip-na' : 'chip-mid');
-            c.textContent = r.status === 'declined' ? 'Declined' : r.status === 'postponed' ? 'Postponed' : 'Waiting for confirmation';
-            row.appendChild(c);
-          }
-          if ((r.status === 'requested' || r.status === 'confirmed') && new Date(r.date + 'T' + r.start) > new Date()) {
-            const pb = document.createElement('button'); pb.type = 'button'; pb.className = 'mat-link'; pb.style.marginLeft = '0.8rem'; pb.textContent = 'Postpone';
-            pb.onclick = () => postponeSession(r);
-            row.appendChild(pb);
-          }
-          sb.appendChild(row);
-        });
+        bkData.slots = []; sl.forEach(x => { const v = x.data(); if (v.date >= today) bkData.slots.push({ id: x.id, ...v }); });
+        bkData.mine = []; se.forEach(x => { const v = x.data(); if (v.status === 'requested' || v.status === 'confirmed') bkData.mine.push({ id: x.id, ...v }); });
+        setBadge('slotsList', bkData.slots.length);
+        if (!bkWeek) bkWeek = monOf(new Date());
+        renderBooking();
       } catch (e) { $b('slotsList').innerHTML = '<div class="empty">Classes could not be loaded right now.</div>'; }
+    }
+    function shiftBk(n) { bkWeek.setDate(bkWeek.getDate() + n * 7); renderBooking(); }
+    function renderBooking() {
+      const box = $b('slotsList'); box.textContent = '';
+      const mk = (t, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mat-link'; b.textContent = t; b.onclick = fn; return b; };
+      const end = new Date(bkWeek); end.setDate(end.getDate() + 6);
+      const nav = document.createElement('div'); nav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:0.5rem;margin-bottom:0.8rem;';
+      const lab = document.createElement('strong'); lab.style.fontSize = '0.85rem';
+      lab.textContent = bkWeek.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' – ' + end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      nav.append(mk('← Prev', () => shiftBk(-1)), lab, mk('Next →', () => shiftBk(1)));
+      box.appendChild(nav);
+      const items = [...bkData.mine.map(x => ({ ...x, kind: 'mine' })), ...bkData.slots.map(x => ({ ...x, kind: 'open' }))];
+      const todayK = isoD(new Date());
+      let any = false;
+      for (let i = 0; i < 7; i++) {
+        const day = new Date(bkWeek); day.setDate(day.getDate() + i);
+        const key = isoD(day);
+        const list = items.filter(x => x.date === key).sort((p, q) => p.start.localeCompare(q.start));
+        if (!list.length) continue;
+        any = true;
+        const card = document.createElement('div'); card.style.cssText = 'border:1px solid var(--border);border-radius:8px;margin-bottom:0.6rem;overflow:hidden;';
+        const h = document.createElement('div'); h.style.cssText = 'background:var(--bg-soft);padding:0.45rem 0.8rem;font-size:0.8rem;font-weight:700;' + (key === todayK ? 'color:var(--blue);' : '');
+        h.textContent = day.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) + (key === todayK ? ' · Today' : '');
+        card.appendChild(h);
+        list.forEach(s => {
+          const row = document.createElement('div'); row.className = 'row';
+          row.style.cssText = 'padding:0.6rem 0.8rem;align-items:center;border-left:4px solid ' + (s.kind === 'open' ? '#9ca3af' : s.status === 'confirmed' ? '#16a34a' : '#d97706') + ';';
+          const l = document.createElement('span'); l.className = 'rl';
+          l.textContent = `${s.start}–${s.end} · ` + (s.kind === 'open' ? 'Open slot' : s.status === 'confirmed' ? 'Confirmed' + (s.subject ? ': ' + s.subject : '') : 'Waiting for confirmation');
+          const act = document.createElement('span'); act.style.cssText = 'display:flex;gap:0.8rem;align-items:center;white-space:nowrap;';
+          if (s.kind === 'open') act.appendChild(mk('Request →', () => bookSlot(s)));
+          else {
+            if (s.status === 'confirmed' && s.meetLink && /^https?:\/\//i.test(s.meetLink)) {
+              const a = document.createElement('a'); a.className = 'mat-link'; a.href = s.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join →'; act.appendChild(a);
+            }
+            if (new Date(s.date + 'T' + s.start) > new Date()) act.appendChild(mk('Postpone', () => postponeSession(s)));
+          }
+          row.append(l, act); card.appendChild(row);
+        });
+        box.appendChild(card);
+      }
+      if (!any) box.insertAdjacentHTML('beforeend', '<div class="empty">Nothing this week. Tap Next → to see other weeks.</div>');
     }
     async function postponeSession(r) {
       if (!confirm('Postpone this class? Your current slot will be released, and you can then pick a new one under "Book a Class".')) return;
