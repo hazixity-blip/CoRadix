@@ -1516,5 +1516,47 @@ async function loadLog() {
 }
 auth.onAuthStateChanged(u => { if (u) setTimeout(loadSlots, 1500); });
 </script>
+<style>
+.tab-hide{display:none !important}
+#tabBar,#subBar{display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1.1rem}
+#tabBar{position:sticky;top:0;z-index:50;background:var(--bg-soft);padding:.5rem 0}
+.tabbtn{background:#fff;border:1.5px solid var(--border);border-radius:999px;padding:.5rem 1.1rem;font-family:inherit;font-size:.85rem;font-weight:700;cursor:pointer;color:var(--ink)}
+.tabbtn.on{background:var(--blue);border-color:var(--blue);color:#fff}
+#subBar .tabbtn{font-size:.78rem;padding:.35rem .8rem}
+</style>
+<script>
+(function () {
+  const main = document.querySelector('#appRoot main');
+  const top = [...main.querySelectorAll(':scope > .panel')];
+  const find = t => top.find(p => { const h = p.querySelector('h3'); return h && h.textContent.includes(t); });
+  const addP = find('Add a New Student'), calP = find('Class Slots'), selP = find('Select Student'), stuC = document.getElementById('studentPanels');
+  if (!addP || !calP || !selP || !stuC) return;
+  const sp = [...stuC.querySelectorAll(':scope > .panel')];
+  const G = { Classes: [3, 5, 8], Fees: [4], Learning: [0, 6, 9, 11], Progress: [1, 2, 7, 10] };
+  let tab = localStorage.getItem('adminTab') || 'cal', grp = localStorage.getItem('adminGrp') || 'Classes';
+  if (!G[grp] && grp !== 'All') grp = 'Classes';
+  const mk = (t, k, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'tabbtn'; b.textContent = t; b.onclick = fn; b.dataset.k = k; return b; };
+  const bar = document.createElement('div'); bar.id = 'tabBar';
+  [['cal', '📅 Calendar'], ['stu', '👤 Students'], ['add', '➕ Add student']].forEach(([k, t]) => bar.appendChild(mk(t, k, () => show(k))));
+  const sub = document.createElement('div'); sub.id = 'subBar';
+  const grouped = sp.length === 12;
+  if (grouped) [...Object.keys(G), 'All'].forEach(k => sub.appendChild(mk(k, k, () => { grp = k; localStorage.setItem('adminGrp', k); apply(); })));
+  main.insertBefore(bar, main.firstChild); selP.after(sub);
+  function apply() {
+    calP.classList.toggle('tab-hide', tab !== 'cal');
+    addP.classList.toggle('tab-hide', tab !== 'add');
+    selP.classList.toggle('tab-hide', tab !== 'stu');
+    stuC.classList.toggle('tab-hide', tab !== 'stu');
+    sub.classList.toggle('tab-hide', tab !== 'stu' || !grouped);
+    sp.forEach((p, i) => p.classList.toggle('tab-hide', grouped && grp !== 'All' && !G[grp].includes(i)));
+    bar.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('on', b.dataset.k === tab));
+    sub.querySelectorAll('.tabbtn').forEach(b => b.classList.toggle('on', b.dataset.k === grp));
+  }
+  function show(k) { tab = k; localStorage.setItem('adminTab', k); apply(); window.scrollTo({ top: 0 }); }
+  const _e = window.editStudent;
+  if (_e) window.editStudent = function () { show('add'); return _e.apply(this, arguments); };
+  apply();
+})();
+</script>
 </body>
 </html>
