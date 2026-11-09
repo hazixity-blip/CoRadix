@@ -1152,6 +1152,42 @@ function weekGrid(box, ws, evs, todayKey, iso) {
       if (e.key === 'PrintScreen') { navigator.clipboard.writeText(''); }
     });
   </script>
+<style>
+.tab-hide{display:none !important}
+main{padding-bottom:6rem !important}
+#dashNav{position:fixed;left:0;right:0;bottom:0;z-index:500;display:flex;background:#fff;border-top:1px solid var(--border);padding-bottom:env(safe-area-inset-bottom,0)}
+#dashNav button{flex:1;background:none;border:none;padding:.55rem .2rem .45rem;font-family:inherit;font-size:.68rem;font-weight:600;color:var(--muted);cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:.1rem}
+#dashNav button span{font-size:1.3rem;line-height:1}
+#dashNav button.on{color:var(--blue)}
+</style>
+<script>
+(function () {
+  const TABS = [['home', '🏠', 'Home'], ['class', '📅', 'Classes'], ['learn', '📚', 'Learn'], ['prog', '📈', 'Progress']];
+  const KEYS = [['Feedback Forms', 'learn'], ['Fees', 'home'], ['Schedule', 'class'], ['Attendance', 'class'], ['Tasks', 'class'], ['Activities', 'learn'], ['Workflow', 'prog'], ['Certificate', 'prog'], ['Performance', 'prog'], ['Feedback', 'prog'], ['Materials', 'learn'], ['Assessments', 'learn']];
+  const items = [];
+  ['skillBadgeWrap', 'feeBanner', 'statsGrid'].forEach(id => { const el = document.getElementById(id); if (el) items.push([el, 'home']); });
+  document.querySelectorAll('#appRoot main .panel').forEach(p => {
+    const h = p.querySelector('h3'); if (!h) return;
+    const m = KEYS.find(k => h.textContent.includes(k[0]));
+    if (m) items.push([p, m[1]]);
+  });
+  let tab = localStorage.getItem('dashTab') || 'home';
+  if (!TABS.some(t => t[0] === tab)) tab = 'home';
+  const nav = document.createElement('div'); nav.id = 'dashNav';
+  TABS.forEach(([k, ic, lb]) => {
+    const b = document.createElement('button'); b.type = 'button'; b.dataset.k = k;
+    b.innerHTML = '<span>' + ic + '</span>' + lb;
+    b.onclick = () => { tab = k; localStorage.setItem('dashTab', k); apply(); window.scrollTo({ top: 0 }); };
+    nav.appendChild(b);
+  });
+  document.body.appendChild(nav);
+  function apply() {
+    items.forEach(([el, t]) => el.classList.toggle('tab-hide', t !== tab));
+    nav.querySelectorAll('button').forEach(b => b.classList.toggle('on', b.dataset.k === tab));
+  }
+  apply();
+})();
+</script>
 </body>
 </html>
 <script src="push-setup.js"></script>
