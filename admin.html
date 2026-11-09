@@ -156,6 +156,7 @@
           <button class="action ghost" onclick="closeConfirm()">Cancel</button>
         </div>
         <div id="slList" style="margin-top:1rem;"></div>
+        <div id="slAct" style="margin-top:0.8rem;"></div>
       </div>
 
       <div class="panel">
@@ -1312,6 +1313,50 @@
   </script>
 <script>
 /* ===== Class calendar (week view): add slots, confirm with a visible link, join ===== */
+/* ---- Google-Calendar style week grid (Mon–Sun across, hours down) ---- */
+(function () {
+  const st = document.createElement('style');
+  st.textContent = '.wg-wrap{overflow-x:auto;border:1px solid #e5e7eb;border-radius:10px;background:#fff}.wg{min-width:700px}.wg-h,.wg-b{display:grid;grid-template-columns:44px repeat(7,1fr)}.wg-h div{padding:.4rem .2rem;text-align:center;font-size:.72rem;font-weight:700;color:#6b7280;border-bottom:1px solid #e5e7eb;border-left:1px solid #e5e7eb}.wg-h div:first-child{border-left:none}.wg-h .today{color:#0057ff}.wg-h b{display:block;font-size:1.05rem;color:#1c1c1e}.wg-h .today b{background:#0057ff;color:#fff;border-radius:50%;width:1.9rem;height:1.9rem;line-height:1.9rem;margin:0 auto}.wg-t{position:relative}.wg-t span{position:absolute;right:4px;font-size:.65rem;color:#6b7280;transform:translateY(-50%)}.wg-d{position:relative;border-left:1px solid #e5e7eb;background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 43px,#eef0f3 43px,#eef0f3 44px)}.wg-e{position:absolute;border-radius:6px;padding:2px 14px 2px 5px;font-size:.68rem;line-height:1.25;color:#fff;overflow:hidden;cursor:pointer;box-sizing:border-box;border:1px solid #fff}.wg-e b{display:block}.wg-e i{position:absolute;top:0;right:2px;font-style:normal;font-weight:700;padding:0 3px}.wg-leg{font-size:.72rem;color:#6b7280;margin-top:.6rem}.wg-leg u{text-decoration:none;display:inline-block;width:.7rem;height:.7rem;border-radius:3px;margin:0 .25rem 0 .6rem;vertical-align:middle}';
+  document.head.appendChild(st);
+})();
+function weekGrid(box, ws, evs, todayKey, iso) {
+  const PX = 44, tm = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
+  evs = evs.filter(e => e.start && e.end && tm(e.end) > tm(e.start));
+  let h0 = 7, h1 = 21;
+  evs.forEach(e => { h0 = Math.min(h0, Math.floor(tm(e.start) / 60)); h1 = Math.max(h1, Math.ceil(tm(e.end) / 60)); });
+  const wrap = document.createElement('div'); wrap.className = 'wg-wrap';
+  const g = document.createElement('div'); g.className = 'wg'; wrap.appendChild(g);
+  const head = document.createElement('div'); head.className = 'wg-h'; head.appendChild(document.createElement('div'));
+  const body = document.createElement('div'); body.className = 'wg-b';
+  const gut = document.createElement('div'); gut.className = 'wg-t'; gut.style.height = (h1 - h0) * PX + 'px';
+  for (let h = h0 + 1; h < h1; h++) { const sp = document.createElement('span'); sp.style.top = (h - h0) * PX + 'px'; sp.textContent = String(h).padStart(2, '0') + ':00'; gut.appendChild(sp); }
+  body.appendChild(gut);
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(ws); day.setDate(day.getDate() + i);
+    const key = iso(day);
+    const hc = document.createElement('div'); if (key === todayKey) hc.className = 'today';
+    hc.innerHTML = day.toLocaleDateString('en-GB', { weekday: 'short' }) + '<b>' + day.getDate() + '</b>';
+    head.appendChild(hc);
+    const col = document.createElement('div'); col.className = 'wg-d'; col.style.height = (h1 - h0) * PX + 'px';
+    const list = evs.filter(e => e.date === key).map(e => ({ e, s: tm(e.start), f: tm(e.end) })).sort((a, b) => a.s - b.s || a.f - b.f);
+    let cl = [], clEnd = 0;
+    const flush = () => { const lanes = []; cl.forEach(x => { let l = lanes.findIndex(f => f <= x.s); if (l < 0) { lanes.push(x.f); l = lanes.length - 1; } else lanes[l] = x.f; x.lane = l; }); cl.forEach(x => { x.n = lanes.length; }); cl = []; };
+    list.forEach(x => { if (x.s >= clEnd) flush(); cl.push(x); clEnd = Math.max(clEnd, x.f); });
+    flush();
+    list.forEach(x => {
+      const el = document.createElement('div'); el.className = 'wg-e';
+      el.style.cssText = `top:${(x.s - h0 * 60) * PX / 60}px;height:${Math.max((x.f - x.s) * PX / 60, 26)}px;left:${x.lane / x.n * 100}%;width:${100 / x.n}%;background:${x.e.color};`;
+      const b = document.createElement('b'); b.textContent = `${x.e.start}–${x.e.end}`;
+      el.append(b, document.createTextNode(x.e.title + (x.e.sub ? ' · ' + x.e.sub : '')));
+      el.title = `${x.e.start}–${x.e.end} ${x.e.title} ${x.e.sub || ''}`;
+      el.onclick = x.e.go;
+      if (x.e.menu) { const m = document.createElement('i'); m.textContent = '⋯'; m.onclick = ev => { ev.stopPropagation(); x.e.menu(); }; el.appendChild(m); }
+      col.appendChild(el);
+    });
+    body.appendChild(col);
+  }
+  g.append(head, body); box.appendChild(wrap);
+}
 const $s = id => document.getElementById(id);
 let adWeek = null, slotCache = [], cfSlot = null;
 const isoA = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
@@ -1346,36 +1391,30 @@ function renderWeek() {
   const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:0.4rem;';
   btns.append(mini('← Prev', () => shiftWeek(-1)), mini('This week', thisWeek), mini('Next →', () => shiftWeek(1)));
   nav.append(lab, btns); box.appendChild(nav);
-  const today = isoA(new Date());
-  for (let i = 0; i < 7; i++) {
-    const day = new Date(adWeek); day.setDate(day.getDate() + i);
-    const key = isoA(day);
-    const list = slotCache.filter(x => x.date === key).sort((x, y) => x.start.localeCompare(y.start));
-    const card = document.createElement('div'); card.style.cssText = 'border:1px solid var(--border);border-radius:8px;margin-bottom:0.6rem;overflow:hidden;';
-    const h = document.createElement('div'); h.style.cssText = 'background:var(--bg-soft);padding:0.45rem 0.8rem;font-size:0.8rem;font-weight:700;' + (key === today ? 'color:var(--blue);' : '');
-    h.textContent = day.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) + (key === today ? ' · Today' : '');
-    card.appendChild(h);
-    if (!list.length) { const n = document.createElement('div'); n.className = 'empty-note'; n.style.padding = '0.4rem 0.8rem'; n.textContent = 'No slots'; card.appendChild(n); }
-    list.forEach(s => {
-      const item = document.createElement('div'); item.className = 'entry';
-      item.style.cssText = 'padding:0.6rem 0.8rem;border-left:4px solid ' + (s.status === 'confirmed' ? '#16a34a' : s.status === 'requested' ? '#d97706' : '#9ca3af') + ';';
-      const text = document.createElement('div'); text.className = 'entry-text';
-      const t = document.createElement('strong'); t.textContent = `${s.start}–${s.end}`;
-      const m = document.createElement('span');
-      m.textContent = s.status === 'open' ? 'Open' : s.status === 'requested' ? `Requested by ${s.bookedByName || 'a student'}` : `${s.bookedByName || ''}${s.subject ? ' · ' + s.subject : ''}`;
-      text.append(t, m);
-      const act = document.createElement('div'); act.className = 'entry-actions'; act.style.flexWrap = 'wrap';
-      if (s.status === 'confirmed') {
-        if (s.meetLink && /^https?:\/\//i.test(s.meetLink)) { const a = document.createElement('a'); a.className = 'mini'; a.style.textDecoration = 'none'; a.href = s.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join'; act.appendChild(a); }
-        act.appendChild(mini(s.meetLink ? 'Edit link' : 'Add link', () => openConfirm(s)));
-      }
-      if (s.status === 'requested') act.appendChild(mini('Confirm', () => openConfirm(s)));
-      if (s.status !== 'open') act.appendChild(mini('Free slot', () => freeSlot(s), 'danger'));
-      else act.appendChild(mini('Delete', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); loadSlots(); } }, 'danger'));
-      item.append(text, act); card.appendChild(item);
-    });
-    box.appendChild(card);
-  }
+  const evs = slotCache.filter(s => s.date >= isoA(adWeek) && s.date <= isoA(end)).map(s => ({
+    date: s.date, start: s.start, end: s.end,
+    title: s.status === 'open' ? 'Open' : (s.bookedByName || 'Student'), sub: s.subject || '',
+    color: s.status === 'confirmed' ? '#16a34a' : s.status === 'requested' ? '#d97706' : '#9ca3af',
+    go: () => (s.status === 'confirmed' && /^https?:\/\//i.test(s.meetLink || '')) ? window.open(s.meetLink, '_blank', 'noopener') : showAct(s),
+    menu: () => showAct(s)
+  }));
+  weekGrid(box, adWeek, evs, isoA(new Date()), isoA);
+  box.insertAdjacentHTML('beforeend', '<div class="wg-leg">Tap a green class to open Google Meet. Tap ⋯ on any block for more options.</div>' + '<div class="wg-leg"><u style="background:#16a34a"></u>Confirmed<u style="background:#d97706"></u>Waiting<u style="background:#9ca3af"></u>Open</div>');
+}
+function showAct(s) {
+  const box = $s('slAct'); box.textContent = '';
+  const card = document.createElement('div'); card.style.cssText = 'background:var(--bg-soft);border:1.5px solid var(--blue);border-radius:8px;padding:0.8rem 1rem;';
+  const t = document.createElement('strong'); t.textContent = `${s.date} · ${s.start}–${s.end} · ` + (s.status === 'open' ? 'Open slot' : `${s.bookedByName || ''}${s.subject ? ' · ' + s.subject : ''} (${s.status})`);
+  const act = document.createElement('div'); act.className = 'entry-actions'; act.style.cssText = 'margin-top:0.6rem;flex-wrap:wrap;';
+  const mini = (x, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mini ' + (cls || ''); b.textContent = x; b.onclick = fn; act.appendChild(b); };
+  if (s.status === 'confirmed' && /^https?:\/\//i.test(s.meetLink || '')) { const a = document.createElement('a'); a.className = 'mini'; a.style.textDecoration = 'none'; a.href = s.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join'; act.appendChild(a); }
+  if (s.status === 'confirmed') mini(s.meetLink ? 'Edit link' : 'Add link', () => openConfirm(s));
+  if (s.status === 'requested') mini('Confirm', () => openConfirm(s));
+  if (s.status !== 'open') mini('Free slot', () => { box.textContent = ''; freeSlot(s); }, 'danger');
+  else mini('Delete', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); box.textContent = ''; loadSlots(); } }, 'danger');
+  mini('Close', () => { box.textContent = ''; });
+  card.append(t, act); box.appendChild(card);
+  card.scrollIntoView({ behavior: 'smooth', block: 'center' });
 }
 function openConfirm(s) {
   cfSlot = s;
