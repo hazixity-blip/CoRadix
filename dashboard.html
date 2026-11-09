@@ -660,7 +660,7 @@ function weekGrid(box, ws, evs, todayKey, iso) {
         ]);
         const today = todayStr();
         bkData.slots = []; sl.forEach(x => { const v = x.data(); if (v.date >= today) bkData.slots.push({ id: x.id, ...v }); });
-        bkData.mine = []; se.forEach(x => { const v = x.data(); if (v.status === 'requested' || v.status === 'confirmed') bkData.mine.push({ id: x.id, ...v }); });
+        bkData.mine = []; se.forEach(x => { const v = x.data(); if (v.status === 'requested' || v.status === 'confirmed' || v.status === 'cancelled') bkData.mine.push({ id: x.id, ...v }); });
         setBadge('slotsList', bkData.slots.length);
         if (!bkWeek) bkWeek = monOf(new Date());
         renderBooking();
@@ -678,17 +678,50 @@ function weekGrid(box, ws, evs, todayKey, iso) {
       box.appendChild(nav);
       const future = s => new Date(s.date + 'T' + s.start) > new Date();
       const evs = [
-        ...bkData.mine.map(s => ({
-          date: s.date, start: s.start, end: s.end,
-          title: s.status === 'confirmed' ? (s.subject || 'Class') : 'Waiting', sub: s.status === 'confirmed' ? '' : 'for confirmation',
-          color: s.status === 'confirmed' ? '#16a34a' : '#d97706',
-          go: () => { if (s.status === 'confirmed' && /^https?:\/\//i.test(s.meetLink || '')) window.open(s.meetLink, '_blank', 'noopener'); else alert('Waiting for the academy to confirm this class.'); },
-          menu: future(s) ? () => postponeSession(s) : null
-        })),
+        ...bkData.mine.map(s => {
+          const c = s.status === 'cancelled';
+          return {
+            date: s.date, start: s.start, end: s.end,
+            title: c ? 'Cancelled' : s.status === 'confirmed' ? (s.subject || 'Class') : 'Waiting', sub: c ? (s.cancelReason || s.reason || '') : s.status === 'confirmed' ? '' : 'for confirmation',
+            color: c ? '#dc2626' : s.status === 'confirmed' ? '#16a34a' : '#d97706',
+            go: () => {
+              if (c) alert('This class was cancelled.\nReason: ' + (s.cancelReason || s.reason || '—'));
+              else if (s.status === 'confirmed' && /^https?:\/\//i.test(s.meetLink || '')) window.open(s.meetLink, '_blank', 'noopener');
+              else alert('Waiting for the academy to confirm this class.' + (s.changeNote ? '\nNote: ' + s.changeNote : ''));
+            },
+            menu: !c && future(s) ? () => classMenu(s) : null
+          };
+        }),
         ...bkData.slots.map(s => ({ date: s.date, start: s.start, end: s.end, title: 'Open', sub: 'tap to request', color: '#9ca3af', go: () => bookSlot(s) }))
       ];
       weekGrid(box, bkWeek, evs, isoD(new Date()), isoD);
-      box.insertAdjacentHTML('beforeend', '<div class="wg-leg">Tap a grey slot to request it. Tap a green class to join. Tap ⋯ on a class to postpone it.</div>' + '<div class="wg-leg"><u style="background:#16a34a"></u>Confirmed<u style="background:#d97706"></u>Waiting<u style="background:#9ca3af"></u>Open</div>');
+      box.insertAdjacentHTML('beforeend', '<div class="wg-leg">Tap a grey slot to request it. Tap a green class to join. Tap ⋯ on a class to postpone or cancel it. Red = cancelled.</div>' + '<div class="wg-leg"><u style="background:#16a34a"></u>Confirmed<u style="background:#d97706"></u>Waiting<u style="background:#9ca3af"></u>Open</div>');
+    }
+    function classMenu(s) {
+      const old = $b('bkActBox'); if (old) old.remove();
+      const card = document.createElement('div'); card.id = 'bkActBox';
+      card.style.cssText = 'margin-top:.8rem;background:var(--bg-soft);border:1.5px solid var(--blue);border-radius:8px;padding:.8rem 1rem;';
+      const t = document.createElement('strong'); t.textContent = `${fmtDate(s.date)} · ${s.start}–${s.end}`;
+      const ta = document.createElement('textarea'); ta.id = 'bkReason'; ta.rows = 2; ta.maxLength = 300; ta.placeholder = 'Reason (required)';
+      ta.style.cssText = 'width:100%;margin:.6rem 0;border:1px solid var(--border);border-radius:8px;padding:.5rem;font:inherit;font-size:.85rem;-webkit-user-select:text;user-select:text;';
+      const row = document.createElement('div'); row.style.cssText = 'display:flex;gap:1rem;flex-wrap:wrap;';
+      const mk = (x, fn) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mat-link'; b.textContent = x; b.onclick = fn; return b; };
+      row.append(mk('Postpone class', () => changeClass(s, 'postponed')), mk('Cancel class', () => changeClass(s, 'cancelled')), mk('Close', () => card.remove()));
+      card.append(t, ta, row); $b('slotsList').appendChild(card);
+      card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    async function changeClass(s, kind) {
+      const reason = ($b('bkReason').value || '').trim();
+      if (reason.length < 3) { alert('Please write a short reason first.'); return; }
+      if (!confirm(kind === 'postponed' ? 'Postpone this class? Your slot is released and you can pick a new one.' : 'Cancel this class?')) return;
+      try {
+        const b = db.batch();
+        b.update(db.collection('students').doc(currentUid).collection('sessions').doc(s.id), kind === 'cancelled' ? { status: 'cancelled', reason, cancelledBy: 'student' } : { status: 'postponed', reason });
+        b.update(db.collection('availability').doc(s.slotId), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '', meetLink: '' });
+        b.set(db.collection('classLog').doc(), { uid: currentUid, studentName: currentStudentName, date: s.date, start: s.start, end: s.end, action: kind === 'cancelled' ? 'Cancelled' : 'Postponed', reason, at: firebase.firestore.FieldValue.serverTimestamp() });
+        await b.commit();
+      } catch (e) { alert('Sorry, this could not be saved. Please try again.'); }
+      await loadBooking(currentUid);
     }
     async function postponeSession(r) {
       if (!confirm('Postpone this class? Your current slot will be released, and you can then pick a new one under "Book a Class".')) return;
