@@ -146,6 +146,15 @@
         </div>
         <button class="action" onclick="addSlot()">Add Slot</button>
         <div id="slMsg" class="status-msg"></div>
+        <div id="cfBox" style="display:none;background:var(--bg-soft);border:1.5px solid var(--blue);border-radius:8px;padding:0.9rem;margin:0.8rem 0;">
+          <strong id="cfTitle"></strong>
+          <div class="row2" style="margin-top:0.6rem;">
+            <div><label>Subject</label><input id="cfSubject" placeholder="e.g. Chemistry"></div>
+            <div><label>Google Meet link</label><input id="cfLink" placeholder="https://meet.google.com/..."></div>
+          </div>
+          <button class="action" onclick="saveConfirm()">Save</button>
+          <button class="action ghost" onclick="closeConfirm()">Cancel</button>
+        </div>
         <div id="slList" style="margin-top:1rem;"></div>
       </div>
 
@@ -215,6 +224,7 @@
             <div><label>Date</label><input type="date" id="attDate"></div>
             <div><label>Subject of the session</label><input id="attSubject" list="subjectList" placeholder="e.g. Chemistry"></div>
             <div><label>Notes (optional)</label><input id="attNotes" placeholder="e.g. joined 10 min late"></div>
+            <div><label>Session time (for several sessions in a day)</label><input type="time" id="attTime"></div>
           </div>
           <div class="row3">
             <div><label>Pre-session task</label>
@@ -709,9 +719,9 @@
       },
       attendance: {
         noun: 'attendance entry', col: 'attendance', btn: 'attBtn', msg: 'attStatus_msg', list: 'attList',
-        fields: { date: 'attDate', subject: 'attSubject', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
-        keep: ['date', 'subject'], sort: byDateDesc,
-        build: v => v.date ? { date: v.date, subject: v.subject, preTask: v.preTask, session: v.session, postTask: v.postTask,
+        fields: { date: 'attDate', time: 'attTime', subject: 'attSubject', preTask: 'attPre', session: 'attSession', postTask: 'attPost', notes: 'attNotes' },
+        keep: ['date', 'subject'], sort: (x, y) => byDateDesc(x, y) || String(y.time || '').localeCompare(String(x.time || '')),
+        build: v => v.date ? { date: v.date, time: v.time, subject: v.subject, preTask: v.preTask, session: v.session, postTask: v.postTask,
                                status: v.session,   // kept so older pages that read "status" still work
                                notes: v.notes } : 'Pick a date.',
         afterFill: d => {
@@ -723,7 +733,7 @@
         merge: async (col, res) => {
           if (!res.date) return false;
           const snap = await col.where('date', '==', res.date).get();
-          const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(res.subject));
+          const hit = snap.docs.find(d => normSubj(d.data().subject) === normSubj(res.subject) && (d.data().time || '') === (res.time || ''));
           if (!hit) return false;
           const old = hit.data();
           await hit.ref.set({
@@ -737,7 +747,7 @@
         groupOf: d => monthOf(d.date, 'No date'),
         summary: d => {
           const p = attEntryPercent(d);
-          return { title: (d.subject || '').trim() ? `${d.date} — ${d.subject.trim()}` : d.date,
+          return { title: [d.date, d.time, (d.subject || '').trim()].filter(Boolean).join(' — '),
                    meta: [`Pre: ${d.preTask || 'Not assigned'}`, `Session: ${d.session || d.status || '—'}`, `Post: ${d.postTask || 'Not assigned'}`,
                           p === null ? '' : Math.round(p) + '%', d.notes].filter(Boolean).join(' · ') };
         }
@@ -1301,8 +1311,11 @@
     initCollapsiblePanels();
   </script>
 <script>
-/* ===== Class slots: add, confirm, decline ===== */
+/* ===== Class calendar (week view): add slots, confirm with a visible link, join ===== */
 const $s = id => document.getElementById(id);
+let adWeek = null, slotCache = [], cfSlot = null;
+const isoA = d => d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+const monA = d => { const x = new Date(d.getFullYear(), d.getMonth(), d.getDate()); x.setDate(x.getDate() - ((x.getDay() + 6) % 7)); return x; };
 async function addSlot() {
   const date = $s('slDate').value, start = $s('slStart').value, end = $s('slEnd').value;
   if (!date || !start || !end) { showMsg('slMsg', 'Pick a date, From and To.', false); return; }
@@ -1314,39 +1327,75 @@ async function addSlot() {
   } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
 }
 async function loadSlots() {
-  const box = $s('slList');
   try {
     const snap = await db.collection('availability').get();
-    const today = todayStr();
-    const rows = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(x => x.date >= today)
-      .sort((x, y) => (x.date + x.start).localeCompare(y.date + y.start));
-    box.textContent = '';
-    if (!rows.length) { box.innerHTML = '<div class="empty-note">No upcoming slots yet.</div>'; return; }
-    rows.forEach(s => {
-      const item = document.createElement('div'); item.className = 'entry';
-      const text = document.createElement('div'); text.className = 'entry-text';
-      const t = document.createElement('strong'); t.textContent = `${s.date} · ${s.start}–${s.end}`;
-      const m = document.createElement('span');
-      m.textContent = s.status === 'open' ? 'Open' : s.status === 'requested' ? `Requested by ${s.bookedByName || 'a student'}` : `Confirmed: ${s.bookedByName || ''} · ${s.subject || ''}`;
-      text.append(t, m);
-      const act = document.createElement('div'); act.className = 'entry-actions';
-      const btn = (label, cls, fn) => { const b = document.createElement('button'); b.className = 'mini ' + cls; b.textContent = label; b.onclick = fn; act.appendChild(b); };
-      if (s.status === 'requested') btn('Confirm', '', () => confirmSlot(s));
-      if (s.status !== 'open') btn('Free slot', 'danger', () => freeSlot(s));
-      if (s.status === 'open') btn('Delete', 'danger', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); loadSlots(); } });
-      item.append(text, act); box.appendChild(item);
-    });
-  } catch (e) { box.textContent = 'Could not load slots: ' + friendlyError(e); }
+    slotCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    if (!adWeek) adWeek = monA(new Date());
+    renderWeek();
+  } catch (e) { $s('slList').textContent = 'Could not load slots: ' + friendlyError(e); }
 }
-async function confirmSlot(s) {
-  const subject = (prompt('Session subject?') || '').trim(); if (!subject) return;
-  const link = (prompt('Google Meet link (starts with https://)') || '').trim();
-  if (!/^https?:\/\//i.test(link)) { alert('Please enter a link that starts with https://'); return; }
+function shiftWeek(n) { adWeek.setDate(adWeek.getDate() + n * 7); renderWeek(); }
+function thisWeek() { adWeek = monA(new Date()); renderWeek(); }
+function renderWeek() {
+  const box = $s('slList'); box.textContent = '';
+  const mini = (t, fn, cls) => { const b = document.createElement('button'); b.type = 'button'; b.className = 'mini ' + (cls || ''); b.textContent = t; b.onclick = fn; return b; };
+  const end = new Date(adWeek); end.setDate(end.getDate() + 6);
+  const nav = document.createElement('div'); nav.style.cssText = 'display:flex;align-items:center;justify-content:space-between;gap:0.5rem;flex-wrap:wrap;margin-bottom:0.8rem;';
+  const lab = document.createElement('strong'); lab.style.fontSize = '0.85rem';
+  lab.textContent = adWeek.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' }) + ' – ' + end.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+  const btns = document.createElement('div'); btns.style.cssText = 'display:flex;gap:0.4rem;';
+  btns.append(mini('← Prev', () => shiftWeek(-1)), mini('This week', thisWeek), mini('Next →', () => shiftWeek(1)));
+  nav.append(lab, btns); box.appendChild(nav);
+  const today = isoA(new Date());
+  for (let i = 0; i < 7; i++) {
+    const day = new Date(adWeek); day.setDate(day.getDate() + i);
+    const key = isoA(day);
+    const list = slotCache.filter(x => x.date === key).sort((x, y) => x.start.localeCompare(y.start));
+    const card = document.createElement('div'); card.style.cssText = 'border:1px solid var(--border);border-radius:8px;margin-bottom:0.6rem;overflow:hidden;';
+    const h = document.createElement('div'); h.style.cssText = 'background:var(--bg-soft);padding:0.45rem 0.8rem;font-size:0.8rem;font-weight:700;' + (key === today ? 'color:var(--blue);' : '');
+    h.textContent = day.toLocaleDateString('en-GB', { weekday: 'long', day: 'numeric', month: 'short' }) + (key === today ? ' · Today' : '');
+    card.appendChild(h);
+    if (!list.length) { const n = document.createElement('div'); n.className = 'empty-note'; n.style.padding = '0.4rem 0.8rem'; n.textContent = 'No slots'; card.appendChild(n); }
+    list.forEach(s => {
+      const item = document.createElement('div'); item.className = 'entry';
+      item.style.cssText = 'padding:0.6rem 0.8rem;border-left:4px solid ' + (s.status === 'confirmed' ? '#16a34a' : s.status === 'requested' ? '#d97706' : '#9ca3af') + ';';
+      const text = document.createElement('div'); text.className = 'entry-text';
+      const t = document.createElement('strong'); t.textContent = `${s.start}–${s.end}`;
+      const m = document.createElement('span');
+      m.textContent = s.status === 'open' ? 'Open' : s.status === 'requested' ? `Requested by ${s.bookedByName || 'a student'}` : `${s.bookedByName || ''}${s.subject ? ' · ' + s.subject : ''}`;
+      text.append(t, m);
+      const act = document.createElement('div'); act.className = 'entry-actions'; act.style.flexWrap = 'wrap';
+      if (s.status === 'confirmed') {
+        if (s.meetLink && /^https?:\/\//i.test(s.meetLink)) { const a = document.createElement('a'); a.className = 'mini'; a.style.textDecoration = 'none'; a.href = s.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join'; act.appendChild(a); }
+        act.appendChild(mini(s.meetLink ? 'Edit link' : 'Add link', () => openConfirm(s)));
+      }
+      if (s.status === 'requested') act.appendChild(mini('Confirm', () => openConfirm(s)));
+      if (s.status !== 'open') act.appendChild(mini('Free slot', () => freeSlot(s), 'danger'));
+      else act.appendChild(mini('Delete', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); loadSlots(); } }, 'danger'));
+      item.append(text, act); card.appendChild(item);
+    });
+    box.appendChild(card);
+  }
+}
+function openConfirm(s) {
+  cfSlot = s;
+  $s('cfTitle').textContent = `${s.date} · ${s.start}–${s.end} · ${s.bookedByName || ''}`;
+  $s('cfSubject').value = s.subject || '';
+  $s('cfLink').value = s.meetLink || '';
+  $s('cfBox').style.display = 'block';
+  $s('cfBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function closeConfirm() { cfSlot = null; $s('cfBox').style.display = 'none'; }
+async function saveConfirm() {
+  if (!cfSlot) return;
+  const subject = $s('cfSubject').value.trim(), link = $s('cfLink').value.trim();
+  if (!subject) { showMsg('slMsg', 'Please enter the subject.', false); return; }
+  if (!/^https?:\/\//i.test(link)) { showMsg('slMsg', 'The Meet link must start with https://', false); return; }
   try {
     const b = db.batch();
-    b.update(db.collection('availability').doc(s.id), { status: 'confirmed', subject });
-    b.update(db.collection('students').doc(s.bookedBy).collection('sessions').doc(s.sessionId), { status: 'confirmed', subject, meetLink: link });
-    await b.commit(); showMsg('slMsg', 'Confirmed.', true); loadSlots();
+    b.update(db.collection('availability').doc(cfSlot.id), { status: 'confirmed', subject, meetLink: link });
+    b.update(db.collection('students').doc(cfSlot.bookedBy).collection('sessions').doc(cfSlot.sessionId), { status: 'confirmed', subject, meetLink: link });
+    await b.commit(); closeConfirm(); showMsg('slMsg', 'Saved.', true); loadSlots();
   } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
 }
 async function freeSlot(s) {
@@ -1354,7 +1403,7 @@ async function freeSlot(s) {
   try {
     const b = db.batch();
     b.update(db.collection('students').doc(s.bookedBy).collection('sessions').doc(s.sessionId), { status: 'declined' });
-    b.update(db.collection('availability').doc(s.id), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '' });
+    b.update(db.collection('availability').doc(s.id), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '', meetLink: '' });
     await b.commit(); showMsg('slMsg', 'Slot is open again.', true); loadSlots();
   } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
 }
