@@ -614,7 +614,7 @@
 function weekGrid(box, ws, evs, todayKey, iso) {
   const PX = 44, tm = t => +t.slice(0, 2) * 60 + +t.slice(3, 5);
   evs = evs.filter(e => e.start && e.end && tm(e.end) > tm(e.start));
-  let h0 = 7, h1 = 21;
+  let h0 = 7, h1 = 24;
   evs.forEach(e => { h0 = Math.min(h0, Math.floor(tm(e.start) / 60)); h1 = Math.max(h1, Math.ceil(tm(e.end) / 60)); });
   const wrap = document.createElement('div'); wrap.className = 'wg-wrap';
   const g = document.createElement('div'); g.className = 'wg'; wrap.appendChild(g);
