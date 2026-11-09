@@ -155,8 +155,22 @@
           <button class="action" onclick="saveConfirm()">Save</button>
           <button class="action ghost" onclick="closeConfirm()">Cancel</button>
         </div>
+        <div id="fmBox" style="display:none;background:var(--bg-soft);border:1.5px solid var(--blue);border-radius:8px;padding:0.9rem;margin:0.8rem 0;">
+          <strong id="fmTitle"></strong>
+          <div class="row3" id="fmTimes" style="margin-top:0.6rem;">
+            <div><label>Date</label><input type="date" id="fmDate"></div>
+            <div><label>From</label><input type="time" id="fmStart"></div>
+            <div><label>To</label><input type="time" id="fmEnd"></div>
+          </div>
+          <label id="fmRLabel" style="margin-top:0.4rem;">Reason (shown to the student)</label>
+          <input id="fmReason" placeholder="e.g. I am unwell, so we move this class">
+          <button class="action" onclick="saveFm()">Save</button>
+          <button class="action ghost" onclick="closeFm()">Cancel</button>
+        </div>
         <div id="slList" style="margin-top:1rem;"></div>
         <div id="slAct" style="margin-top:0.8rem;"></div>
+        <h4 class="entries-title">Recent changes by students</h4>
+        <div id="logList"></div>
       </div>
 
       <div class="panel">
@@ -1376,7 +1390,7 @@ async function loadSlots() {
     const snap = await db.collection('availability').get();
     slotCache = snap.docs.map(d => ({ id: d.id, ...d.data() }));
     if (!adWeek) adWeek = monA(new Date());
-    renderWeek();
+    renderWeek(); loadLog();
   } catch (e) { $s('slList').textContent = 'Could not load slots: ' + friendlyError(e); }
 }
 function shiftWeek(n) { adWeek.setDate(adWeek.getDate() + n * 7); renderWeek(); }
@@ -1410,6 +1424,8 @@ function showAct(s) {
   if (s.status === 'confirmed' && /^https?:\/\//i.test(s.meetLink || '')) { const a = document.createElement('a'); a.className = 'mini'; a.style.textDecoration = 'none'; a.href = s.meetLink; a.target = '_blank'; a.rel = 'noopener'; a.textContent = '🎥 Join'; act.appendChild(a); }
   if (s.status === 'confirmed') mini(s.meetLink ? 'Edit link' : 'Add link', () => openConfirm(s));
   if (s.status === 'requested') mini('Confirm', () => openConfirm(s));
+  mini('Edit time', () => openFm('edit', s));
+  if (s.status !== 'open') mini('Cancel class', () => openFm('cancel', s), 'danger');
   if (s.status !== 'open') mini('Free slot', () => { box.textContent = ''; freeSlot(s); }, 'danger');
   else mini('Delete', async () => { if (confirm('Delete this slot?')) { await db.collection('availability').doc(s.id).delete(); box.textContent = ''; loadSlots(); } }, 'danger');
   mini('Close', () => { box.textContent = ''; });
@@ -1445,6 +1461,58 @@ async function freeSlot(s) {
     b.update(db.collection('availability').doc(s.id), { bookedBy: null, bookedByName: '', sessionId: '', status: 'open', subject: '', meetLink: '' });
     await b.commit(); showMsg('slMsg', 'Slot is open again.', true); loadSlots();
   } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
+}
+
+let fmSlot = null, fmMode = '';
+const slotRef = s => db.collection('availability').doc(s.id);
+const sessRef = s => db.collection('students').doc(s.bookedBy).collection('sessions').doc(s.sessionId);
+function openFm(mode, s) {
+  fmSlot = s; fmMode = mode;
+  $s('fmTitle').textContent = (mode === 'cancel' ? 'Cancel class: ' : 'Edit time: ') + `${s.date} · ${s.start}–${s.end}` + (s.bookedByName ? ' · ' + s.bookedByName : '');
+  $s('fmTimes').style.display = mode === 'edit' ? '' : 'none';
+  $s('fmDate').value = s.date; $s('fmStart').value = s.start; $s('fmEnd').value = s.end;
+  const needReason = mode === 'cancel' || !!s.bookedBy;
+  $s('fmReason').style.display = needReason ? '' : 'none'; $s('fmRLabel').style.display = needReason ? '' : 'none';
+  $s('fmReason').value = '';
+  $s('fmBox').style.display = 'block';
+  $s('fmBox').scrollIntoView({ behavior: 'smooth', block: 'center' });
+}
+function closeFm() { fmSlot = null; $s('fmBox').style.display = 'none'; }
+async function saveFm() {
+  const s = fmSlot; if (!s) return;
+  const reason = $s('fmReason').value.trim();
+  try {
+    const b = db.batch();
+    if (fmMode === 'cancel') {
+      if (reason.length < 3) { showMsg('slMsg', 'Please write the reason.', false); return; }
+      b.update(sessRef(s), { status: 'cancelled', cancelReason: reason, cancelledBy: 'academy' });
+      b.delete(slotRef(s));
+    } else {
+      const date = $s('fmDate').value, start = $s('fmStart').value, end = $s('fmEnd').value;
+      if (!date || !start || !end || end <= start) { showMsg('slMsg', 'Check the date and times (the end must be after the start).', false); return; }
+      if (s.bookedBy && reason.length < 3) { showMsg('slMsg', 'Please write the reason for the change.', false); return; }
+      b.update(slotRef(s), { date, start, end });
+      if (s.bookedBy) b.update(sessRef(s), { date, start, end, changeNote: reason });
+    }
+    await b.commit(); closeFm(); $s('slAct').textContent = '';
+    showMsg('slMsg', fmMode === 'cancel' ? 'Class cancelled.' : 'Time updated.', true); loadSlots();
+  } catch (e) { showMsg('slMsg', 'Error: ' + friendlyError(e), false); }
+}
+async function loadLog() {
+  const box = $s('logList');
+  try {
+    const snap = await db.collection('classLog').get();
+    const rows = snap.docs.map(d => d.data()).sort((x, y) => ((y.at && y.at.seconds) || 0) - ((x.at && x.at.seconds) || 0)).slice(0, 15);
+    box.textContent = '';
+    if (!rows.length) { box.innerHTML = '<div class="empty-note">No changes yet.</div>'; return; }
+    rows.forEach(r => {
+      const item = document.createElement('div'); item.className = 'entry';
+      const t = document.createElement('div'); t.className = 'entry-text';
+      const s1 = document.createElement('strong'); s1.textContent = `${r.studentName || 'Student'} · ${r.action} · ${r.date} ${r.start}–${r.end}`;
+      const s2 = document.createElement('span'); s2.textContent = r.reason || '';
+      t.append(s1, s2); item.appendChild(t); box.appendChild(item);
+    });
+  } catch (e) { box.textContent = ''; }
 }
 auth.onAuthStateChanged(u => { if (u) setTimeout(loadSlots, 1500); });
 </script>
