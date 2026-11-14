@@ -122,6 +122,11 @@
         <div class="stat-card"><div class="stat-num" id="avgRating">—</div><div class="stat-lbl">Average session rating</div></div>
       </div>
 
+      <div class="panel" id="xpPanel">
+        <h3>🎮 Level &amp; Rewards</h3>
+        <div id="xpBox"></div>
+      </div>
+
       <div class="panel" id="feesPanel">
         <h3>💰 Fees</h3>
         <div id="feesList"></div>
@@ -603,6 +608,37 @@
     }
     initCollapsiblePanels();
 
+    /* ---------- Level, badges and leaderboard ---------- */
+    const BADGES = { first: ['🌟', 'First Class'], five: ['🎯', '5 Classes'], twenty: ['🏅', '20 Classes'], taskmaster: ['✅', 'Task Master'], ace: ['🏆', 'Ace Score'], streak3: ['🔥', '3-Week Streak'], streak8: ['🚀', '8-Week Streak'] };
+    async function loadXp(uid) {
+      const box = document.getElementById('xpBox');
+      try {
+        const snap = await db.collection('leaderboard').get();
+        const rows = snap.docs.map(x => ({ id: x.id, ...x.data() })).sort((p, q) => (q.xp || 0) - (p.xp || 0));
+        const me = rows.find(r => r.id === uid);
+        let h = '';
+        if (me) {
+          const xp = me.xp || 0, lvl = me.level || 1;
+          h += `<div style="display:flex;align-items:center;gap:.9rem;margin-bottom:.8rem;"><div style="font-size:2.3rem;">${['🌱', '📘', '💡', '🎓', '👑', '🦄'][Math.min(lvl - 1, 5)]}</div><div><div style="font-weight:700;">Level ${lvl} · ${mdEscape(me.title || '')}</div><div class="att-note" style="margin:0;">${xp} XP · 🔥 ${me.streak || 0}-week streak</div></div></div>`;
+          h += `<div style="background:#e5e7eb;border-radius:999px;height:10px;overflow:hidden;"><div style="width:${xp % 100}%;height:100%;background:var(--blue);"></div></div><div class="att-note">${100 - (xp % 100)} XP to Level ${lvl + 1}</div>`;
+        } else h += '<div class="empty">Your points start after your first attended class. 🌟</div>';
+        h += '<div style="margin:1rem 0 .3rem;font-weight:700;font-size:.85rem;">Badges</div><div>';
+        Object.keys(BADGES).forEach(k => {
+          const on = me && (me.badges || []).includes(k);
+          h += `<span class="chip ${on ? 'chip-ok' : 'chip-na'}" style="${on ? '' : 'opacity:.5;'}">${on ? BADGES[k][0] : '🔒'} ${BADGES[k][1]}</span>`;
+        });
+        h += '</div><div style="margin:1rem 0 .3rem;font-weight:700;font-size:.85rem;">🏆 Leaderboard</div>';
+        const medal = i => ['🥇', '🥈', '🥉'][i] || (i + 1) + '.';
+        const line = (r, i) => `<div class="row" style="padding:.45rem 0;${r.id === uid ? 'background:var(--blue-light);border-radius:6px;padding-left:.5rem;padding-right:.5rem;' : ''}"><span class="rl" style="color:var(--ink);">${medal(i)} ${mdEscape(r.name || 'Student')}${r.id === uid ? ' (you)' : ''}</span><span class="rr">Lv ${r.level || 1} · ${r.xp || 0} XP</span></div>`;
+        rows.slice(0, 10).forEach((r, i) => { h += line(r, i); });
+        const mi = rows.findIndex(r => r.id === uid);
+        if (mi >= 10) h += '<div class="att-note" style="text-align:center;">···</div>' + line(rows[mi], mi);
+        if (!rows.length) h += '<div class="empty">No one has points yet. Be the first!</div>';
+        h += '<div class="att-note" style="margin-top:.6rem;">Points: +10 present, +5 late, +5 per completed task, +5 to +15 for good test scores.</div>';
+        box.innerHTML = h;
+        setPanelOpen(document.getElementById('xpPanel'), true);
+      } catch (e) { box.innerHTML = '<div class="empty">Rewards could not be loaded right now.</div>'; }
+    }
     /* ---------- Book a class ---------- */
     const $b = id => document.getElementById(id);
 /* ---- Google-Calendar style week grid (Mon–Sun across, hours down) ---- */
@@ -1140,6 +1176,7 @@ function weekGrid(box, ws, evs, todayKey, iso) {
       }
 
       await loadBooking(uid);
+      await loadXp(uid);
       await loadMySuggestions(uid);
 
       document.getElementById('loadingMsg').style.display = 'none';
@@ -1163,7 +1200,7 @@ main{padding-bottom:6rem !important}
 <script>
 (function () {
   const TABS = [['home', '🏠', 'Home'], ['class', '📅', 'Classes'], ['learn', '📚', 'Learn'], ['prog', '📈', 'Progress']];
-  const KEYS = [['Feedback Forms', 'learn'], ['Fees', 'home'], ['Schedule', 'class'], ['Attendance', 'class'], ['Tasks', 'class'], ['Activities', 'learn'], ['Workflow', 'prog'], ['Certificate', 'prog'], ['Performance', 'prog'], ['Feedback', 'prog'], ['Materials', 'learn'], ['Assessments', 'learn']];
+  const KEYS = [['Feedback Forms', 'learn'], ['Fees', 'home'], ['Rewards', 'home'], ['Schedule', 'class'], ['Attendance', 'class'], ['Tasks', 'class'], ['Activities', 'learn'], ['Workflow', 'prog'], ['Certificate', 'prog'], ['Performance', 'prog'], ['Feedback', 'prog'], ['Materials', 'learn'], ['Assessments', 'learn']];
   const items = [];
   ['skillBadgeWrap', 'feeBanner', 'statsGrid'].forEach(id => { const el = document.getElementById(id); if (el) items.push([el, 'home']); });
   document.querySelectorAll('#appRoot main .panel').forEach(p => {

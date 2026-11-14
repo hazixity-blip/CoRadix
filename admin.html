@@ -605,6 +605,7 @@
           if (n) await batch.commit();
         }
         await ref.delete();
+        try { await db.collection('leaderboard').doc(selectedUid).delete(); } catch (e) {}
         await loadStudentList();
         await onStudentChange();
         showMsg('studentStatus_msg', 'Student deleted.', true);
