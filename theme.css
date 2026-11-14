@@ -36,3 +36,22 @@ svg text[fill="#1c1c1e"]{fill:var(--ink)}svg text[fill="#6b7280"]{fill:var(--mut
 :root[data-theme="dark"] .status-ok{background:#0f3d24;color:#86efac}
 :root[data-theme="dark"] .status-err{background:#40181b;color:#fca5a5}
 :root[data-theme="dark"] .md-body code{background:#262c4a}
+
+/* ---- fixes: old fixed colours that clashed with dark mode ---- */
+label{color:var(--ink) !important}
+.tabbtn{background:var(--card) !important;color:var(--ink) !important;border:1.5px solid var(--border) !important}
+.tabbtn.on{background:linear-gradient(135deg,var(--blue),var(--accent)) !important;color:#fff !important;border-color:transparent !important}
+.md-body blockquote{color:var(--ink)}
+#xpBox div[style*="background:#e5e7eb"]{background:var(--border) !important}
+#skillBadgeWrap > div{background:var(--blue-light) !important;color:var(--blue) !important}
+.wg-wrap{background:var(--card) !important;border-color:var(--border) !important}
+.wg-h div,.wg-d{border-color:var(--border) !important}
+.wg-h div{color:var(--muted) !important}
+.wg-h b{color:var(--ink) !important}
+.wg-h .today{color:var(--blue) !important}
+.wg-h .today b{color:#fff !important}
+.wg-t span,.wg-leg{color:var(--muted) !important}
+.wg-d{background-image:repeating-linear-gradient(to bottom,transparent 0,transparent 43px,var(--border) 43px,var(--border) 44px) !important}
+:root[data-theme="dark"] #progBox [style*="background:#f0fdf4"],:root[data-theme="dark"] #adProg [style*="background:#f0fdf4"]{background:#0f3d24 !important;color:#86efac !important;border-color:#14532d !important}
+:root[data-theme="dark"] #progBox [style*="background:#fffbeb"],:root[data-theme="dark"] #adProg [style*="background:#fffbeb"]{background:#3d3010 !important;color:#fcd34d !important;border-color:#78590f !important}
+:root[data-theme="dark"] .status-ok,:root[data-theme="dark"] .status-err{border:none}
