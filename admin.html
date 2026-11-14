@@ -745,7 +745,7 @@
           document.getElementById('attPre').value = d.preTask || 'Not assigned';
           document.getElementById('attPost').value = d.postTask || 'Not assigned';
         },
-        onLoad: rows => renderAttSummary(rows),
+        onLoad: rows => { renderAttSummary(rows); renderAdminProgress(); },
         merge: async (col, res) => {
           if (!res.date) return false;
           const snap = await col.where('date', '==', res.date).get();
@@ -793,6 +793,7 @@
         keep: ['subject', 'date'],
         sort: (x, y) => scoreSubject(x).localeCompare(scoreSubject(y)) || byDateDesc(x, y),
         groupOf: d => [scoreSubject(d), monthOf(d.date, 'No date')],   // subject, then month inside it
+        onLoad: () => renderAdminProgress(),
         build: v => {
           if (!v.testName || !v.date || v.score === '' || v.max === '') return 'Test / topic, date, score, and out-of are required.';
           return { subject: v.subject || 'General', testName: v.testName, date: v.date, score: Number(v.score), max: Number(v.max),
@@ -1558,6 +1559,76 @@ auth.onAuthStateChanged(u => { if (u) setTimeout(loadSlots, 1500); });
   if (_e) window.editStudent = function () { show('add'); return _e.apply(this, arguments); };
   apply();
 })();
+</script>
+<script>
+/* ===== Teacher view: progress graph and insights for the selected student ===== */
+(function () {
+  const sp = [...document.querySelectorAll('#studentPanels > .panel')].find(p => { const h = p.querySelector('h3'); return h && h.textContent.includes('Performance Scores'); });
+  const body = sp && sp.querySelector('.panel-body');
+  if (!body) return;
+  const box = document.createElement('div'); box.id = 'adProg'; box.style.cssText = 'margin-bottom:1rem;padding-bottom:1rem;border-bottom:1px solid var(--border);';
+  body.insertBefore(box, body.firstChild);
+})();
+const escA = s => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+function chartA(list) {
+  const W = 600, H = 220, L = 34, R = 12, T = 18, B = 28;
+  const x = i => list.length === 1 ? (L + (W - L - R) / 2) : L + i * (W - L - R) / (list.length - 1);
+  const y = p => T + (100 - p) * (H - T - B) / 100;
+  let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">`;
+  [0, 25, 50, 75, 100].forEach(v => { s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#e5e7eb"/><text x="${L - 6}" y="${y(v) + 4}" font-size="10" fill="#6b7280" text-anchor="end">${v}</text>`; });
+  s += `<line x1="${L}" x2="${W - R}" y1="${y(75)}" y2="${y(75)}" stroke="#16a34a" stroke-dasharray="4 4"/>`;
+  if (list.length > 1) s += `<polyline points="${list.map((p, i) => x(i) + ',' + y(p.pct)).join(' ')}" fill="none" stroke="#0057ff" stroke-width="2.5"/>`;
+  list.forEach((p, i) => {
+    s += `<circle cx="${x(i)}" cy="${y(p.pct)}" r="4.5" fill="#0057ff"><title>${escA(p.subject)} · ${p.date}: ${p.pct}%</title></circle>`;
+    if (list.length <= 12) s += `<text x="${x(i)}" y="${y(p.pct) - 9}" font-size="10" fill="#1c1c1e" text-anchor="middle">${p.pct}%</text>`;
+  });
+  const f = dt => new Date(dt + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  return s + `<text x="${L}" y="${H - 8}" font-size="10" fill="#6b7280">${f(list[0].date)}</text><text x="${W - R}" y="${H - 8}" font-size="10" fill="#6b7280" text-anchor="end">${f(list[list.length - 1].date)}</text></svg>`;
+}
+function renderAdminProgress() {
+  const box = document.getElementById('adProg'); if (!box) return;
+  if (!selectedUid) { box.textContent = ''; return; }
+  const sc = Object.values(cache.scores || {}).filter(d => d.date && d.max).map(d => ({ date: d.date, pct: Math.round((d.score / d.max) * 100), subject: scoreSubject(d) })).sort((p, q) => p.date.localeCompare(q.date));
+  const att = Object.values(cache.attendance || {});
+  const head = '<div style="font-weight:700;font-size:.9rem;margin-bottom:.5rem;">📊 Progress overview</div>';
+  if (!sc.length) { box.innerHTML = head + '<div class="empty-note">No scores yet, so there is no graph.</div>'; return; }
+  const avgOf = l => l.reduce((n, v) => n + v.pct, 0) / l.length;
+  const avg = Math.round(avgOf(sc));
+  let trend = 'few', recent = 0, prev = 0;
+  if (sc.length >= 4) {
+    const k = Math.min(3, Math.floor(sc.length / 2));
+    recent = Math.round(avgOf(sc.slice(-k))); prev = Math.round(avgOf(sc.slice(-2 * k, -k)));
+    trend = recent - prev >= 5 ? 'up' : recent - prev <= -5 ? 'down' : 'flat';
+  }
+  let e = 0, p = 0;
+  att.forEach(d => attComponents(d).forEach(([k, pts]) => { if (pts === undefined) return; e += pts * ATT_WEIGHTS[k]; p += ATT_WEIGHTS[k]; }));
+  const attPct = p ? Math.round((e / p) * 100) : null;
+  const tp = []; att.forEach(d => [d.preTask, d.postTask].forEach(t => { if (ATT_POINTS.task[t] !== undefined) tp.push(ATT_POINTS.task[t]); }));
+  const taskPct = tp.length ? Math.round(tp.reduce((n, v) => n + v, 0) / tp.length * 100) : null;
+  const lowAtt = attPct !== null && attPct < 75, lowTask = taskPct !== null && taskPct < 60;
+  const msgs = [];
+  if (trend === 'up') msgs.push(['good', `📈 Scores are improving (${prev}% → ${recent}%). Worth praising.`]);
+  else if (trend === 'down') msgs.push(['warn', `📉 Recent scores (${recent}%) are lower than the earlier ones (${prev}%).`]);
+  else if (trend === 'flat') msgs.push(['info', `➡️ Scores are steady at about ${recent}%.`]);
+  else msgs.push(['info', '🌱 Fewer than 4 scores so far, so there is no trend yet.']);
+  if (avg >= 75) msgs.push(['good', `🌟 Average ${avg}%: doing well, keep encouraging.`]);
+  else if (avg < 50) msgs.push(['warn', `💪 Average ${avg}%: this student may need extra support.`]);
+  if (attPct !== null) msgs.push(attPct >= 90 ? ['good', `✅ Attendance ${attPct}%: very consistent.`] : lowAtt ? ['warn', `📅 Attendance ${attPct}%: a likely contributor to low or falling scores.`] : ['info', `📅 Attendance ${attPct}%.`]);
+  if (lowTask) msgs.push(['warn', `📝 Only ${taskPct}% of pre and post session tasks are done.`]);
+  if (trend === 'down' || avg < 60) {
+    const why = []; if (lowAtt) why.push('low attendance'); if (lowTask) why.push('unfinished tasks');
+    msgs.push(['info', why.length ? `🔎 Possible reasons: ${why.join(' and ')}.` : '🔎 Attendance and tasks look fine, so the topics themselves may be difficult. Worth a chat.']);
+  }
+  const subjects = [...new Set(sc.map(v => v.subject))].sort();
+  let h = head + `<div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:.6rem;"><span class="att-chip">Average: ${avg}%</span><span class="att-chip">Tests: ${sc.length}</span>` + (attPct !== null ? `<span class="att-chip">Attendance: ${attPct}%</span>` : '') + (taskPct !== null ? `<span class="att-chip">Tasks: ${taskPct}%</span>` : '') + '</div>';
+  if (subjects.length > 1) h += '<select id="adProgSubj" style="margin-bottom:.5rem;"><option value="">All subjects</option>' + subjects.map(v => `<option value="${escA(v)}">${escA(v)}</option>`).join('') + '</select>';
+  h += `<div id="adProgChart">${chartA(sc)}</div><div style="margin-top:.7rem;">`;
+  const col = { good: ['#f0fdf4', '#bbf7d0', '#166534'], warn: ['#fffbeb', '#fde68a', '#92400e'], info: ['var(--blue-light)', '#c7d7ff', 'var(--ink)'] };
+  msgs.forEach(([t, tx]) => { h += `<div style="background:${col[t][0]};border:1px solid ${col[t][1]};color:${col[t][2]};border-radius:8px;padding:.5rem .8rem;margin-bottom:.4rem;font-size:.82rem;">${escA(tx)}</div>`; });
+  box.innerHTML = h + '</div>';
+  const sel = document.getElementById('adProgSubj');
+  if (sel) sel.onchange = () => { const f = sc.filter(v => !sel.value || v.subject === sel.value); document.getElementById('adProgChart').innerHTML = f.length ? chartA(f) : ''; };
+}
 </script>
 </body>
 </html>
