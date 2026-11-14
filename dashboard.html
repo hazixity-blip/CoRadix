@@ -169,6 +169,11 @@
         <div id="certContent"></div>
       </div>
 
+      <div class="panel" id="progPanel">
+        <h3>📊 My Progress</h3>
+        <div id="progBox"></div>
+      </div>
+
       <div class="panel">
         <h3>📈 Performance</h3>
         <div id="scoresList"></div>
@@ -608,6 +613,66 @@
     }
     initCollapsiblePanels();
 
+    /* ---------- Progress graph and suggestions ---------- */
+    function chartSvg(list) {
+      const W = 600, H = 220, L = 34, R = 12, T = 18, B = 28;
+      const x = i => list.length === 1 ? (L + (W - L - R) / 2) : L + i * (W - L - R) / (list.length - 1);
+      const y = p => T + (100 - p) * (H - T - B) / 100;
+      let s = `<svg viewBox="0 0 ${W} ${H}" style="width:100%;height:auto;display:block;">`;
+      [0, 25, 50, 75, 100].forEach(v => { s += `<line x1="${L}" x2="${W - R}" y1="${y(v)}" y2="${y(v)}" stroke="#e5e7eb"/><text x="${L - 6}" y="${y(v) + 4}" font-size="10" fill="#6b7280" text-anchor="end">${v}</text>`; });
+      s += `<line x1="${L}" x2="${W - R}" y1="${y(75)}" y2="${y(75)}" stroke="#16a34a" stroke-dasharray="4 4"/>`;
+      if (list.length > 1) s += `<polyline points="${list.map((p, i) => x(i) + ',' + y(p.pct)).join(' ')}" fill="none" stroke="#0057ff" stroke-width="2.5"/>`;
+      list.forEach((p, i) => {
+        s += `<circle cx="${x(i)}" cy="${y(p.pct)}" r="4.5" fill="#0057ff"><title>${mdEscape(p.subject)} · ${p.date}: ${p.pct}%</title></circle>`;
+        if (list.length <= 12) s += `<text x="${x(i)}" y="${y(p.pct) - 9}" font-size="10" fill="#1c1c1e" text-anchor="middle">${p.pct}%</text>`;
+      });
+      const f = dt => new Date(dt + 'T00:00:00').toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+      return s + `<text x="${L}" y="${H - 8}" font-size="10" fill="#6b7280">${f(list[0].date)}</text><text x="${W - R}" y="${H - 8}" font-size="10" fill="#6b7280" text-anchor="end">${f(list[list.length - 1].date)}</text></svg>`;
+    }
+    function renderProgress() {
+      const box = document.getElementById('progBox');
+      const sc = (window.__scores || []).filter(v => v.date).sort((a, b) => a.date.localeCompare(b.date));
+      const att = window.__att || [];
+      if (!sc.length) { box.innerHTML = '<div class="empty">Your progress graph will appear after your first test score. 🌱</div>'; return; }
+      const avgOf = l => l.reduce((n, v) => n + v.pct, 0) / l.length;
+      const avg = Math.round(avgOf(sc));
+      let trend = 'few', recent = 0, prev = 0;
+      if (sc.length >= 4) {
+        const k = Math.min(3, Math.floor(sc.length / 2));
+        recent = Math.round(avgOf(sc.slice(-k))); prev = Math.round(avgOf(sc.slice(-2 * k, -k)));
+        trend = recent - prev >= 5 ? 'up' : recent - prev <= -5 ? 'down' : 'flat';
+      }
+      const attPct = summarizeAttendance(att).overall;
+      const tp = []; att.forEach(e => [e.preTask, e.postTask].forEach(t => { if (ATT_POINTS.task[t] !== undefined) tp.push(ATT_POINTS.task[t]); }));
+      const taskPct = tp.length ? Math.round(tp.reduce((n, v) => n + v, 0) / tp.length * 100) : null;
+      const lowAtt = attPct !== null && attPct < 75, lowTask = taskPct !== null && taskPct < 60;
+      const msgs = [];
+      if (trend === 'up') msgs.push(['good', '📈', `Your scores are going up (${prev}% → ${recent}%). Keep it up, you are doing great!`]);
+      else if (trend === 'down') msgs.push(['warn', '📉', `Your recent scores (${recent}%) are a little lower than before (${prev}%). Don't worry, this happens to everyone. Revise the topics that felt hard and ask your tutor about them.`]);
+      else if (trend === 'flat') msgs.push(['info', '➡️', `Your scores are steady at about ${recent}%. A little extra practice can push them higher.`]);
+      else msgs.push(['info', '🌱', 'Add a few more test scores and we will show your trend here.']);
+      if (avg >= 85) msgs.push(['good', '🌟', `Excellent! Your average is ${avg}%. Keep up the great work!`]);
+      else if (avg >= 75) msgs.push(['good', '👏', `Strong work: your average is ${avg}%. Keep it up!`]);
+      else if (avg < 50) msgs.push(['warn', '💪', `Your average is ${avg}% right now. With a bit of extra help and regular revision, this can improve. Talk to your tutor about where you are stuck.`]);
+      if (attPct !== null) msgs.push(attPct >= 90 ? ['good', '✅', `Your attendance is ${attPct}%. Great consistency!`] : lowAtt ? ['warn', '📅', `Your attendance is ${attPct}%. Missing classes is one of the most common reasons for lower scores. Try to join every session.`] : ['info', '📅', `Your attendance is ${attPct}%. Joining every class will help even more.`]);
+      if (lowTask) msgs.push(['warn', '📝', `Only ${taskPct}% of your pre and post session tasks are done. Finishing them makes a big difference to marks.`]);
+      if (trend === 'down' || avg < 60) {
+        const why = [];
+        if (lowAtt) why.push('missed classes');
+        if (lowTask) why.push('unfinished tasks');
+        msgs.push(['info', '🔎', why.length ? `What may be behind this: ${why.join(' and ')}. Fixing ${why.length > 1 ? 'these' : 'this'} is the quickest way to improve.` : 'Your attendance and tasks look fine, so the topics themselves may be tricky. Tell your tutor which parts are confusing.']);
+      }
+      const subjects = [...new Set(sc.map(v => v.subject))].sort();
+      let h = '<div style="font-size:.78rem;color:var(--muted);margin-bottom:.4rem;">Test scores over time (dashed green line = 75%)</div>';
+      if (subjects.length > 1) h += '<select id="progSubj" style="width:100%;border:1px solid var(--border);border-radius:8px;padding:.5rem;font:inherit;font-size:.85rem;margin-bottom:.6rem;"><option value="">All subjects</option>' + subjects.map(v => `<option value="${mdEscape(v)}">${mdEscape(v)}</option>`).join('') + '</select>';
+      h += `<div id="progChart">${chartSvg(sc)}</div><div style="margin-top:.8rem;">`;
+      const col = { good: ['#f0fdf4', '#bbf7d0', '#166534'], warn: ['#fffbeb', '#fde68a', '#92400e'], info: ['var(--blue-light)', '#c7d7ff', 'var(--ink)'] };
+      msgs.forEach(([t, ic, tx]) => { h += `<div style="background:${col[t][0]};border:1px solid ${col[t][1]};color:${col[t][2]};border-radius:8px;padding:.6rem .8rem;margin-bottom:.5rem;font-size:.84rem;line-height:1.5;">${ic} ${mdEscape(tx)}</div>`; });
+      box.innerHTML = h + '</div>';
+      const sel = document.getElementById('progSubj');
+      if (sel) sel.onchange = () => { const f = sc.filter(v => !sel.value || v.subject === sel.value); document.getElementById('progChart').innerHTML = f.length ? chartSvg(f) : ''; };
+      setPanelOpen(document.getElementById('progPanel'), true);
+    }
     /* ---------- Level, badges and leaderboard ---------- */
     const BADGES = { first: ['🌟', 'First Class'], five: ['🎯', '5 Classes'], twenty: ['🏅', '20 Classes'], taskmaster: ['✅', 'Task Master'], ace: ['🏆', 'Ace Score'], streak3: ['🔥', '3-Week Streak'], streak8: ['🚀', '8-Week Streak'] };
     async function loadXp(uid) {
@@ -859,6 +924,7 @@ function weekGrid(box, ws, evs, todayKey, iso) {
         const entries = [];
         attSnap.forEach(doc => entries.push(doc.data()));
         entries.forEach(d => attList.appendChild(buildAttendanceRow(d)));
+        window.__att = entries;
         const sum = summarizeAttendance(entries);
         document.getElementById('attendancePct').textContent = sum.overall === null ? '—' : sum.overall + '%';
         document.getElementById('attBreakdown').textContent = sum.breakdown;
@@ -878,7 +944,7 @@ function weekGrid(box, ws, evs, todayKey, iso) {
         scSnap.forEach(doc => {
           const s = doc.data();
           const pct = s.max ? Math.round((s.score / s.max) * 100) : null;
-          if (pct !== null) { pctSum += pct; pctCount++; }
+          if (pct !== null) { pctSum += pct; pctCount++; (window.__scores = window.__scores || []).push({ date: s.date || '', pct, subject: s.testName === undefined ? 'General' : ((s.subject || '').trim() || 'General') }); }
           if (s.rating) { ratingSum += s.rating; ratingCount++; }
           const legacy = s.testName === undefined;   // older entries had one "subject / test name" box
           const subj = legacy ? 'General' : ((s.subject || '').trim() || 'General');
@@ -1175,6 +1241,7 @@ function weekGrid(box, ws, evs, todayKey, iso) {
         document.getElementById('feesList').innerHTML = '<div class="empty">Fees could not be loaded right now.</div>';
       }
 
+      renderProgress();
       await loadBooking(uid);
       await loadXp(uid);
       await loadMySuggestions(uid);
@@ -1200,7 +1267,7 @@ main{padding-bottom:6rem !important}
 <script>
 (function () {
   const TABS = [['home', '🏠', 'Home'], ['class', '📅', 'Classes'], ['learn', '📚', 'Learn'], ['prog', '📈', 'Progress']];
-  const KEYS = [['Feedback Forms', 'learn'], ['Fees', 'home'], ['Rewards', 'home'], ['Schedule', 'class'], ['Attendance', 'class'], ['Tasks', 'class'], ['Activities', 'learn'], ['Workflow', 'prog'], ['Certificate', 'prog'], ['Performance', 'prog'], ['Feedback', 'prog'], ['Materials', 'learn'], ['Assessments', 'learn']];
+  const KEYS = [['Feedback Forms', 'learn'], ['Fees', 'home'], ['Rewards', 'home'], ['My Progress', 'prog'], ['Schedule', 'class'], ['Attendance', 'class'], ['Tasks', 'class'], ['Activities', 'learn'], ['Workflow', 'prog'], ['Certificate', 'prog'], ['Performance', 'prog'], ['Feedback', 'prog'], ['Materials', 'learn'], ['Assessments', 'learn']];
   const items = [];
   ['skillBadgeWrap', 'feeBanner', 'statsGrid'].forEach(id => { const el = document.getElementById(id); if (el) items.push([el, 'home']); });
   document.querySelectorAll('#appRoot main .panel').forEach(p => {
